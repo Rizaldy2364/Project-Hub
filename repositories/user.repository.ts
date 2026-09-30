@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { profileUserSelect } from "@/lib/selects/user.select";
+import type { GenderValue } from "@/types";
 
 export interface CreateUserInput {
   name: string;
@@ -11,6 +13,17 @@ export interface UpdateUserInput {
   bio?: string | null;
   avatarUrl?: string;
   password?: string;
+  // Detail profil (Personal Information)
+  headline?: string | null;
+  company?: string | null;
+  location?: string | null;
+  website?: string | null;
+  githubUrl?: string | null;
+  linkedinUrl?: string | null;
+  birthDate?: Date | null;
+  gender?: GenderValue | null;
+  skills?: string[];
+  languages?: string[];
 }
 
 export interface ProfileUser {
@@ -20,6 +33,16 @@ export interface ProfileUser {
   avatarUrl: string | null;
   bio: string | null;
   coverGradient: string | null;
+  headline: string | null;
+  company: string | null;
+  location: string | null;
+  website: string | null;
+  githubUrl: string | null;
+  linkedinUrl: string | null;
+  birthDate: Date | null;
+  gender: GenderValue | null;
+  skills: string[];
+  languages: string[];
 }
 
 // CREATE
@@ -37,24 +60,10 @@ export async function findUserById(id: string) {
 }
 
 export async function findProfileUserById(id: string): Promise<ProfileUser | null> {
-  const user = await prisma.user.findUnique({
+  return prisma.user.findUnique({
     where: { id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      avatarUrl: true,
-      bio: true,
-    },
+    select: profileUserSelect,
   });
-
-  if (!user) return null;
-
-  const [cover] = await prisma.$queryRaw<{ coverGradient: string | null }[]>`
-    SELECT "coverGradient" FROM "User" WHERE "id" = ${id}
-  `;
-
-  return { ...user, coverGradient: cover?.coverGradient ?? null };
 }
 
 export async function findUserByEmail(email: string) {
@@ -71,15 +80,16 @@ export async function updateUser(id: string, data: UpdateUserInput) {
   });
 }
 
+export async function updateUserCoverGradient(id: string, coverGradient: string) {
+  return prisma.user.update({
+    where: { id },
+    data: { coverGradient },
+  });
+}
+
 // DELETE (hard delete — User tidak pakai soft delete)
 export async function deleteUser(id: string) {
   return prisma.user.delete({
     where: { id },
   });
-}
-
-export async function updateUserCoverGradient(id: string, coverGradient: string) {
-  return prisma.$executeRaw`
-    UPDATE "User" SET "coverGradient" = ${coverGradient} WHERE "id" = ${id}
-  `;
 }

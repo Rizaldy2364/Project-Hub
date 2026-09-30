@@ -33,8 +33,25 @@ export default async function ProfilePage() {
         coverGradient={user.coverGradient}
         projectCount={metrics.projectCount}
         adminRoleCount={metrics.adminRoleCount}
+        headline={user.headline}
+        location={user.location}
       />
-      <ProfileDetails name={user.name} email={user.email} bio={user.bio} projects={metrics.projects} />
+      <ProfileDetails
+        name={user.name}
+        email={user.email}
+        bio={user.bio}
+        projects={metrics.projects}
+        headline={user.headline}
+        company={user.company}
+        location={user.location}
+        website={user.website}
+        githubUrl={user.githubUrl}
+        linkedinUrl={user.linkedinUrl}
+        birthDate={user.birthDate ? user.birthDate.toISOString() : null}
+        gender={user.gender}
+        skills={user.skills}
+        languages={user.languages}
+      />
     </div>
   );
 }

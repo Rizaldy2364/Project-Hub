@@ -4,15 +4,41 @@ import { useState, useTransition, type ReactNode } from "react";
 import { BadgeCheck, Building2, Mail, Pencil, Trash2, UserRound } from "lucide-react";
 import { updateBioAction, updateNameAction } from "@/actions/user.actions";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { PersonalInfoSection } from "@/components/profile/personal-info-section";
 
 interface ProfileDetailsProps {
   name: string;
   email: string;
   bio: string | null;
   projects: { id: string; name: string; role: "ADMIN" | "MEMBER"; memberCount: number }[];
+  headline: string | null;
+  company: string | null;
+  location: string | null;
+  website: string | null;
+  githubUrl: string | null;
+  linkedinUrl: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  skills: string[];
+  languages: string[];
 }
 
-export function ProfileDetails({ name, email, bio, projects }: ProfileDetailsProps) {
+export function ProfileDetails({
+  name,
+  email,
+  bio,
+  projects,
+  headline,
+  company,
+  location,
+  website,
+  githubUrl,
+  linkedinUrl,
+  birthDate,
+  gender,
+  skills,
+  languages,
+}: ProfileDetailsProps) {
   const [isBioDialogOpen, setIsBioDialogOpen] = useState(false);
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
   const [nameDraft, setNameDraft] = useState(name);
@@ -61,7 +87,7 @@ export function ProfileDetails({ name, email, bio, projects }: ProfileDetailsPro
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+    <div className="space-y-5">
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div><h2 className="text-base font-bold text-slate-950 dark:text-white">Personal Information</h2><p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your public profile details and bio.</p></div>
@@ -98,6 +124,19 @@ export function ProfileDetails({ name, email, bio, projects }: ProfileDetailsPro
             <dd className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">{bio || "Add a short bio to introduce yourself and your responsibilities to project members."}</dd>
           </div>
         </dl>
+
+        <PersonalInfoSection
+          headline={headline}
+          company={company}
+          location={location}
+          website={website}
+          githubUrl={githubUrl}
+          linkedinUrl={linkedinUrl}
+          birthDate={birthDate}
+          gender={gender}
+          skills={skills}
+          languages={languages}
+        />
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">

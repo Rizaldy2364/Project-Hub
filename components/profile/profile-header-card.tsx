@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { BadgeCheck, Camera, Check, CloudUpload, FolderKanban, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Camera, Check, CloudUpload, FolderKanban, MapPin, ShieldCheck } from "lucide-react";
 import { updateCoverGradientAction } from "@/actions/user.actions";
 import { coverGradients, isCoverGradient, type CoverGradient } from "@/lib/cover-gradients";
 import { useUploadThing } from "@/lib/uploadthing";
@@ -15,9 +15,11 @@ interface ProfileHeaderCardProps {
   coverGradient?: string | null;
   projectCount: number;
   adminRoleCount: number;
+  headline?: string | null;
+  location?: string | null;
 }
 
-export function ProfileHeaderCard({ name, email, image, coverGradient, projectCount, adminRoleCount }: ProfileHeaderCardProps) {
+export function ProfileHeaderCard({ name, email, image, coverGradient, projectCount, adminRoleCount, headline, location }: ProfileHeaderCardProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const providedGradient = coverGradient ?? "";
@@ -88,11 +90,20 @@ export function ProfileHeaderCard({ name, email, image, coverGradient, projectCo
                 <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">{name}</h1>
                 <BadgeCheck className="h-5 w-5 fill-blue-100 text-blue-600 dark:fill-blue-500/25 dark:text-blue-300" aria-label="Verified account" />
               </div>
+              {headline && (
+                <p className="mt-1 text-sm font-semibold text-slate-600 dark:text-slate-300">{headline}</p>
+              )}
               <div className="mt-2 flex flex-wrap items-center gap-2.5 text-sm">
                 <span className="inline-flex max-w-full items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                   <span className="font-bold text-[#4285F4]" aria-hidden="true">G</span>
                   <span className="truncate">{email}</span>
                 </span>
+                {location && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {location}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400"><span className="h-2 w-2 rounded-full bg-emerald-500" />Active today</span>
               </div>
             </div>

@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { loginAction } from "@/actions/user.actions";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,22 +16,14 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-
-    const result = await signIn("credentials", {
-      email: formData.get("email"),
-      password: formData.get("password"),
-      redirect: false,
-    });
-
+    const result = await loginAction(formData);
     setIsSubmitting(false);
 
+    // Jika result ada (berarti ada error), tampilkan.
+    // Jika result undefined (sukses), loginAction sudah melempar NEXT_REDIRECT.
     if (result?.error) {
-      setError("Email atau password salah");
-      return;
+      setError(result.error);
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (

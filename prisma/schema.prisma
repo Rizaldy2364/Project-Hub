@@ -20,12 +20,32 @@ model User {
   avatarUrl     String?
   bio           String?
   coverGradient String?
+
+  // Detail profil (Personal Information)
+  headline    String?   // jabatan / headline singkat
+  company     String?   // perusahaan / kampus
+  location    String?   // kota / negara
+  website     String?   // website atau portofolio
+  githubUrl   String?
+  linkedinUrl String?
+  birthDate   DateTime? // tanggal lahir, umur dihitung dari sini
+  gender      Gender?
+  skills      String[]  @default([])
+  languages   String[]  @default([])
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   memberships   ProjectMember[]
   assignedTasks Task[]    @relation("TaskAssignee")
   comments      Comment[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNDISCLOSED
 }
 
 model Project {

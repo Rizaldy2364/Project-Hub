@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { findProjectBoardById } from "@/repositories/project.repository";
-import { KanbanBoardTab, type BoardTask } from "@/components/project/kanban-board-tab";
+import { KanbanBoardTab } from "@/components/project/kanban-board-tab";
+import type { BoardTask } from "@/types";
 
 interface ProjectBoardPageProps {
   params: Promise<{ projectId: string }>;
@@ -22,5 +23,39 @@ export default async function ProjectBoardPage({ params }: ProjectBoardPageProps
     labels: task.labels, commentCount: task._count.comments,
   }));
 
-  return <KanbanBoardTab project={{ id: project.id, name: project.name, joinCode: project.joinCode, createdAt: project.createdAt.toISOString(), role: membership.role, lists: project.lists.map((list) => ({ id: list.id, name: list.name })), labels: project.labels, members: project.members.map((m) => ({ id: m.user.id, name: m.user.name, email: m.user.email, avatarUrl: m.user.avatarUrl, role: m.role })), tasks }} />;
+  return (
+    <div className="mx-auto max-w-6xl">
+      <KanbanBoardTab
+        project={{
+          id: project.id,
+          name: project.name,
+          joinCode: project.joinCode,
+          createdAt: project.createdAt.toISOString(),
+          role: membership.role,
+          lists: project.lists.map((list) => ({ id: list.id, name: list.name })),
+          labels: project.labels,
+          members: project.members.map((m) => ({
+            id: m.user.id,
+            name: m.user.name,
+            email: m.user.email,
+            avatarUrl: m.user.avatarUrl,
+            role: m.role,
+            bio: m.user.bio,
+            coverGradient: m.user.coverGradient,
+            headline: m.user.headline,
+            company: m.user.company,
+            location: m.user.location,
+            website: m.user.website,
+            githubUrl: m.user.githubUrl,
+            linkedinUrl: m.user.linkedinUrl,
+            birthDate: m.user.birthDate ? m.user.birthDate.toISOString() : null,
+            gender: m.user.gender,
+            skills: m.user.skills,
+            languages: m.user.languages,
+          })),
+          tasks,
+        }}
+      />
+    </div>
+  );
 }

@@ -1,4 +1,5 @@
 import type { Prisma } from "@/app/generated/prisma/client";
+import { profileUserSelect } from "@/lib/selects/user.select";
 
 export const projectBoardSelect = {
   id: true,
@@ -10,7 +11,7 @@ export const projectBoardSelect = {
     select: {
       userId: true,
       role: true,
-      user: { select: { id: true, name: true, email: true, avatarUrl: true } },
+      user: { select: profileUserSelect },
     },
   },
   labels: {
