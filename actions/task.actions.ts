@@ -7,7 +7,7 @@ import {
   updateTaskSchema,
 } from "@/lib/validations/task.schema";
 import { findProjectMember } from "@/repositories/project.repository";
-import { findTaskListById } from "@/repositories/list.repository";
+import { ensureDefaultTaskLists, findTaskListById, findTaskListByProjectAndName } from "@/repositories/list.repository";
 import {
   createTask,
   updateTask,
@@ -33,12 +33,28 @@ export async function createTaskAction(formData: FormData) {
   const session = await auth();
   if (!session) return { error: "Unauthorized" };
 
+  const projectId = formData.get("projectId");
+  if (typeof projectId !== "string") return { error: "Project tidak valid" };
+
+  const member = await findProjectMember(session.user.id, projectId);
+  if (!member || member.role !== "ADMIN") {
+    return { error: "Hanya admin yang boleh membuat task" };
+  }
+
+  await ensureDefaultTaskLists({ projectId });
+  const status = formData.get("status");
+  const listName = status === "IN_PROGRESS" ? "In Progress" : status === "DONE" ? "Done" : "To Do";
+  const targetList = await findTaskListByProjectAndName(projectId, listName);
+  if (!targetList) return { error: "Kolom task tidak ditemukan" };
+
   const parsed = createTaskSchema.safeParse({
     title: formData.get("title"),
     description: formData.get("description") || undefined,
     dueDate: formData.get("dueDate") || undefined,
-    listId: formData.get("listId"),
+    listId: targetList.id,
     assigneeId: formData.get("assigneeId") || undefined,
+    status: status || "TODO",
+    labelIds: formData.getAll("labelIds").filter((id): id is string => typeof id === "string"),
   });
 
   if (!parsed.success) {
@@ -51,6 +67,8 @@ export async function createTaskAction(formData: FormData) {
   );
   if ("error" in check) return { error: check.error };
 
+  if (check.projectId !== projectId) return { error: "Kolom task tidak sesuai dengan project" };
+
   const currentCount = await countTasksByListId(parsed.data.listId);
 
   const task = await createTask({
@@ -59,6 +77,8 @@ export async function createTaskAction(formData: FormData) {
     dueDate: parsed.data.dueDate,
     listId: parsed.data.listId,
     assigneeId: parsed.data.assigneeId,
+    status: parsed.data.status,
+    labelIds: parsed.data.labelIds,
     order: currentCount,
   });
 

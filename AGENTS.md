@@ -24,6 +24,8 @@ Aplikasi manajemen tugas berbasis board (mirip Trello versi mini), full-stack, d
 | State management | React `useState` bawaan + `revalidatePath` (tanpa Zustand/React Query/SWR) |
 | Theme | `next-themes` (dark/light mode, strategi `class`) |
 | Upload File | UploadThing (`uploadthing` + `@uploadthing/react`) — untuk foto profil, token via `UPLOADTHING_TOKEN` di `.env` |
+| Modal/Dialog | `@radix-ui/react-dialog` (primitive tanpa styling bawaan), di-style manual pakai Tailwind lewat wrapper `components/ui/dialog.tsx` — BUKAN full shadcn/ui CLI |
+| Font | Plus Jakarta Sans lewat `next/font/google` (variabel CSS `--font-jakarta`), di-set langsung di `body` pada `globals.css`. JANGAN kembali ke `font-family: Arial` bawaan template |
 
 **Aturan penting:** Jangan menambahkan library state management (Zustand, Redux, React Query) kecuali diminta eksplisit. Prioritaskan pola Server Actions + `revalidatePath` untuk sinkronisasi data.
 
@@ -285,7 +287,7 @@ Dashboard → dua aksi utama:
    ├─ Buat Project → auto jadi ADMIN + generate joinCode unik (8 karakter)
    └─ Gabung Project → input joinCode → jadi MEMBER (jika valid)
    ↓
-middleware.ts memproteksi semua route di dalam (dashboard)/*
+proxy.ts memproteksi semua route di dalam (dashboard)/*
    ↓
 Setiap akses ke project tertentu: cek ulang apakah user adalah member project ini,
 dan apa role-nya (untuk menentukan izin aksi, misal hapus project = admin only)
@@ -383,7 +385,7 @@ project-management-app/
 ├── types/
 │   └── index.ts
 │
-├── middleware.ts                # Proteksi route (dashboard)/*
+├── proxy.ts                    # Proteksi route (dashboard)/*
 ├── public/
 ├── .env
 ├── next.config.js
@@ -392,7 +394,7 @@ project-management-app/
 └── package.json
 ```
 
-**Catatan:** project ini TIDAK memakai folder `src/` — semua folder (`app/`, `actions/`, `repositories/`, `components/`, `lib/`, `types/`, `middleware.ts`) berada langsung di root project.
+**Catatan:** project ini TIDAK memakai folder `src/` — semua folder (`app/`, `actions/`, `repositories/`, `components/`, `lib/`, `types/`, `proxy.ts`) berada langsung di root project.
 
 ## 10. Roadmap Pengerjaan (Backend Dulu)
 
@@ -402,7 +404,7 @@ project-management-app/
 | 2 | Prisma schema lengkap (termasuk field `deletedAt`) + `pnpm prisma migrate dev` |
 | 3 | `lib/prisma.ts` (PrismaClient + driver adapter `PrismaPg`), `lib/utils.ts` (generateJoinCode, dll) |
 | 4 | Auth — NextAuth config + Server Action register/login |
-| 5 | `middleware.ts` — proteksi route dashboard |
+| 5 | `proxy.ts` — proteksi route dashboard |
 | 6 | Project: create + join + regenerate code + rate limiting + cek duplikat member |
 | 7 | List & Task CRUD (repository → action) |
 | 8 | Label & Comment |
@@ -423,6 +425,11 @@ File yang wajib ada:
 `.env` wajib punya `UPLOADTHING_TOKEN` (bukan `UPLOADTHING_SECRET` — itu nama variabel versi lama).
 
 ## 11. Catatan untuk AI Agent
+
+- Project ini pakai Next.js 16, yang mengganti nama konvensi file `middleware.ts` menjadi `proxy.ts` (export function-nya juga berubah dari `middleware` menjadi `proxy`). Selalu gunakan nama `proxy.ts`, JANGAN buat `middleware.ts`.
+- Data dashboard memakai tipe `DashboardProject` (`types/index.ts`) dan select `projectDashboardSelect` (`lib/selects/project.select.ts`). `joinCode` HANYA dikirim ke client bila role user di project itu `ADMIN` (dipastikan di `findDashboardProjectsByUserId`, jangan dipindah ke client).
+- Layout dashboard: top navbar sticky (hanya brand di kiri dan `ThemeToggle` berbentuk pill Sun/Moon di pojok kanan, TANPA tombol Buat) + sidebar kiri (hidden di bawah `lg`). Sidebar berisi tombol Buat/Gabung project, `SidebarNav`, dan di paling bawah `SidebarUser` (kartu user + "Profil Saya" + "Keluar"). Karena sidebar tersembunyi di layar kecil, navbar menampilkan avatar + tombol keluar khusus `lg:hidden` sebagai fallback. Logout lewat `logoutAction` di `actions/user.actions.ts`. Modal create/join project menerima prop `className` dan `children` agar trigger-nya bisa dipakai ulang di sidebar dan hero banner.
+- Elemen UI yang SENGAJA TIDAK ADA karena tidak didukung backend (jangan ditambahkan sebagai UI dummy/hardcode): workspace selector, global search ⌘K, notifikasi, storage meter, kategori/status/deadline project, menu My Tasks / Team Members / Analytics. Status project di kartu adalah turunan dari progres task, bukan field database.
 
 - Ikuti urutan roadmap di atas kecuali user meminta lompat tahap.
 - Setiap kali membuat fungsi di `actions/`, WAJIB validasi dengan Zod schema dari `lib/validations/` sebelum memanggil `repositories/`.

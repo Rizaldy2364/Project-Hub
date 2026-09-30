@@ -15,5 +15,8 @@ export const changePasswordSchema = z.object({
     .regex(/[0-9]/, "Harus ada angka"),
 });
 
+export const coverGradientSchema = z.enum(["indigo", "ocean", "sunset", "forest"]);
+
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type CoverGradientInput = z.infer<typeof coverGradientSchema>;

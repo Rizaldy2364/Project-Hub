@@ -2,12 +2,13 @@
 
 import bcrypt from "bcryptjs";
 import { registerSchema } from "@/lib/validations/auth.schema";
-import { createUser, findUserByEmail, updateUser, findUserById  } from "@/repositories/user.repository";
+import { createUser, findUserByEmail, updateUser, findUserById, updateUserCoverGradient } from "@/repositories/user.repository";
 import {
   updateProfileSchema,
   changePasswordSchema,
+  coverGradientSchema,
 } from "@/lib/validations/user.schema";
-import { auth } from "@/lib/auth";
+import { auth, signOut } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export async function registerUser(formData: FormData) {
@@ -91,5 +92,47 @@ export async function changePasswordAction(formData: FormData) {
   const hashedNewPassword = await bcrypt.hash(parsed.data.newPassword, 10);
   await updateUser(session.user.id, { password: hashedNewPassword });
 
+  return { success: true };
+}
+
+export async function logoutAction() {
+  await signOut({ redirectTo: "/login" });
+}
+
+export async function updateCoverGradientAction(gradient: string) {
+  const session = await auth();
+  if (!session) return { error: "Unauthorized" };
+  const parsed = coverGradientSchema.safeParse(gradient);
+  if (!parsed.success) return { error: "Gradient tidak valid" };
+
+  await updateUserCoverGradient(session.user.id, parsed.data);
+  revalidatePath("/profile");
+  return { success: true };
+}
+
+export async function updateBioAction(formData: FormData) {
+  const session = await auth();
+  if (!session) return { error: "Unauthorized" };
+
+  const bio = formData.get("bio");
+  if (typeof bio !== "string") return { error: "Bio tidak valid" };
+
+  const parsed = updateProfileSchema.shape.bio.safeParse(bio);
+  if (!parsed.success) return { error: "Bio maksimal 160 karakter" };
+
+  await updateUser(session.user.id, { bio: bio.trim() || null });
+  revalidatePath("/profile");
+  return { success: true };
+}
+
+export async function updateNameAction(formData: FormData) {
+  const session = await auth();
+  if (!session) return { error: "Unauthorized" };
+
+  const parsed = updateProfileSchema.shape.name.safeParse(formData.get("name"));
+  if (!parsed.success) return { error: "Nama harus berisi 2 sampai 50 karakter" };
+
+  await updateUser(session.user.id, { name: parsed.data });
+  revalidatePath("/profile", "layout");
   return { success: true };
 }

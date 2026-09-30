@@ -6,6 +6,8 @@ export interface CreateTaskInput {
   dueDate?: Date;
   listId: string;
   assigneeId?: string;
+  status?: "TODO" | "IN_PROGRESS" | "DONE";
+  labelIds?: string[];
   order: number;
 }
 
@@ -28,7 +30,16 @@ export interface TaskFilterParams {
 // CREATE
 export async function createTask(data: CreateTaskInput) {
   return prisma.task.create({
-    data,
+    data: {
+      title: data.title,
+      description: data.description,
+      dueDate: data.dueDate,
+      listId: data.listId,
+      assigneeId: data.assigneeId,
+      status: data.status,
+      order: data.order,
+      ...(data.labelIds?.length && { labels: { connect: data.labelIds.map((id) => ({ id })) } }),
+    },
   });
 }
 
@@ -119,4 +130,24 @@ export async function softDeleteTask(id: string) {
     where: { id },
     data: { deletedAt: new Date() },
   });
+}
+
+//hitung task yang di tugaskan ke user 
+export async function countAssignedTasks(userId: string) {
+  const activeScope = {
+    assigneeId: userId,
+    deletedAt: null,
+    list: { deletedAt: null, project: { deletedAt: null } },
+  };
+
+  const [pending, done] = await Promise.all([
+    prisma.task.count({
+      where: { ...activeScope, status: { not: "DONE" as const } },
+    }),
+    prisma.task.count({
+      where: { ...activeScope, status: "DONE" as const },
+    }),
+  ]);
+
+  return { pending, done };
 }

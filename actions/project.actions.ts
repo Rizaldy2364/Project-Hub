@@ -17,6 +17,7 @@ import {
   softDeleteProject,
   updateProject,
 } from "@/repositories/project.repository";
+import { ensureDefaultTaskLists } from "@/repositories/list.repository";
 
 // CREATE PROJECT
 export async function createProjectAction(formData: FormData) {
@@ -37,6 +38,7 @@ export async function createProjectAction(formData: FormData) {
     description: parsed.data.description,
     ownerId: session.user.id,
   });
+  await ensureDefaultTaskLists({ projectId: project.id });
 
   revalidatePath("/dashboard");
   return { success: true, projectId: project.id };

@@ -11,6 +11,8 @@ export const createTaskSchema = z.object({
   dueDate: z.coerce.date().optional(),
   listId: z.string().cuid(),
   assigneeId: z.string().cuid().optional(),
+  status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).default("TODO"),
+  labelIds: z.array(z.string().cuid()).default([]),
 });
 
 export const updateTaskSchema = z.object({
