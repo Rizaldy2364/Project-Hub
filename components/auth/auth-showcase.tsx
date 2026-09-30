@@ -9,14 +9,14 @@ const slides = [
     title: "Kanban Board Tanpa Ribet",
     description:
       "Visualisasikan alur kerja, pindahkan task dengan mudah, dan tingkatkan produktivitas tim secara real-time.",
-    gradient: "from-indigo-600 via-indigo-700 to-slate-900",
+    gradient: "from-blue-600 via-blue-700 to-slate-900",
   },
   {
     icon: Users,
     title: "Onboarding Tim Instan",
     description:
       "Undang rekan tim langsung pakai kode join 8-karakter, tanpa setup yang ribet.",
-    gradient: "from-emerald-600 via-teal-700 to-zinc-900",
+    gradient: "from-emerald-600 via-teal-700 to-slate-900",
   },
   {
     icon: Tags,
@@ -52,7 +52,7 @@ export function AuthShowcase() {
         {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-            <FolderKanban className="w-5 h-5 text-indigo-600" />
+            <FolderKanban className="w-5 h-5 text-blue-600" />
           </div>
           <span className="text-white font-bold text-lg tracking-tight">ProjectHub</span>
         </div>

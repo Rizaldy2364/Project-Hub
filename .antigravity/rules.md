@@ -6,4 +6,9 @@
   1. Buat kode komponen yang modular, clean, dan reusable.
   2. Utamakan aksesibilitas (WCAG / ARIA tags).
   3. Gunakan Tailwind CSS untuk styling responsif (Mobile-first).
+- **Gunakan tema warna**:
+  Light Mode :
+  → putih + abu-abu + biru
+  Dark Mode :
+  → navy + slate + biru
 - **Verifikasi**: Sebelum menyelesaikan tugas, pastikan untuk memeriksa error syntax atau jalankan linter di terminal.

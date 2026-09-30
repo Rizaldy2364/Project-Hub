@@ -16,6 +16,7 @@ import {
   regenerateProjectJoinCode,
   softDeleteProject,
   updateProject,
+  removeProjectMember,
 } from "@/repositories/project.repository";
 import { ensureDefaultTaskLists } from "@/repositories/list.repository";
 
@@ -136,5 +137,26 @@ export async function deleteProjectAction(projectId: string) {
 
   await softDeleteProject(projectId);
   revalidatePath("/dashboard");
+  return { success: true };
+}
+
+
+// REMOVE MEMBER (Admin only)
+export async function removeProjectMemberAction(projectId: string, targetUserId: string) {
+  const session = await auth();
+  if (!session) return { error: "Unauthorized" };
+
+  const member = await findProjectMember(session.user.id, projectId);
+  if (!member || member.role !== "ADMIN") {
+    return { error: "Hanya admin yang boleh menendang member" };
+  }
+
+  // Admin cant kick themselves here, or maybe they can? Safest to prevent.
+  if (session.user.id === targetUserId) {
+    return { error: "Anda tidak bisa menendang diri sendiri" };
+  }
+
+  await removeProjectMember(targetUserId, projectId);
+  revalidatePath(`/projects/${projectId}`);
   return { success: true };
 }

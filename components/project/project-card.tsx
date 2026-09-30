@@ -11,7 +11,7 @@ function getStatus(total: number, done: number) {
   if (total === 0) {
     return {
       label: "Belum ada task",
-      className: "bg-slate-100 text-slate-500 dark:bg-zinc-800 dark:text-slate-400",
+      className: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
     };
   }
   if (done === total) {
@@ -43,7 +43,7 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
   return (
     <article
       className={cn(
-        "group relative flex flex-col gap-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all",
+        "group relative flex flex-col gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all",
         isList && "md:flex-row md:items-center md:gap-6"
       )}
     >
@@ -59,8 +59,8 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
             className={cn(
               "px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide",
               project.role === "ADMIN"
-                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
-                : "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-slate-300"
+                ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
             )}
           >
             {project.role}
@@ -103,11 +103,11 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
             {percent}%
           </span>
         </div>
-        <div className="h-2 rounded-full bg-slate-100 dark:bg-zinc-800 overflow-hidden">
+        <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
           <div
             className={cn(
               "h-full rounded-full transition-all duration-500",
-              percent === 100 ? "bg-emerald-500" : "bg-indigo-600"
+              percent === 100 ? "bg-emerald-500" : "bg-blue-600"
             )}
             style={{ width: `${percent}%` }}
           />
@@ -129,13 +129,13 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
               image={member.avatarUrl}
               size="sm"
               className={cn(
-                "ring-2 ring-white dark:ring-zinc-900",
+                "ring-2 ring-white dark:ring-slate-900",
                 i > 0 && "-ml-2"
               )}
             />
           ))}
           {extraMembers > 0 && (
-            <span className="-ml-2 w-8 h-8 rounded-full ring-2 ring-white dark:ring-zinc-900 bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 text-xs font-semibold flex items-center justify-center">
+            <span className="-ml-2 w-8 h-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold flex items-center justify-center">
               +{extraMembers}
             </span>
           )}

@@ -17,7 +17,7 @@ export function ThemeToggle() {
   useEffect(() => setMounted(true), []);
 
   return (
-    <div className="flex items-center gap-1 rounded-full border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-1">
+    <div className="flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1">
       {options.map(({ value, icon: Icon, label }) => {
         const active = mounted && resolvedTheme === value;
         return (
@@ -31,7 +31,7 @@ export function ThemeToggle() {
             className={cn(
               "w-9 h-8 rounded-full flex items-center justify-center transition-colors",
               active
-                ? "bg-slate-100 text-indigo-600 dark:bg-zinc-800 dark:text-indigo-300"
+                ? "bg-slate-100 text-blue-600 dark:bg-slate-800 dark:text-blue-300"
                 : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             )}
           >

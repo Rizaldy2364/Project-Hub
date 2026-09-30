@@ -18,7 +18,7 @@ export function SidebarUser({ name, email, image }: SidebarUserProps) {
   const profileActive = pathname.startsWith("/profile");
 
   return (
-    <div className="border-t border-slate-200 dark:border-zinc-800">
+    <div className="border-t border-slate-200 dark:border-slate-800">
       <div className="flex items-center gap-3 px-4 py-4">
         <UserAvatar name={name} image={image} className="rounded-xl" />
         <div className="min-w-0">
@@ -37,7 +37,7 @@ export function SidebarUser({ name, email, image }: SidebarUserProps) {
           className={cn(
             "flex items-center gap-3 rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider transition-colors",
             profileActive
-              ? "text-indigo-600 dark:text-indigo-300"
+              ? "text-blue-600 dark:text-blue-300"
               : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           )}
         >
