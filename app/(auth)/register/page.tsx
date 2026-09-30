@@ -58,7 +58,7 @@ export default function RegisterPage() {
               name="name"
               type="text"
               placeholder="John Doe"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-shadow"
             />
           </div>
           {errors.name && (
@@ -76,7 +76,7 @@ export default function RegisterPage() {
               name="email"
               type="email"
               placeholder="nama@company.com"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-shadow"
             />
           </div>
           {errors.email && (
@@ -94,7 +94,7 @@ export default function RegisterPage() {
               name="password"
               type={showPassword ? "text" : "password"}
               placeholder="Masukkan password"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-shadow"
             />
             <button
               type="button"
@@ -122,7 +122,7 @@ export default function RegisterPage() {
               name="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               placeholder="Ulangi password"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-shadow"
             />
             <button
               type="button"
@@ -149,7 +149,7 @@ export default function RegisterPage() {
 
       <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
         Sudah punya akun?{" "}
-        <Link href="/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+        <Link href="/login" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
           Masuk di sini
         </Link>
       </p>

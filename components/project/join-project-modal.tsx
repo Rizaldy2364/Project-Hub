@@ -42,7 +42,7 @@ export function JoinProjectModal({ className, children }: JoinProjectModalProps)
           type="button"
           className={
             className ??
-            "flex items-center gap-2 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+            "flex items-center gap-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           }
         >
           {children ?? (
@@ -64,7 +64,7 @@ export function JoinProjectModal({ className, children }: JoinProjectModalProps)
               type="text"
               placeholder="X7K9M2QP"
               maxLength={8}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none uppercase tracking-widest text-center font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none uppercase tracking-widest text-center font-mono"
             />
             <p className="text-xs text-slate-400 mt-1.5">
               Minta kode 8-karakter ini dari admin project
@@ -74,7 +74,7 @@ export function JoinProjectModal({ className, children }: JoinProjectModalProps)
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-indigo-600 text-white rounded-xl py-2.5 font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            className="w-full bg-blue-600 text-white rounded-xl py-2.5 font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? "Bergabung..." : "Gabung Project"}
           </button>

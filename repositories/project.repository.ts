@@ -207,3 +207,15 @@ export async function restoreProject(projectId: string) {
     data: { deletedAt: null },
   });
 }
+
+
+export async function removeProjectMember(userId: string, projectId: string) {
+  return prisma.projectMember.delete({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId,
+      },
+    },
+  });
+}

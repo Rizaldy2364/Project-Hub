@@ -37,9 +37,9 @@ export function ProjectsExplorer({ projects }: { projects: DashboardProject[] })
 
   if (projects.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 dark:border-zinc-700 py-16 text-center">
-        <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-4">
-          <FolderKanban className="w-6 h-6 text-indigo-600 dark:text-indigo-300" />
+      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 py-16 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center mb-4">
+          <FolderKanban className="w-6 h-6 text-blue-600 dark:text-blue-300" />
         </div>
         <h3 className="font-semibold text-slate-900 dark:text-white">
           Belum ada project
@@ -82,8 +82,8 @@ export function ProjectsExplorer({ projects }: { projects: DashboardProject[] })
               className={cn(
                 "px-3.5 py-2 rounded-full text-sm font-medium transition-colors",
                 roleFilter === pill.key
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-800"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
               )}
             >
               {pill.label}
@@ -99,7 +99,7 @@ export function ProjectsExplorer({ projects }: { projects: DashboardProject[] })
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Cari nama project..."
-              className="w-full sm:w-56 pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none"
+              className="w-full sm:w-56 pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
             />
           </div>
 
@@ -107,7 +107,7 @@ export function ProjectsExplorer({ projects }: { projects: DashboardProject[] })
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none"
+              className="appearance-none pl-3 pr-8 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none"
             >
               <option value="recent">Terbaru dibuat</option>
               <option value="name">Nama A–Z</option>
@@ -116,7 +116,7 @@ export function ProjectsExplorer({ projects }: { projects: DashboardProject[] })
             <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           </div>
 
-          <div className="flex rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-0.5">
+          <div className="flex rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-0.5">
             {(
               [
                 { key: "grid", icon: LayoutGrid, label: "Tampilan grid" },
@@ -131,7 +131,7 @@ export function ProjectsExplorer({ projects }: { projects: DashboardProject[] })
                 className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
                   view === key
-                    ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300"
+                    ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
                     : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 )}
               >

@@ -9,7 +9,7 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
       <AuthShowcase />
-      <div className="relative flex items-center justify-center px-6 py-12 lg:px-16 bg-white dark:bg-zinc-950">
+      <div className="relative flex items-center justify-center px-6 py-12 lg:px-16 bg-white dark:bg-slate-950">
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>

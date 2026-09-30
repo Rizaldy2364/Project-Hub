@@ -56,7 +56,7 @@ export default function LoginPage() {
               name="email"
               type="email"
               placeholder="nama@company.com"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-shadow"
             />
           </div>
         </div>
@@ -71,7 +71,7 @@ export default function LoginPage() {
               name="password"
               type={showPassword ? "text" : "password"}
               placeholder="Masukkan password"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-none transition-shadow"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-shadow"
             />
             <button
               type="button"
@@ -97,7 +97,7 @@ export default function LoginPage() {
 
       <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-6">
         Belum punya akun?{" "}
-        <Link href="/register" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+        <Link href="/register" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
           Daftar sekarang
         </Link>
       </p>

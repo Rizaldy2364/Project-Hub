@@ -32,7 +32,7 @@ export function HeroBanner({ name, stats }: HeroBannerProps) {
   ];
 
   return (
-    <section className="rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-700 p-6 lg:p-8 text-white shadow-sm">
+    <section className="rounded-3xl bg-gradient-to-br from-blue-600 via-blue-600 to-violet-700 p-6 lg:p-8 text-white shadow-sm">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold tracking-wider uppercase">
@@ -48,7 +48,7 @@ export function HeroBanner({ name, stats }: HeroBannerProps) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <CreateProjectModal className="inline-flex items-center gap-2 bg-white text-indigo-700 font-semibold px-4 py-2.5 rounded-xl text-sm hover:bg-indigo-50 transition-colors">
+          <CreateProjectModal className="inline-flex items-center gap-2 bg-white text-blue-700 font-semibold px-4 py-2.5 rounded-xl text-sm hover:bg-blue-50 transition-colors">
             <Plus className="w-4 h-4" />
             Project Baru
           </CreateProjectModal>

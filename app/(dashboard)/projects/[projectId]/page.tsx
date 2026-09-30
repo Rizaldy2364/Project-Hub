@@ -22,5 +22,5 @@ export default async function ProjectBoardPage({ params }: ProjectBoardPageProps
     labels: task.labels, commentCount: task._count.comments,
   }));
 
-  return <KanbanBoardTab project={{ id: project.id, name: project.name, joinCode: project.joinCode, createdAt: project.createdAt.toISOString(), role: membership.role, lists: project.lists.map((list) => ({ id: list.id, name: list.name })), labels: project.labels, members: project.members.map((member) => member.user), tasks }} />;
+  return <KanbanBoardTab project={{ id: project.id, name: project.name, joinCode: project.joinCode, createdAt: project.createdAt.toISOString(), role: membership.role, lists: project.lists.map((list) => ({ id: list.id, name: list.name })), labels: project.labels, members: project.members.map((m) => ({ id: m.user.id, name: m.user.name, email: m.user.email, avatarUrl: m.user.avatarUrl, role: m.role })), tasks }} />;
 }
