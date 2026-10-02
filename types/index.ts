@@ -11,6 +11,10 @@ export interface DashboardProject {
   members: { id: string; name: string; avatarUrl: string | null }[];
   taskTotal: number;
   taskDone: number;
+  /** Tenggat terdekat dari task yang belum selesai (turunan, bukan field database). */
+  nextDueDate: string | null;
+  /** Apakah `nextDueDate` sudah lewat (dihitung saat pembacaan data di server). */
+  isOverdue: boolean;
 }
 
 // ===== Halaman detail project (board) =====

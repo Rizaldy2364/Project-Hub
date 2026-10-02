@@ -40,6 +40,9 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
   const status = getStatus(project.taskTotal, project.taskDone);
   const extraMembers = project.memberCount - project.members.length;
 
+  const deadline = project.nextDueDate ? new Date(project.nextDueDate) : null;
+  const isOverdue = project.isOverdue;
+
   return (
     <article
       className={cn(
@@ -74,7 +77,6 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
             {status.label}
           </span>
         </div>
-        {project.joinCode && <CopyCodeButton code={project.joinCode} />}
       </div>
 
       {/* Judul & deskripsi */}
@@ -90,6 +92,11 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 line-clamp-2 min-h-[2.5rem]">
           {project.description || "Belum ada deskripsi"}
         </p>
+        {project.joinCode && (
+          <div className="mt-3">
+            <CopyCodeButton code={project.joinCode} />
+          </div>
+        )}
       </div>
 
       {/* Progress */}
@@ -99,7 +106,14 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
             <CircleCheck className="w-3.5 h-3.5 text-slate-400" />
             {project.taskDone} / {project.taskTotal} Task
           </span>
-          <span className="font-semibold text-slate-700 dark:text-slate-200">
+          <span
+            className={cn(
+              "font-semibold",
+              percent === 100
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-slate-700 dark:text-slate-200"
+            )}
+          >
             {percent}%
           </span>
         </div>
@@ -140,12 +154,21 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
             </span>
           )}
         </div>
-        <span
-          suppressHydrationWarning
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"
-        >
+        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <CalendarDays className="w-3.5 h-3.5" />
-          {format(new Date(project.createdAt), "d MMM yyyy", { locale: idLocale })}
+          {deadline ? (
+            <span
+              suppressHydrationWarning
+              className={cn(
+                isOverdue &&
+                  "font-semibold text-red-600 dark:text-red-400"
+              )}
+            >
+              Deadline {format(deadline, "d MMM yyyy", { locale: idLocale })}
+            </span>
+          ) : (
+            <span>Tanpa tenggat</span>
+          )}
         </span>
       </div>
     </article>

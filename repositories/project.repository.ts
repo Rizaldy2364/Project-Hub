@@ -99,6 +99,14 @@ export async function findDashboardProjectsByUserId(
       project.members.find((m) => m.userId === userId)?.role ?? "MEMBER";
     const tasks = project.lists.flatMap((list) => list.tasks);
 
+    // Tenggat project adalah TURUNAN: ambil due date terdekat dari task yang belum selesai.
+    const openDueDates = tasks
+      .filter((task) => task.status !== "DONE" && task.dueDate)
+      .map((task) => task.dueDate!.getTime());
+    const nextDueDate = openDueDates.length
+      ? new Date(Math.min(...openDueDates)).toISOString()
+      : null;
+
     return {
       id: project.id,
       name: project.name,
@@ -110,8 +118,68 @@ export async function findDashboardProjectsByUserId(
       members: project.members.slice(0, 4).map((m) => m.user),
       taskTotal: tasks.length,
       taskDone: tasks.filter((t) => t.status === "DONE").length,
+      nextDueDate,
+      isOverdue: nextDueDate !== null && nextDueDate < new Date().toISOString(),
     };
   });
+}
+
+export interface WeeklyActivityPoint {
+  date: string; // yyyy-MM-dd (waktu lokal server)
+  count: number;
+}
+
+/**
+ * Aktivitas 7 hari terakhir di project yang diikuti user:
+ * jumlah task yang dibuat + komentar yang ditulis per hari (data nyata, bukan contoh).
+ */
+export async function findWeeklyActivityByUserId(
+  userId: string
+): Promise<WeeklyActivityPoint[]> {
+  const days = 7;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+
+  const projectScope = { deletedAt: null, members: { some: { userId } } };
+
+  const [tasks, comments] = await Promise.all([
+    prisma.task.findMany({
+      where: {
+        deletedAt: null,
+        createdAt: { gte: start },
+        list: { deletedAt: null, project: projectScope },
+      },
+      select: { createdAt: true },
+    }),
+    prisma.comment.findMany({
+      where: {
+        deletedAt: null,
+        createdAt: { gte: start },
+        task: { deletedAt: null, list: { deletedAt: null, project: projectScope } },
+      },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  const toKey = (value: Date) =>
+    `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(
+      value.getDate()
+    ).padStart(2, "0")}`;
+
+  const buckets = new Map<string, number>();
+  for (let i = 0; i < days; i++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    buckets.set(toKey(day), 0);
+  }
+
+  for (const item of [...tasks, ...comments]) {
+    const key = toKey(item.createdAt);
+    if (buckets.has(key)) buckets.set(key, buckets.get(key)! + 1);
+  }
+
+  return Array.from(buckets.entries()).map(([date, count]) => ({ date, count }));
 }
 
 export async function countTeammates(userId: string) {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard } from "lucide-react";
+import { FolderKanban, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -10,7 +10,13 @@ const items = [
     href: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    match: ["/dashboard", "/projects"],
+    match: ["/dashboard"],
+  },
+  {
+    href: "/projects",
+    label: "Project Saya",
+    icon: FolderKanban,
+    match: ["/projects"],
   },
 ];
 

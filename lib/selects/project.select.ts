@@ -16,7 +16,7 @@ export const projectDashboardSelect = {
   lists: {
     where: { deletedAt: null },
     select: {
-      tasks: { where: { deletedAt: null }, select: { status: true } },
+      tasks: { where: { deletedAt: null }, select: { status: true, dueDate: true } },
     },
   },
 } satisfies Prisma.ProjectSelect;
