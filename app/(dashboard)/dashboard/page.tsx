@@ -3,9 +3,12 @@ import { auth } from "@/lib/auth";
 import {
   findDashboardProjectsByUserId,
   countTeammates,
+  findWeeklyActivityByUserId,
 } from "@/repositories/project.repository";
 import { countAssignedTasks } from "@/repositories/task.repository";
-import { HeroBanner } from "@/components/dashboard/hero-banner";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { StatCards } from "@/components/dashboard/stat-cards";
+import { ActivityChart } from "@/components/dashboard/activity-chart";
 import { ProjectsExplorer } from "@/components/project/projects-explorer";
 
 export default async function DashboardPage() {
@@ -13,28 +16,29 @@ export default async function DashboardPage() {
   if (!session) redirect("/login");
   const userId = session.user.id;
 
-  const [projects, assigned, teammates] = await Promise.all([
+  const [projects, assigned, teammates, activity] = await Promise.all([
     findDashboardProjectsByUserId(userId),
     countAssignedTasks(userId),
     countTeammates(userId),
+    findWeeklyActivityByUserId(userId),
   ]);
 
-  const totalAssigned = assigned.pending + assigned.done;
-  const completionRate =
-    totalAssigned === 0 ? 0 : Math.round((assigned.done / totalAssigned) * 100);
-
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <HeroBanner
-        name={session.user.name ?? "Teman"}
-        stats={{
-          projects: projects.length,
-          pendingTasks: assigned.pending,
-          completionRate,
-          teammates,
-        }}
-      />
-      <ProjectsExplorer projects={projects} />
+    <div className="max-w-6xl mx-auto space-y-6">
+      <DashboardHeader name={session.user.name ?? "Teman"} />
+
+      <div className="space-y-6">
+        <StatCards
+          projects={projects.length}
+          pendingTasks={assigned.pending}
+          doneTasks={assigned.done}
+          totalAssignedTasks={assigned.pending + assigned.done}
+          teammates={teammates}
+        />
+        <ActivityChart points={activity} />
+      </div>
+
+      <ProjectsExplorer projects={projects} showCreateActions={false} />
     </div>
   );
 }

@@ -21,8 +21,10 @@ export function CopyCodeButton({ code }: { code: string }) {
       type="button"
       onClick={handleCopy}
       title="Salin kode join"
-      className="relative z-10 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-mono font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+      aria-label={`Salin kode join ${code}`}
+      className="relative z-10 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-mono font-medium hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
     >
+      <span className="text-slate-400 dark:text-slate-500">Kode:</span>
       {code}
       {copied ? (
         <Check className="w-3 h-3 text-emerald-500" />

@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FolderKanban, Plus, Search, Bell } from "lucide-react";
+import { FolderKanban, Search, Bell } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { SidebarUser } from "@/components/layout/sidebar-user";
-import { CreateProjectModal } from "@/components/project/create-project-modal";
 import { findProfileUserById } from "@/repositories/user.repository";
 
 export default async function DashboardLayout({
@@ -45,11 +44,6 @@ export default async function DashboardLayout({
         </div>
 
         <div className="flex items-center gap-4">
-          <CreateProjectModal className="hidden sm:flex items-center gap-1.5 h-9 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
-            <Plus className="w-4 h-4" />
-            New Project
-          </CreateProjectModal>
-
           <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
             <Bell className="w-5 h-5" />
             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-900"></span>
