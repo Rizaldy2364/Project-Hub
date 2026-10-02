@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, User } from "lucide-react";
+import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { logoutAction } from "@/actions/user.actions";
+import { LogoutButton } from "@/components/layout/logout-button";
 
 interface SidebarUserProps {
   name?: string | null;
@@ -45,15 +45,7 @@ export function SidebarUser({ name, email, image }: SidebarUserProps) {
           Profil Saya
         </Link>
 
-        <form action={logoutAction}>
-          <button
-            type="submit"
-            className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Keluar
-          </button>
-        </form>
+        <LogoutButton />
       </div>
     </div>
   );

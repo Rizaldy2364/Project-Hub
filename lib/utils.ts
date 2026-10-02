@@ -13,3 +13,17 @@ export function generateJoinCode(): string {
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+// Hitung umur (tahun) dari tanggal lahir. Umur TIDAK disimpan di database,
+// supaya tidak pernah basi — selalu dihitung dari tanggal lahir.
+export function calculateAge(birthDate: Date | string): number {
+  const birth = typeof birthDate === "string" ? new Date(birthDate) : birthDate;
+  if (Number.isNaN(birth.getTime())) return 0;
+  const now = new Date();
+  let age = now.getUTCFullYear() - birth.getUTCFullYear();
+  const monthDiff = now.getUTCMonth() - birth.getUTCMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getUTCDate() < birth.getUTCDate())) {
+    age -= 1;
+  }
+  return age;
+}

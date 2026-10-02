@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FolderKanban, KeyRound, LogOut, Plus, Search, Bell } from "lucide-react";
+import { FolderKanban, Plus, Search, Bell } from "lucide-react";
 import { auth } from "@/lib/auth";
-import { logoutAction } from "@/actions/user.actions";
+import { LogoutButton } from "@/components/layout/logout-button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { UserAvatar } from "@/components/ui/user-avatar";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { SidebarUser } from "@/components/layout/sidebar-user";
 import { CreateProjectModal } from "@/components/project/create-project-modal";
-import { JoinProjectModal } from "@/components/project/join-project-modal";
 import { findProfileUserById } from "@/repositories/user.repository";
 
 export default async function DashboardLayout({
@@ -57,6 +55,9 @@ export default async function DashboardLayout({
             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-900"></span>
           </button>
 
+
+          {/* Fallback logout untuk layar kecil (sidebar disembunyikan di bawah lg) */}
+          <LogoutButton variant="icon" withLabel={false} className="lg:hidden" />
 
           <ThemeToggle />
         </div>
