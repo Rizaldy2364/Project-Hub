@@ -5,6 +5,8 @@ export const createTaskListSchema = z.object({
   projectId: z.string().cuid(),
 });
 
+export const taskPrioritySchema = z.enum(["LOW", "MEDIUM", "HIGH"]);
+
 export const createTaskSchema = z.object({
   title: z.string().min(1, "Judul wajib diisi").max(200, "Maksimal 200 karakter"),
   description: z.string().max(2000, "Maksimal 2000 karakter").optional(),
@@ -12,6 +14,7 @@ export const createTaskSchema = z.object({
   listId: z.string().cuid(),
   assigneeId: z.string().cuid().optional(),
   status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).default("TODO"),
+  priority: taskPrioritySchema.default("MEDIUM"),
   labelIds: z.array(z.string().cuid()).default([]),
 });
 
@@ -20,6 +23,7 @@ export const updateTaskSchema = z.object({
   description: z.string().max(2000).optional(),
   dueDate: z.coerce.date().optional().nullable(),
   status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
+  priority: taskPrioritySchema.optional(),
   assigneeId: z.string().cuid().optional().nullable(),
 });
 

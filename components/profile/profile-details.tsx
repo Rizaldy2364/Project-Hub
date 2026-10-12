@@ -5,12 +5,13 @@ import { BadgeCheck, Building2, Mail, Pencil, Trash2, UserRound } from "lucide-r
 import { updateBioAction, updateNameAction } from "@/actions/user.actions";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { PersonalInfoSection } from "@/components/profile/personal-info-section";
+import type { ProjectRole } from "@/types";
 
 interface ProfileDetailsProps {
   name: string;
   email: string;
   bio: string | null;
-  projects: { id: string; name: string; role: "ADMIN" | "MEMBER"; memberCount: number }[];
+  projects: { id: string; name: string; role: ProjectRole; memberCount: number }[];
   headline: string | null;
   company: string | null;
   location: string | null;
@@ -160,5 +161,11 @@ function InfoRow({ icon: Icon, label, value, children }: { icon: typeof UserRoun
 }
 
 function ProjectRow({ name, role, memberCount }: ProfileDetailsProps["projects"][number]) {
-  return <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/70"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">{name.slice(0, 2).toUpperCase()}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{name}</p><p className="text-xs text-slate-500 dark:text-slate-400">{memberCount} member{memberCount === 1 ? "" : "s"}</p></div><span className={role === "ADMIN" ? "rounded-md bg-blue-600 px-2 py-1 text-[10px] font-bold text-white" : "rounded-md bg-slate-200 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300"}>{role === "ADMIN" ? "Admin" : "Member"}</span></div>;
+  const roleBadge =
+    role === "ADMIN"
+      ? { label: "Admin", className: "rounded-md bg-blue-600 px-2 py-1 text-[10px] font-bold text-white" }
+      : role === "DEPUTY_ADMIN"
+        ? { label: "Wakil Admin", className: "rounded-md bg-pink-100 px-2 py-1 text-[10px] font-bold text-pink-700 dark:bg-pink-500/20 dark:text-pink-300" }
+        : { label: "Member", className: "rounded-md bg-slate-200 px-2 py-1 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300" };
+  return <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/70"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-300">{name.slice(0, 2).toUpperCase()}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{name}</p><p className="text-xs text-slate-500 dark:text-slate-400">{memberCount} member{memberCount === 1 ? "" : "s"}</p></div><span className={roleBadge.className}>{roleBadge.label}</span></div>;
 }

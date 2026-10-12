@@ -32,6 +32,7 @@ export const projectBoardSelect = {
           title: true,
           description: true,
           status: true,
+          priority: true,
           dueDate: true,
           assignee: { select: { id: true, name: true, avatarUrl: true } },
           labels: { where: { deletedAt: null }, select: { id: true, name: true, color: true } },

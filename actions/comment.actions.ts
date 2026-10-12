@@ -12,6 +12,9 @@ import {
   updateComment,
   findCommentById,
 } from "@/repositories/comment.repository";
+import { createNotification } from "@/repositories/notification.repository";
+import { extractMentions } from "@/lib/mentions";
+import { prisma } from "@/lib/prisma";
 
 // CREATE
 export async function createCommentAction(formData: FormData) {
@@ -36,11 +39,36 @@ export async function createCommentAction(formData: FormData) {
   const member = await findProjectMember(session.user.id, list.projectId);
   if (!member) return { error: "Kamu bukan member project ini" };
 
-  await createComment({
+  const comment = await createComment({
     content: parsed.data.content,
     taskId: parsed.data.taskId,
     userId: session.user.id,
   });
+
+  // MENTION — cocokkan @NamaMember ke member project (tak peka huruf,
+  // nama terpanjang dulu). Penerima = yang disebut, bukan penulis.
+  const projectMembers = await prisma.projectMember.findMany({
+    where: { projectId: list.projectId },
+    select: { user: { select: { id: true, name: true } } },
+  });
+  const mentioned = extractMentions(
+    parsed.data.content,
+    projectMembers.map((m) => m.user)
+  ).filter((m) => m.id !== session.user.id);
+  if (mentioned.length > 0) {
+    await Promise.all(
+      mentioned.map((m) =>
+        createNotification({
+          type: "MENTION",
+          userId: m.id,
+          actorId: session.user.id,
+          projectId: list.projectId,
+          taskId: parsed.data.taskId,
+          commentId: comment.id,
+        })
+      )
+    );
+  }
 
   revalidatePath(`/projects/${list.projectId}`);
   return { success: true };

@@ -18,7 +18,7 @@ export default async function ProjectBoardPage({ params }: ProjectBoardPageProps
   const membership = project.members.find((member) => member.userId === session.user.id);
   if (!membership) redirect("/dashboard");
   const tasks: BoardTask[] = project.lists.flatMap((list) => list.tasks).map((task) => ({
-    id: task.id, title: task.title, description: task.description, status: task.status,
+    id: task.id, title: task.title, description: task.description, status: task.status, priority: task.priority,
     dueDate: task.dueDate?.toISOString() ?? null, assignee: task.assignee,
     labels: task.labels, commentCount: task._count.comments,
   }));

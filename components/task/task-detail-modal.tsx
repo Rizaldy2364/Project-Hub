@@ -22,12 +22,14 @@ export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModal
 
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDesc, setEditDesc] = useState(task.description ?? "");
+  const [editPriority, setEditPriority] = useState(task.priority);
 
   const handleSave = () => {
     startTransition(async () => {
       const data = new FormData();
       data.set("title", editTitle);
       data.set("description", editDesc);
+      data.set("priority", editPriority);
       await updateTaskAction(task.id, data);
       setIsEditing(false);
     });
@@ -92,6 +94,18 @@ export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModal
                     className="w-full h-28 resize-none px-4 py-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
                   />
                 </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 mb-1.5 block">Prioritas</label>
+                  <select
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value as typeof editPriority)}
+                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500/50"
+                  >
+                    <option value="LOW">Rendah</option>
+                    <option value="MEDIUM">Sedang</option>
+                    <option value="HIGH">Tinggi</option>
+                  </select>
+                </div>
               </div>
             ) : (
               <>
@@ -120,6 +134,12 @@ export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModal
                     <span className="block mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tenggat Waktu</span>
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                       {task.dueDate ? format(new Date(task.dueDate), "d MMM yyyy") : "Belum diatur"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Prioritas</span>
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      {task.priority === "HIGH" ? "Tinggi" : task.priority === "LOW" ? "Rendah" : "Sedang"}
                     </span>
                   </div>
                   <div className="col-span-2">

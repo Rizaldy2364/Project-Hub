@@ -1,4 +1,4 @@
-export type ProjectRole = "ADMIN" | "MEMBER";
+export type ProjectRole = "ADMIN" | "DEPUTY_ADMIN" | "MEMBER";
 
 export interface DashboardProject {
   id: string;
@@ -20,6 +20,8 @@ export interface DashboardProject {
 // ===== Halaman detail project (board) =====
 
 export type BoardTaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+
+export type TaskPriorityValue = "LOW" | "MEDIUM" | "HIGH";
 
 export interface BoardLabel {
   id: string;
@@ -54,6 +56,7 @@ export interface BoardTask {
   title: string;
   description: string | null;
   status: BoardTaskStatus;
+  priority: TaskPriorityValue;
   dueDate: string | null; // ISO string
   assignee: { id: string; name: string; avatarUrl: string | null } | null;
   labels: BoardLabel[];
@@ -70,4 +73,105 @@ export interface BoardProject {
   labels: BoardLabel[];
   members: BoardMember[];
   tasks: BoardTask[];
+}
+
+// ===== Halaman Task Project (/tasks) — semua task dikelompokkan per project =====
+
+export interface MyTaskItem extends BoardTask {
+  projectId: string;
+  projectName: string;
+  projectDescription: string | null;
+}
+
+export interface MyTasksProjectGroup {
+  id: string;
+  name: string;
+  description: string | null;
+  tasks: MyTaskItem[];
+  taskTotal: number;
+  taskDone: number;
+}
+
+// ===== Inbox (/inbox) — notifikasi =====
+
+export type NotificationTypeValue =
+  | "TASK_ASSIGNED"
+  | "MENTION"
+  | "DUE_SOON"
+  | "MEMBER_JOINED"
+  | "PROJECT_COMPLETED";
+
+export type NotificationTabValue = "all" | "unread" | "mention" | "task" | "invite";
+
+export interface InboxActor {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface InboxTask {
+  id: string;
+  title: string;
+  priority: TaskPriorityValue;
+  dueDate: string | null; // ISO string
+  status: BoardTaskStatus;
+  assignee: { id: string; name: string; avatarUrl: string | null } | null;
+  projectId: string;
+}
+
+export interface InboxNotification {
+  id: string;
+  type: NotificationTypeValue;
+  readAt: string | null; // ISO string
+  createdAt: string; // ISO string
+  actor: InboxActor | null;
+  task: InboxTask | null;
+  project: { id: string; name: string } | null;
+  comment: { id: string; content: string } | null;
+}
+
+export interface NotificationTabCounts {
+  all: number;
+  unread: number;
+  mention: number;
+  task: number;
+  invite: number;
+}
+
+// ===== Halaman Tim (/tim) — anggota project =====
+
+export type TeamRoleFilter = "all" | ProjectRole;
+export type TeamSort = "joined_desc" | "joined_asc" | "name_asc" | "name_desc";
+
+export interface TeamMemberRow {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  role: ProjectRole;
+  joinedAt: string; // ISO string
+  activeTaskCount: number;
+}
+
+export interface TeamSummary {
+  total: number;
+  admin: number;
+  deputy: number;
+  member: number;
+}
+
+export interface TeamProjectOption {
+  id: string;
+  name: string;
+}
+
+// ===== Halaman Kalender (/calendar) — task yang punya due date =====
+
+export interface CalendarTask extends BoardTask {
+  /** Selalu terisi di halaman kalender — hanya task ber-due date yang tampil. */
+  dueDate: string;
+  projectId: string;
+  projectName: string;
+  /** Role user di project pemilik task — menentukan izin aksi (mis. edit/hapus). */
+  isAdmin: boolean;
 }
