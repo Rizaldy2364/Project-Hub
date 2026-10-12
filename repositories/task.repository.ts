@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { calendarTaskSelect, myTaskSelect } from "@/lib/selects/task.select";
+import type { CalendarTask, MyTasksProjectGroup } from "@/types";
 
 export interface CreateTaskInput {
   title: string;
@@ -7,6 +9,7 @@ export interface CreateTaskInput {
   listId: string;
   assigneeId?: string;
   status?: "TODO" | "IN_PROGRESS" | "DONE";
+  priority?: "LOW" | "MEDIUM" | "HIGH";
   labelIds?: string[];
   order: number;
 }
@@ -16,6 +19,7 @@ export interface UpdateTaskInput {
   description?: string;
   dueDate?: Date | null;
   status?: "TODO" | "IN_PROGRESS" | "DONE";
+  priority?: "LOW" | "MEDIUM" | "HIGH";
   assigneeId?: string | null;
 }
 
@@ -25,6 +29,7 @@ export interface TaskFilterParams {
   assigneeId?: string;
   labelId?: string;
   status?: "TODO" | "IN_PROGRESS" | "DONE";
+  priority?: "LOW" | "MEDIUM" | "HIGH";
 }
 
 // CREATE
@@ -37,6 +42,7 @@ export async function createTask(data: CreateTaskInput) {
       listId: data.listId,
       assigneeId: data.assigneeId,
       status: data.status,
+      priority: data.priority,
       order: data.order,
       ...(data.labelIds?.length && { labels: { connect: data.labelIds.map((id) => ({ id })) } }),
     },
@@ -111,6 +117,9 @@ export async function findTasksWithFilters(params: TaskFilterParams) {
       ...(params.status && {
         status: params.status,
       }),
+      ...(params.priority && {
+        priority: params.priority,
+      }),
     },
     orderBy: { order: "asc" },
     include: {
@@ -123,6 +132,102 @@ export async function findTasksWithFilters(params: TaskFilterParams) {
     },
   });
 }
+
+// TASK PROJECT — semua task dari project yang diikuti user, dikelompokkan per project
+export async function findMyTasksByUserId(
+  userId: string
+): Promise<MyTasksProjectGroup[]> {
+  const tasks = await prisma.task.findMany({
+    where: {
+      deletedAt: null,
+      list: {
+        deletedAt: null,
+        project: {
+          deletedAt: null,
+          members: { some: { userId } },
+        },
+      },
+    },
+    orderBy: [{ dueDate: "asc" }, { order: "asc" }],
+    select: myTaskSelect,
+  });
+
+  const groups = new Map<string, MyTasksProjectGroup>();
+  for (const task of tasks) {
+    const project = task.list.project;
+    let group = groups.get(project.id);
+    if (!group) {
+      group = {
+        id: project.id,
+        name: project.name,
+        description: project.description,
+        tasks: [],
+        taskTotal: 0,
+        taskDone: 0,
+      };
+      groups.set(project.id, group);
+    }
+    group.tasks.push({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.dueDate?.toISOString() ?? null,
+      assignee: task.assignee,
+      labels: task.labels,
+      commentCount: 0,
+      projectId: project.id,
+      projectName: project.name,
+      projectDescription: project.description,
+    });
+    group.taskTotal += 1;
+    if (task.status === "DONE") group.taskDone += 1;
+  }
+
+  return [...groups.values()];
+}
+
+// KALENDER — semua task yang punya due date dari project yang diikuti user
+export async function findCalendarTasksByUserId(
+  userId: string
+): Promise<CalendarTask[]> {
+  const tasks = await prisma.task.findMany({
+    where: {
+      deletedAt: null,
+      dueDate: { not: null },
+      list: {
+        deletedAt: null,
+        project: {
+          deletedAt: null,
+          members: { some: { userId } },
+        },
+      },
+    },
+    orderBy: { dueDate: "asc" },
+    select: calendarTaskSelect,
+  });
+
+  return tasks.map((task) => {
+    const project = task.list.project;
+    const membership = project.members.find((m) => m.userId === userId);
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority,
+      dueDate: task.dueDate!.toISOString(),
+      assignee: task.assignee,
+      labels: task.labels,
+      commentCount: task._count.comments,
+      projectId: project.id,
+      projectName: project.name,
+      isAdmin: membership?.role === "ADMIN",
+    };
+  });
+}
+
 
 // SOFT DELETE
 export async function softDeleteTask(id: string) {

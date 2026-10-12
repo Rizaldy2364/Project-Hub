@@ -7,6 +7,7 @@ import {
   updateTaskSchema,
 } from "@/lib/validations/task.schema";
 import { findProjectMember } from "@/repositories/project.repository";
+import { canCreateTask } from "@/lib/permissions";
 import { ensureDefaultTaskLists, findTaskListById, findTaskListByProjectAndName } from "@/repositories/list.repository";
 import {
   createTask,
@@ -16,6 +17,7 @@ import {
   findTaskById,
   countTasksByListId,
 } from "@/repositories/task.repository";
+import { createNotification } from "@/repositories/notification.repository";
 
 // Helper internal — cek user adalah member dari project pemilik task ini
 async function getProjectIdAndCheckMembership(userId: string, listId: string) {
@@ -37,8 +39,8 @@ export async function createTaskAction(formData: FormData) {
   if (typeof projectId !== "string") return { error: "Project tidak valid" };
 
   const member = await findProjectMember(session.user.id, projectId);
-  if (!member || member.role !== "ADMIN") {
-    return { error: "Hanya admin yang boleh membuat task" };
+  if (!member || !canCreateTask(member.role)) {
+    return { error: "Hanya admin dan wakil admin yang boleh membuat task" };
   }
 
   await ensureDefaultTaskLists({ projectId });
@@ -54,6 +56,7 @@ export async function createTaskAction(formData: FormData) {
     listId: targetList.id,
     assigneeId: formData.get("assigneeId") || undefined,
     status: status || "TODO",
+    priority: formData.get("priority") || undefined,
     labelIds: formData.getAll("labelIds").filter((id): id is string => typeof id === "string"),
   });
 
@@ -78,11 +81,24 @@ export async function createTaskAction(formData: FormData) {
     listId: parsed.data.listId,
     assigneeId: parsed.data.assigneeId,
     status: parsed.data.status,
+    priority: parsed.data.priority,
     labelIds: parsed.data.labelIds,
     order: currentCount,
   });
 
+  // TASK_ASSIGNED (create) — penerima = assignee baru, skip jika actor = assignee.
+  if (parsed.data.assigneeId && parsed.data.assigneeId !== session.user.id) {
+    await createNotification({
+      type: "TASK_ASSIGNED",
+      userId: parsed.data.assigneeId,
+      actorId: session.user.id,
+      projectId,
+      taskId: task.id,
+    });
+  }
+
   revalidatePath(`/projects/${check.projectId}`);
+  revalidatePath("/tasks");
   return { success: true, taskId: task.id };
 }
 
@@ -102,6 +118,7 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
     description: formData.get("description") || undefined,
     dueDate: formData.get("dueDate") || undefined,
     status: formData.get("status") || undefined,
+    priority: formData.get("priority") || undefined,
     assigneeId: formData.get("assigneeId") || undefined,
   });
 
@@ -110,7 +127,22 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
   }
 
   await updateTask(taskId, parsed.data);
+
+  // TASK_ASSIGNED (ganti assignee) — hanya saat assignee diisi/diganti.
+  const nextAssignee = parsed.data.assigneeId;
+  if (nextAssignee && nextAssignee !== task.assigneeId && nextAssignee !== session.user.id) {
+    await createNotification({
+      type: "TASK_ASSIGNED",
+      userId: nextAssignee,
+      actorId: session.user.id,
+      projectId: check.projectId,
+      taskId,
+    });
+  }
+
   revalidatePath(`/projects/${check.projectId}`);
+  revalidatePath("/tasks");
+  revalidatePath("/calendar");
   return { success: true };
 }
 
@@ -128,6 +160,7 @@ export async function moveTaskAction(
 
   await moveTask(taskId, newListId, newOrder);
   revalidatePath(`/projects/${check.projectId}`);
+  revalidatePath("/tasks");
   return { success: true };
 }
 
@@ -144,5 +177,7 @@ export async function deleteTaskAction(taskId: string) {
 
   await softDeleteTask(taskId);
   revalidatePath(`/projects/${check.projectId}`);
+  revalidatePath("/tasks");
+  revalidatePath("/calendar");
   return { success: true };
 }

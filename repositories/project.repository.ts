@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { generateJoinCode } from "@/lib/utils";
 import { projectDashboardSelect } from "@/lib/selects/project.select";
 import { projectBoardSelect } from "@/lib/selects/project-board.select";
-import type { DashboardProject } from "@/types";
+import type { DashboardProject, ProjectRole } from "@/types";
 
 export interface CreateProjectInput {
   name: string;
@@ -18,7 +18,7 @@ export interface UpdateProjectInput {
 export interface CreateProjectMemberInput {
   userId: string;
   projectId: string;
-  role: "ADMIN" | "MEMBER";
+  role: ProjectRole;
 }
 
 // CREATE
@@ -207,7 +207,7 @@ export interface ProfileProjectMetrics {
   projects: {
     id: string;
     name: string;
-    role: "ADMIN" | "MEMBER";
+    role: ProjectRole;
     memberCount: number;
   }[];
 }

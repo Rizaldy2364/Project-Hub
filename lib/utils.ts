@@ -27,3 +27,10 @@ export function calculateAge(birthDate: Date | string): number {
   }
   return age;
 }
+
+// Kunci unik per tanggal (lokal) — "YYYY-MM-DD". Dipakai grid kalender.
+export function toDayKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`;
+}

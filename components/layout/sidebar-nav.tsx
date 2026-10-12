@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, LayoutDashboard } from "lucide-react";
+import { Bell, CalendarDays, CheckSquare, FolderKanban, LayoutDashboard, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -17,6 +17,30 @@ const items = [
     label: "Project Saya",
     icon: FolderKanban,
     match: ["/projects"],
+  },
+  {
+    href: "/tasks",
+    label: "Task Project",
+    icon: CheckSquare,
+    match: ["/tasks"],
+  },
+  {
+    href: "/calendar",
+    label: "Kalender",
+    icon: CalendarDays,
+    match: ["/calendar"],
+  },
+  {
+    href: "/inbox",
+    label: "Inbox",
+    icon: Bell,
+    match: ["/inbox"],
+  },
+  {
+    href: "/tim",
+    label: "Tim & Anggota",
+    icon: Users,
+    match: ["/tim"],
   },
 ];
 

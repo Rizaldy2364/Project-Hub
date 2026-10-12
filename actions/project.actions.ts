@@ -11,14 +11,15 @@ import {
   createProject,
   createProjectMember,
   findProjectByJoinCode,
-  findProjectById,
   findProjectMember,
   regenerateProjectJoinCode,
   softDeleteProject,
   updateProject,
   removeProjectMember,
 } from "@/repositories/project.repository";
+import { createManyNotifications } from "@/repositories/notification.repository";
 import { ensureDefaultTaskLists } from "@/repositories/list.repository";
+import { prisma } from "@/lib/prisma";
 
 // CREATE PROJECT
 export async function createProjectAction(formData: FormData) {
@@ -78,6 +79,20 @@ export async function joinProjectAction(formData: FormData) {
     projectId: project.id,
     role: "MEMBER",
   });
+
+  // MEMBER_JOINED — penerima = semua ADMIN project (kecuali user itu sendiri).
+  const admins = await prisma.projectMember.findMany({
+    where: { projectId: project.id, role: "ADMIN", userId: { not: session.user.id } },
+    select: { userId: true },
+  });
+  await createManyNotifications(
+    admins.map((a) => ({
+      type: "MEMBER_JOINED" as const,
+      userId: a.userId,
+      actorId: session.user.id,
+      projectId: project.id,
+    }))
+  );
 
   revalidatePath("/dashboard");
   return { success: true, projectId: project.id };
