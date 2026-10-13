@@ -14,6 +14,7 @@ import {
 } from "@/repositories/comment.repository";
 import { createNotification } from "@/repositories/notification.repository";
 import { extractMentions } from "@/lib/mentions";
+import { logActivity } from "@/lib/activity";
 import { prisma } from "@/lib/prisma";
 
 // CREATE
@@ -69,6 +70,15 @@ export async function createCommentAction(formData: FormData) {
       )
     );
   }
+
+  // ACTIVITAS — COMMENT_ADDED (kegagalan logging tidak menggagalkan aksi).
+  await logActivity({
+    userId: session.user.id,
+    projectId: list.projectId,
+    taskId: parsed.data.taskId,
+    action: "COMMENT_ADDED",
+    meta: { title: task.title },
+  });
 
   revalidatePath(`/projects/${list.projectId}`);
   return { success: true };

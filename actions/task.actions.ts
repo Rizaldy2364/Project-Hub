@@ -18,6 +18,7 @@ import {
   countTasksByListId,
 } from "@/repositories/task.repository";
 import { createNotification } from "@/repositories/notification.repository";
+import { logActivity } from "@/lib/activity";
 
 // Helper internal — cek user adalah member dari project pemilik task ini
 async function getProjectIdAndCheckMembership(userId: string, listId: string) {
@@ -97,6 +98,15 @@ export async function createTaskAction(formData: FormData) {
     });
   }
 
+  // ACTIVITAS — TASK_CREATED (kegagalan logging tidak menggagalkan aksi).
+  await logActivity({
+    userId: session.user.id,
+    projectId: check.projectId,
+    taskId: task.id,
+    action: "TASK_CREATED",
+    meta: { title: task.title },
+  });
+
   revalidatePath(`/projects/${check.projectId}`);
   revalidatePath("/tasks");
   return { success: true, taskId: task.id };
@@ -127,6 +137,43 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
   }
 
   await updateTask(taskId, parsed.data);
+
+  // ACTIVITAS — TASK_COMPLETED bila status berubah menjadi DONE; selain itu
+  // TASK_UPDATED untuk judul/tenggat/prioritas/penanggung jawab/status berubah.
+  const changed: string[] = [];
+  if (parsed.data.title !== undefined && parsed.data.title !== task.title)
+    changed.push("title");
+  if (parsed.data.priority !== undefined && parsed.data.priority !== task.priority)
+    changed.push("priority");
+  const statusChanged =
+    parsed.data.status !== undefined && parsed.data.status !== task.status;
+  if (statusChanged) changed.push("status");
+  if (parsed.data.dueDate !== undefined) {
+    const nextDue = parsed.data.dueDate?.getTime() ?? null;
+    if (nextDue !== (task.dueDate?.getTime() ?? null)) changed.push("dueDate");
+  }
+  if (
+    parsed.data.assigneeId !== undefined &&
+    parsed.data.assigneeId !== task.assigneeId
+  )
+    changed.push("assignee");
+
+  if (changed.length > 0) {
+    const becameDone = statusChanged && parsed.data.status === "DONE";
+    await logActivity({
+      userId: session.user.id,
+      projectId: check.projectId,
+      taskId,
+      action: becameDone ? "TASK_COMPLETED" : "TASK_UPDATED",
+      meta: {
+        title: task.title, // snapshot judul sebelum perubahan
+        kind: becameDone ? "completed" : statusChanged ? "status" : "edit",
+        ...(statusChanged
+          ? { from: task.status, to: parsed.data.status }
+          : {}),
+      },
+    });
+  }
 
   // TASK_ASSIGNED (ganti assignee) — hanya saat assignee diisi/diganti.
   const nextAssignee = parsed.data.assigneeId;

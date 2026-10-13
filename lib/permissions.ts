@@ -9,3 +9,8 @@ export function canManageMembers(role: ProjectRole): boolean {
 export function canCreateTask(role: ProjectRole): boolean {
   return role === "ADMIN" || role === "DEPUTY_ADMIN";
 }
+
+/** ADMIN dan DEPUTY_ADMIN boleh melihat & menyalin kode gabung; MEMBER tidak. */
+export function canViewJoinCode(role: ProjectRole): boolean {
+  return role === "ADMIN" || role === "DEPUTY_ADMIN";
+}

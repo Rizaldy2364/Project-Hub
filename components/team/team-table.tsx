@@ -9,7 +9,7 @@ import type {
   TeamSummary,
 } from "@/types";
 import { MemberCard, MemberCells } from "@/components/team/team-row";
-import { MemberRowMenu, canShowMenu } from "@/components/team/team-menu";
+import { canShowMenu } from "@/components/team/team-menu";
 import { TeamToolbar } from "@/components/team/team-toolbar";
 import { TeamEmpty, TeamError, TeamSkeleton } from "@/components/team/team-states";
 import { TeamPagination } from "@/components/team/team-pagination";
@@ -29,8 +29,7 @@ export interface TeamTableProps {
   members: TeamMemberRow[];
   myRole: ProjectRole | null;
   myUserId: string;
-  onRoleChange: (member: TeamMemberRow, nextRole: "DEPUTY_ADMIN" | "MEMBER") => void;
-  onRemove: (member: TeamMemberRow) => void;
+  onManage: (member: TeamMemberRow) => void;
   total: number;
   pageSize: 10 | 25 | 50;
   safePage: number;
@@ -42,15 +41,16 @@ export interface TeamTableProps {
 export function TeamTableCard(p: TeamTableProps) {
   const totalPages = Math.max(1, Math.ceil(p.total / p.pageSize));
 
-  function menuFor(m: TeamMemberRow) {
+  function manageFor(m: TeamMemberRow) {
     if (!canShowMenu(p.myRole, m, p.myUserId)) return null;
     return (
-      <MemberRowMenu
-        member={m}
-        onPromote={(mm) => p.onRoleChange(mm, "DEPUTY_ADMIN")}
-        onDemote={(mm) => p.onRoleChange(mm, "MEMBER")}
-        onRemove={p.onRemove}
-      />
+      <button
+        type="button"
+        onClick={() => p.onManage(m)}
+        className="inline-flex h-8 items-center rounded-lg border border-slate-300 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+      >
+        Kelola
+      </button>
     );
   }
 
@@ -95,7 +95,7 @@ export function TeamTableCard(p: TeamTableProps) {
                     <MemberCells
                       member={m}
                       isSelf={m.id === p.myUserId}
-                      menu={menuFor(m)}
+                      menu={manageFor(m)}
                     />
                   </tr>
                 ))}
@@ -109,7 +109,7 @@ export function TeamTableCard(p: TeamTableProps) {
                 key={m.id}
                 member={m}
                 isSelf={m.id === p.myUserId}
-                menu={menuFor(m)}
+                menu={manageFor(m)}
               />
             ))}
           </div>
