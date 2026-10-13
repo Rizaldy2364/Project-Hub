@@ -4,7 +4,8 @@ export interface DashboardProject {
   id: string;
   name: string;
   description: string | null;
-  joinCode: string | null; // hanya terisi jika user adalah ADMIN
+  /** Hanya terisi bila role user di project itu ADMIN atau DEPUTY_ADMIN. */
+  joinCode?: string;
   createdAt: string; // ISO string
   role: ProjectRole;
   memberCount: number;
@@ -66,7 +67,8 @@ export interface BoardTask {
 export interface BoardProject {
   id: string;
   name: string;
-  joinCode: string;
+  /** Hanya terisi bila role user di project itu ADMIN atau DEPUTY_ADMIN. */
+  joinCode?: string;
   createdAt: string; // ISO string
   role: ProjectRole;
   lists: { id: string; name: string }[];
@@ -174,4 +176,59 @@ export interface CalendarTask extends BoardTask {
   projectName: string;
   /** Role user di project pemilik task — menentukan izin aksi (mis. edit/hapus). */
   isAdmin: boolean;
+}
+
+// ===== Halaman Aktivitas (/aktivitas) =====
+
+export type ActivityActionValue =
+  | "PROJECT_CREATED"
+  | "TASK_CREATED"
+  | "TASK_UPDATED"
+  | "TASK_COMPLETED"
+  | "COMMENT_ADDED"
+  | "FILE_UPLOADED"
+  | "MEMBER_JOINED"
+  | "MEMBER_ROLE_CHANGED"
+  | "MEMBER_REMOVED";
+
+export type ActivityTypeFilterValue = "all" | "task" | "comment" | "file" | "member";
+export type ActivityRangeValue = 7 | 30 | 90;
+
+export interface ActivityActor {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface ActivityItem {
+  id: string;
+  action: ActivityActionValue;
+  /** Snapshot saat kejadian (title/from/to/targetName/…) agar tetap render
+   * walaupun data asli di-rename/di-soft-delete. */
+  meta: Record<string, unknown> | null;
+  createdAt: string; // ISO string (UTC)
+  actor: ActivityActor;
+  project: { id: string; name: string };
+}
+
+export interface ActivitySummary {
+  taskCompleted: number;
+  taskCreated: number;
+  commentAdded: number;
+  fileUploaded: number;
+}
+
+export interface ActivityProjectOption {
+  id: string;
+  name: string;
+}
+
+export interface ActivityMemberOption {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface ActivityTopMember extends ActivityMemberOption {
+  count: number;
 }

@@ -31,6 +31,7 @@ export function MemberList({ project, isAdmin }: MemberListProps) {
   };
 
   async function copyInviteCode() {
+    if (!project.joinCode) return;
     try {
       await navigator.clipboard.writeText(project.joinCode);
       setInviteCopied(true);
@@ -56,15 +57,17 @@ export function MemberList({ project, isAdmin }: MemberListProps) {
               <p className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-1">{project.name}</p>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Team member</h2>
             </div>
-            <button
-              type="button"
-              onClick={copyInviteCode}
-              title="Salin kode gabung untuk mengundang anggota"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-            >
-              <Users className="h-4 w-4" />
-              {inviteCopied ? "Kode tersalin" : "Undang anggota"}
-            </button>
+            {project.joinCode && (
+              <button
+                type="button"
+                onClick={copyInviteCode}
+                title="Salin kode gabung untuk mengundang anggota"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+              >
+                <Users className="h-4 w-4" />
+                {inviteCopied ? "Kode tersalin" : "Undang anggota"}
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">

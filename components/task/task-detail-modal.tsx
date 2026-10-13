@@ -43,7 +43,7 @@ export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModal
   };
 
   return (
-    <Dialog open onOpenChange={(val) => { if (!val) onOpenChange(false); }}>
+    <Dialog open onOpenChange={(val: boolean) => { if (!val) onOpenChange(false); }}>
       <DialogContent title={isEditing ? "Edit Task" : "Detail task"}>
         {isDeleting ? (
           <div className="py-6 text-center space-y-4">

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { generateJoinCode } from "@/lib/utils";
+import { canViewJoinCode } from "@/lib/permissions";
 import { projectDashboardSelect } from "@/lib/selects/project.select";
 import { projectBoardSelect } from "@/lib/selects/project-board.select";
 import type { DashboardProject, ProjectRole } from "@/types";
@@ -85,6 +86,38 @@ export async function findProjectMember(userId: string, projectId: string) {
   });
 }
 
+export interface FindProjectNameByIdInput {
+  projectId: string;
+  /** true = ikut ambil joinCode — hanya untuk ADMIN/DEPUTY_ADMIN (AGENTS 8.1). */
+  withJoinCode: boolean;
+}
+
+export interface ProjectNameById {
+  name: string;
+  joinCode?: string;
+}
+
+// READ — nama project; joinCode hanya dibaca dari DB bila withJoinCode=true,
+// sehingga untuk MEMBER field ini tidak pernah keluar dari database.
+export async function findProjectNameById({
+  projectId,
+  withJoinCode,
+}: FindProjectNameByIdInput): Promise<ProjectNameById | null> {
+  if (withJoinCode) {
+    const project = await prisma.project.findUnique({
+      where: { id: projectId, deletedAt: null },
+      select: { name: true, joinCode: true },
+    });
+    return project ? { name: project.name, joinCode: project.joinCode } : null;
+  }
+
+  const project = await prisma.project.findUnique({
+    where: { id: projectId, deletedAt: null },
+    select: { name: true },
+  });
+  return project ? { name: project.name } : null;
+}
+
 export async function findDashboardProjectsByUserId(
   userId: string
 ): Promise<DashboardProject[]> {
@@ -111,7 +144,9 @@ export async function findDashboardProjectsByUserId(
       id: project.id,
       name: project.name,
       description: project.description,
-      joinCode: role === "ADMIN" ? project.joinCode : null,
+      // joinCode hanya untuk ADMIN & DEPUTY_ADMIN; untuk MEMBER field ini
+      // tidak ikut dikirim ke client (bukan sekadar disembunyikan).
+      ...(canViewJoinCode(role) ? { joinCode: project.joinCode } : {}),
       createdAt: project.createdAt.toISOString(),
       role,
       memberCount: project.members.length,

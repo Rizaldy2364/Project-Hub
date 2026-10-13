@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { ProjectRole } from "@/types";
+import type { CreateActivityLogInput } from "@/repositories/activity.repository";
 
 export type MemberRoleFilter = "all" | ProjectRole;
 export type MemberSort = "joined_desc" | "joined_asc" | "name_asc" | "name_desc";
@@ -17,6 +18,8 @@ export interface UpdateMemberRoleInput {
   projectId: string;
   targetUserId: string;
   role: "DEPUTY_ADMIN" | "MEMBER";
+  /** Baris ActivityLog ikut dalam transaksi yang sama (AGENTS.md 9.2). */
+  activity?: CreateActivityLogInput;
 }
 
 function buildWhere(projectId: string, role: MemberRoleFilter, q: string) {
@@ -144,8 +147,12 @@ export async function countProjectMembersByRole(projectId: string) {
   };
 }
 
-// UPDATE — ubah peran dalam satu transaksi (aturan divalidasi di actions).
-export async function updateProjectMemberRole(data: UpdateMemberRoleInput) {
+// UPDATE — ubah peran dalam satu transaksi (aturan divalidasi di actions);
+// bila `activity` diberikan, baris ActivityLog ikut transaksi yang sama.
+export async function updateProjectMemberRole({
+  activity,
+  ...data
+}: UpdateMemberRoleInput) {
   return prisma.$transaction([
     prisma.projectMember.update({
       where: {
@@ -153,14 +160,24 @@ export async function updateProjectMemberRole(data: UpdateMemberRoleInput) {
       },
       data: { role: data.role },
     }),
+    ...(activity ? [prisma.activityLog.create({ data: activity })] : []),
   ]);
 }
 
-// DELETE — dalam satu transaksi: unassign task-nya lalu hapus membership.
-export async function removeProjectMemberWithUnassign(
-  projectId: string,
-  targetUserId: string
-) {
+export interface RemoveProjectMemberInput {
+  projectId: string;
+  targetUserId: string;
+  /** Baris ActivityLog ikut dalam transaksi yang sama (AGENTS.md 9.2). */
+  activity?: CreateActivityLogInput;
+}
+
+// DELETE — dalam satu transaksi: unassign task-nya lalu hapus membership;
+// bila `activity` diberikan, baris ActivityLog ikut transaksi yang sama.
+export async function removeProjectMemberWithUnassign({
+  projectId,
+  targetUserId,
+  activity,
+}: RemoveProjectMemberInput) {
   return prisma.$transaction([
     prisma.task.updateMany({
       where: {
@@ -175,5 +192,6 @@ export async function removeProjectMemberWithUnassign(
         userId_projectId: { userId: targetUserId, projectId },
       },
     }),
+    ...(activity ? [prisma.activityLog.create({ data: activity })] : []),
   ]);
 }

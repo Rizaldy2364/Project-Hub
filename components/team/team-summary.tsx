@@ -54,7 +54,12 @@ export function TeamSummaryCards({ summary, joinCode, projectName }: SummaryProp
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 xl:grid-cols-5">
+    <div
+      className={cn(
+        "grid grid-cols-2 gap-4",
+        joinCode ? "xl:grid-cols-5" : "xl:grid-cols-4"
+      )}
+    >
       {cards.map(({ key, label, icon: Icon, box }) => (
         <div
           key={key}

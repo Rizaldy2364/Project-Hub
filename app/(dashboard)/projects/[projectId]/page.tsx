@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { findProjectBoardById } from "@/repositories/project.repository";
+import { canViewJoinCode } from "@/lib/permissions";
 import { KanbanBoardTab } from "@/components/project/kanban-board-tab";
 import type { BoardTask } from "@/types";
 
@@ -17,6 +18,9 @@ export default async function ProjectBoardPage({ params }: ProjectBoardPageProps
 
   const membership = project.members.find((member) => member.userId === session.user.id);
   if (!membership) redirect("/dashboard");
+  // joinCode hanya untuk ADMIN & DEPUTY_ADMIN; untuk MEMBER field ini tidak
+  // ikut dikirim ke client (bukan sekadar disembunyikan).
+  const canViewCode = canViewJoinCode(membership.role);
   const tasks: BoardTask[] = project.lists.flatMap((list) => list.tasks).map((task) => ({
     id: task.id, title: task.title, description: task.description, status: task.status, priority: task.priority,
     dueDate: task.dueDate?.toISOString() ?? null, assignee: task.assignee,
@@ -29,7 +33,7 @@ export default async function ProjectBoardPage({ params }: ProjectBoardPageProps
         project={{
           id: project.id,
           name: project.name,
-          joinCode: project.joinCode,
+          ...(canViewCode ? { joinCode: project.joinCode } : {}),
           createdAt: project.createdAt.toISOString(),
           role: membership.role,
           lists: project.lists.map((list) => ({ id: list.id, name: list.name })),

@@ -19,6 +19,7 @@ import {
 } from "@/repositories/project.repository";
 import { createManyNotifications } from "@/repositories/notification.repository";
 import { ensureDefaultTaskLists } from "@/repositories/list.repository";
+import { logActivity } from "@/lib/activity";
 import { prisma } from "@/lib/prisma";
 
 // CREATE PROJECT
@@ -41,6 +42,14 @@ export async function createProjectAction(formData: FormData) {
     ownerId: session.user.id,
   });
   await ensureDefaultTaskLists({ projectId: project.id });
+
+  // ACTIVITAS — PROJECT_CREATED (kegagalan logging tidak menggagalkan aksi).
+  await logActivity({
+    userId: session.user.id,
+    projectId: project.id,
+    action: "PROJECT_CREATED",
+    meta: { title: parsed.data.name },
+  });
 
   revalidatePath("/dashboard");
   return { success: true, projectId: project.id };
@@ -93,6 +102,14 @@ export async function joinProjectAction(formData: FormData) {
       projectId: project.id,
     }))
   );
+
+  // ACTIVITAS — MEMBER_JOINED (kegagalan logging tidak menggagalkan aksi).
+  await logActivity({
+    userId: session.user.id,
+    projectId: project.id,
+    action: "MEMBER_JOINED",
+    meta: { projectName: project.name },
+  });
 
   revalidatePath("/dashboard");
   return { success: true, projectId: project.id };

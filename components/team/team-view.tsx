@@ -12,8 +12,8 @@ import type {
 } from "@/types";
 import { TeamSummaryCards } from "@/components/team/team-summary";
 import { TeamTableCard } from "@/components/team/team-table";
-import { RoleRightsCard, TeamHeader } from "@/components/team/team-cards";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { TeamHeader } from "@/components/team/team-cards";
+import { MemberManageDialog } from "@/components/team/member-manage-dialog";
 import {
   listTeamMembersAction,
   removeTeamMemberAction,
@@ -24,7 +24,7 @@ interface TeamViewProps {
   projects: TeamProjectOption[];
   projectId: string | null;
   projectName: string | null;
-  joinCode: string | null;
+  joinCode?: string;
   myRole: ProjectRole | null;
   myUserId: string;
   initialMembers: TeamMemberRow[];
@@ -47,7 +47,7 @@ export function TeamView(props: TeamViewProps) {
   const [members, setMembers] = useState<TeamMemberRow[]>(props.initialMembers);
   const [total, setTotal] = useState(props.initialTotal);
   const [summary, setSummary] = useState<TeamSummary>(props.initialSummary);
-  const [joinCode, setJoinCode] = useState<string | null>(props.joinCode);
+  const [joinCode, setJoinCode] = useState<string | null>(props.joinCode ?? null);
   const [projectName, setProjectName] = useState<string | null>(props.projectName);
   const [myRole, setMyRole] = useState<ProjectRole | null>(props.myRole);
 
@@ -55,7 +55,7 @@ export function TeamView(props: TeamViewProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState<TeamMemberRow | null>(null);
+  const [manageMember, setManageMember] = useState<TeamMemberRow | null>(null);
   const [acting, setActing] = useState(false);
   const debounceRef = useRef<number | null>(null);
 
@@ -101,7 +101,7 @@ export function TeamView(props: TeamViewProps) {
     setMembers(res.members);
     setTotal(res.total);
     setSummary(res.summary);
-    setJoinCode(res.project.joinCode);
+    setJoinCode("joinCode" in res.project ? (res.project.joinCode ?? null) : null);
     setProjectName(res.project.name);
     setMyRole(res.myRole as ProjectRole);
   }, [projectId, role, q, sort, page, pageSize]);
@@ -139,8 +139,9 @@ export function TeamView(props: TeamViewProps) {
     return nums;
   }, [safePage, totalPages]);
 
-  async function handleRoleChange(member: TeamMemberRow, nextRole: "DEPUTY_ADMIN" | "MEMBER") {
-    if (!projectId || acting) return;
+  async function handleRoleChange(nextRole: "DEPUTY_ADMIN" | "MEMBER"): Promise<boolean> {
+    if (!manageMember || !projectId || acting) return false;
+    const member = manageMember;
     setActing(true);
     const res = await updateMemberRoleAction({
       projectId,
@@ -150,7 +151,7 @@ export function TeamView(props: TeamViewProps) {
     setActing(false);
     if ("error" in res) {
       showToast(typeof res.error === "string" ? res.error : "Gagal mengubah peran.");
-      return;
+      return false;
     }
     showToast(
       nextRole === "DEPUTY_ADMIN"
@@ -158,24 +159,25 @@ export function TeamView(props: TeamViewProps) {
         : `${member.name} kini Member.`
     );
     await reload();
+    return true;
   }
 
-  async function handleRemove() {
-    if (!confirmRemove || !projectId || acting) return;
+  async function handleRemove(): Promise<boolean> {
+    if (!manageMember || !projectId || acting) return false;
+    const member = manageMember;
     setActing(true);
     const res = await removeTeamMemberAction({
       projectId,
-      targetUserId: confirmRemove.id,
+      targetUserId: member.id,
     });
     setActing(false);
     if ("error" in res) {
-      setConfirmRemove(null);
       showToast(typeof res.error === "string" ? res.error : "Gagal menghapus anggota.");
-      return;
+      return false;
     }
-    setConfirmRemove(null);
-    showToast(`${confirmRemove.name} dihapus dari project.`);
+    showToast(`${member.name} dihapus dari project.`);
     await reload();
+    return true;
   }
 
   if (!projectId || props.projects.length === 0) {
@@ -219,8 +221,7 @@ export function TeamView(props: TeamViewProps) {
         members={members}
         myRole={myRole}
         myUserId={props.myUserId}
-        onRoleChange={handleRoleChange}
-        onRemove={setConfirmRemove}
+        onManage={setManageMember}
         total={total}
         pageSize={pageSize}
         safePage={safePage}
@@ -229,43 +230,14 @@ export function TeamView(props: TeamViewProps) {
         pageNumbers={pageNumbers}
       />
 
-      <RoleRightsCard />
-
-      <Dialog open={Boolean(confirmRemove)} onOpenChange={(open) => !open && setConfirmRemove(null)}>
-        <DialogContent title="Hapus dari project">
-          {confirmRemove && (
-            <div className="space-y-4 py-2 text-center">
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Yakin ingin menghapus <strong>{confirmRemove.name}</strong> dari project{" "}
-                <strong>{projectName}</strong>?
-              </p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {confirmRemove.activeTaskCount > 0
-                  ? `${confirmRemove.activeTaskCount} task aktifnya akan menjadi tanpa penanggung jawab.`
-                  : "Anggota ini tidak punya task aktif."}
-              </p>
-              <div className="flex justify-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmRemove(null)}
-                  disabled={acting}
-                  className="rounded-xl border border-slate-200 px-6 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  Batal
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRemove}
-                  disabled={acting}
-                  className="rounded-xl bg-red-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
-                >
-                  {acting ? "Menghapus..." : "Hapus"}
-                </button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <MemberManageDialog
+        member={manageMember}
+        open={Boolean(manageMember)}
+        saving={acting}
+        onOpenChange={(open) => !open && setManageMember(null)}
+        onSaveRole={handleRoleChange}
+        onRemove={handleRemove}
+      />
 
       {toast && (
         <div

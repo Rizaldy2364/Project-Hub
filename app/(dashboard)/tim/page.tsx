@@ -11,8 +11,8 @@ import {
   findProjectMembers,
   countProjectMembersByRole,
 } from "@/repositories/team.repository";
-import { findProjectMember } from "@/repositories/project.repository";
-import { prisma } from "@/lib/prisma";
+import { findProjectMember, findProjectNameById } from "@/repositories/project.repository";
+import { canViewJoinCode } from "@/lib/permissions";
 import { TeamView } from "@/components/team/team-view";
 
 interface TeamPageProps {
@@ -45,7 +45,6 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
           projects={[]}
           projectId={null}
           projectName={null}
-          joinCode={null}
           myRole={null}
           myUserId={session.user.id}
           initialMembers={[]}
@@ -80,13 +79,13 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   const membership = await findProjectMember(session.user.id, projectId);
   if (!membership) redirect("/dashboard");
 
+  const canViewCode = canViewJoinCode(membership.role);
   const [result, summary, project] = await Promise.all([
     findProjectMembers(query),
     countProjectMembersByRole(projectId),
-    prisma.project.findUnique({
-      where: { id: projectId, deletedAt: null },
-      select: { name: true, joinCode: true },
-    }),
+    // joinCode hanya dibaca dari DB bila role diizinkan melihatnya; untuk
+    // MEMBER field ini tidak pernah dibaca apalagi dikirim ke client.
+    findProjectNameById({ projectId, withJoinCode: canViewCode }),
   ]);
 
   return (
@@ -95,7 +94,9 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         projects={projects}
         projectId={projectId}
         projectName={project?.name ?? ""}
-        joinCode={membership.role === "ADMIN" ? (project?.joinCode ?? null) : null}
+        // joinCode hanya untuk ADMIN & DEPUTY_ADMIN; untuk MEMBER prop tidak
+        // dikirim ke client sama sekali (bukan sekadar disembunyikan).
+        joinCode={canViewCode ? project?.joinCode : undefined}
         myRole={membership.role}
         myUserId={session.user.id}
         initialMembers={result.members}
