@@ -304,3 +304,116 @@ export interface DiscussionSummaryItem {
   lastMessage: DiscussionLastMessage | null;
   unreadCount: number;
 }
+
+// ===== Laporan (/laporan) =====
+
+export type ReportRangeValue = 7 | 30 | 90;
+
+export interface ReportProjectOption {
+  id: string;
+  name: string;
+}
+
+export interface ReportMemberOption {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+/** Baris "Task selesai per minggu" (6 minggu terakhir, Senin WIB). */
+export interface ReportWeeklyPoint {
+  /** "YYYY-MM-DD" (Senin minggu itu, menurut WIB). */
+  weekStart: string;
+  count: number;
+}
+
+/** Satu baris "Beban kerja anggota" (batang bertumpuk per status). */
+export interface ReportWorkloadRow {
+  assigneeId: string | null; // null = tanpa penanggung jawab
+  name: string;
+  avatarUrl: string | null;
+  TODO: number;
+  IN_PROGRESS: number;
+  DONE: number;
+  total: number;
+}
+
+/** Satu baris "Task per project" untuk satu member (batang bertumpuk). */
+export interface ReportMemberProjectRow {
+  projectId: string;
+  projectName: string;
+  TODO: number;
+  IN_PROGRESS: number;
+  DONE: number;
+  total: number;
+}
+
+/** Satu baris "Task per label" (top label). */
+export interface ReportLabelRow {
+  labelId: string;
+  name: string;
+  color: string;
+  count: number;
+}
+
+/** Satu baris "Progres per project". */
+export interface ReportProjectProgressRow {
+  projectId: string;
+  projectName: string;
+  done: number;
+  total: number;
+  percent: number;
+}
+
+/** Satu baris "Task per prioritas" (satu project dipilih). */
+export interface ReportPriorityRow {
+  priority: TaskPriorityValue;
+  label: string;
+  count: number;
+  percent: number;
+}
+
+/** Satu baris tabel "Task terlambat". */
+export interface ReportOverdueTask {
+  id: string;
+  title: string;
+  projectName: string;
+  assignee: { id: string; name: string; avatarUrl: string | null } | null;
+  dueDate: string; // ISO string
+  daysLate: number;
+}
+
+export interface ReportKpi {
+  /** Task selesai dalam rentang. */
+  completedInRange: number;
+  /** Total task dalam scope (tanpa filter rentang). */
+  scopeTaskTotal: number;
+  /** Persen bulat; null bila dasar (denominator) 0 → tampilkan "—". */
+  completionRatePercent: number | null;
+  /** Selisih poin persen vs periode lalu; null = sembunyikan delta. */
+  completionRateDelta: number | null;
+  overdueCount: number;
+  /** Rata-rata penyelesaian dalam hari; null = tidak ada data. */
+  avgCompletionDays: number | null;
+}
+
+/** Kartu kanan "Beban kerja anggota" — bisa diganti adaptif. */
+export type ReportWorkloadCard =
+  | { kind: "workload"; rows: ReportWorkloadRow[] }
+  | { kind: "member-projects"; rows: ReportMemberProjectRow[] }
+  | { kind: "labels"; rows: ReportLabelRow[] };
+
+/** Kartu kiri "Progres per project" — bisa diganti adaptif. */
+export type ReportProgressCard =
+  | { kind: "projects"; rows: ReportProjectProgressRow[] }
+  | { kind: "priority"; rows: ReportPriorityRow[] };
+
+export interface ReportData {
+  kpi: ReportKpi;
+  /** 6 titik, minggu berjalan di akhir array; tidak terpengaruh filter rentang. */
+  weekly: ReportWeeklyPoint[];
+  status: { TODO: number; IN_PROGRESS: number; DONE: number; total: number };
+  workloadCard: ReportWorkloadCard;
+  progressCard: ReportProgressCard;
+  overdueTasks: ReportOverdueTask[];
+}

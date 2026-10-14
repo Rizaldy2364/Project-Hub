@@ -109,6 +109,7 @@ model Task {
   status      TaskStatus   @default(TODO)
   priority    TaskPriority @default(MEDIUM)
   dueDate     DateTime?
+  completedAt DateTime? // diisi saat status menjadi DONE, dikosongkan bila status kembali
   order       Int
   createdAt   DateTime     @default(now())
   deletedAt   DateTime?
@@ -125,7 +126,10 @@ model Task {
   notifications Notification[]
   activityLogs  ActivityLog[]
 
+  @@index([completedAt])
   @@index([dueDate])
+  @@index([listId])
+  @@index([assigneeId])
 }
 
 enum TaskStatus {

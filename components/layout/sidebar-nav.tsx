@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
+  BarChart3,
   Bell,
   CalendarDays,
   CheckSquare,
@@ -62,6 +63,12 @@ const items = [
     label: "Aktivitas",
     icon: Activity,
     match: ["/aktivitas"],
+  },
+  {
+    href: "/laporan",
+    label: "Laporan",
+    icon: BarChart3,
+    match: ["/laporan"],
   },
 ];
 

@@ -6,6 +6,7 @@ export interface CreateTaskInput {
   title: string;
   description?: string;
   dueDate?: Date;
+  completedAt?: Date | null;
   listId: string;
   assigneeId?: string;
   status?: "TODO" | "IN_PROGRESS" | "DONE";
@@ -18,6 +19,7 @@ export interface UpdateTaskInput {
   title?: string;
   description?: string;
   dueDate?: Date | null;
+  completedAt?: Date | null;
   status?: "TODO" | "IN_PROGRESS" | "DONE";
   priority?: "LOW" | "MEDIUM" | "HIGH";
   assigneeId?: string | null;
@@ -39,6 +41,7 @@ export async function createTask(data: CreateTaskInput) {
       title: data.title,
       description: data.description,
       dueDate: data.dueDate,
+      completedAt: data.completedAt,
       listId: data.listId,
       assigneeId: data.assigneeId,
       status: data.status,
