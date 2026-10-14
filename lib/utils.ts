@@ -26,6 +26,69 @@ export function wibDayDiff(base: Date | string, target: Date | string): number {
   return Math.round((t - b) / 86_400_000);
 }
 
+/**
+ * Awal hari (00:00) menurut zona WIB, dikembalikan sebagai Date yang tepat.
+ * WIB = UTC+7 tanpa DST, jadi aman dihitung tetap.
+ */
+export function startOfDayWib(now: Date = new Date()): Date {
+  return new Date(`${wibDayKey(now)}T00:00:00+07:00`);
+}
+
+/** "5 Okt" — tanggal dalam WIB, locale id-ID. */
+export function formatDayMonthWib(date: Date): string {
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "short",
+    timeZone: APP_TIMEZONE,
+  }).format(date);
+}
+
+/**
+ * Label untuk kunci hari WIB "YYYY-MM-DD" → "31 Agu". Kunci itu sendiri sudah
+ * kalender WIB, jadi diformat dengan zona UTC agar tidak bergeser satu hari.
+ */
+export function formatWibDayKey(dayKey: string): string {
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${dayKey}T00:00:00Z`));
+}
+
+/**
+ * Rentang satu minggu dari kunci hari awal "YYYY-MM-DD" (Senin, kalender WIB).
+ * Minggu = 7 hari (Senin..Minggu). Mengembalikan:
+ * - `range` (tanpa tahun): bulan sama "12–18 Okt"; lintas bulan/tahun "28 Sep–4 Okt".
+ * - `withYear` (tahun awal minggu): "12–18 Okt 2026" — untuk tooltip/aria-label/tabel.
+ */
+export function formatWibWeekRange(
+  weekStartKey: string
+): { range: string; withYear: string } {
+  const start = new Date(`${weekStartKey}T00:00:00Z`);
+  const end = new Date(start.getTime() + 6 * 86_400_000);
+  const parts = new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const pick = (date: Date, type: string) =>
+    parts.formatToParts(date).find((p) => p.type === type)?.value ?? "";
+
+  const startDay = pick(start, "day");
+  const startMonth = pick(start, "month");
+  const startYear = pick(start, "year");
+  const endDay = pick(end, "day");
+  const endMonth = pick(end, "month");
+  const endYear = pick(end, "year");
+
+  const sameMonth = startMonth === endMonth && startYear === endYear;
+  const range = sameMonth
+    ? `${startDay}–${endDay} ${endMonth}`
+    : `${startDay} ${startMonth}–${endDay} ${endMonth}`;
+  return { range, withYear: `${range} ${startYear}` };
+}
+
 // Generate join code untuk project (8 karakter, tanpa 0/O/1/I biar gak ambigu)
 const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 8);
 

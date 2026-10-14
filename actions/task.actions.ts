@@ -19,6 +19,7 @@ import {
 } from "@/repositories/task.repository";
 import { createNotification } from "@/repositories/notification.repository";
 import { logActivity } from "@/lib/activity";
+import { resolveCompletedAt } from "@/lib/completed-at";
 
 // Helper internal — cek user adalah member dari project pemilik task ini
 async function getProjectIdAndCheckMembership(userId: string, listId: string) {
@@ -75,10 +76,14 @@ export async function createTaskAction(formData: FormData) {
 
   const currentCount = await countTasksByListId(parsed.data.listId);
 
+  // ATURAN completedAt — membuat task langsung DONE langsung dapat timestamp.
+  const completedAt = resolveCompletedAt({ nextStatus: parsed.data.status });
+
   const task = await createTask({
     title: parsed.data.title,
     description: parsed.data.description,
     dueDate: parsed.data.dueDate,
+    completedAt,
     listId: parsed.data.listId,
     assigneeId: parsed.data.assigneeId,
     status: parsed.data.status,
@@ -136,7 +141,19 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
     return { error: parsed.error.flatten().fieldErrors };
   }
 
-  await updateTask(taskId, parsed.data);
+  // ATURAN completedAt — SATU aturan untuk semua jalur yang menulis status
+  // (edit form, checkbox di /tasks & board, dll): menjadi DONE → isi timestamp;
+  // DONE kembali ke status lain → null; tetap DONE → biarkan.
+  const completedAt = resolveCompletedAt({
+    currentStatus: task.status,
+    currentCompletedAt: task.completedAt,
+    nextStatus: parsed.data.status ?? task.status,
+  });
+
+  await updateTask(taskId, {
+    ...parsed.data,
+    ...(completedAt !== undefined ? { completedAt } : {}),
+  });
 
   // ACTIVITAS — TASK_COMPLETED bila status berubah menjadi DONE; selain itu
   // TASK_UPDATED untuk judul/tenggat/prioritas/penanggung jawab/status berubah.
