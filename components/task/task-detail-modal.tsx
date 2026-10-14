@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { format } from "date-fns";
-import { Loader2, Trash2 } from "lucide-react";
+import { FolderKanban, Loader2, Trash2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { deleteTaskAction, updateTaskAction } from "@/actions/task.actions";
+import { markTaskCommentsReadAction } from "@/actions/notification.actions";
 import type { BoardTask } from "@/types";
 
 interface TaskDetailModalProps {
@@ -19,6 +21,18 @@ export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModal
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  // Task dari kalender membawa info project (BoardTask tidak memilikinya).
+  const calendarTask = task as BoardTask & {
+    projectId?: string;
+    projectName?: string;
+  };
+
+  // AUTO-READ — membuka detail task menandai notifikasi TASK_COMMENT milik
+  // user untuk task ini sebagai dibaca (fire-and-forget; diam bila gagal).
+  useEffect(() => {
+    void markTaskCommentsReadAction(task.id);
+  }, [task.id]);
 
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDesc, setEditDesc] = useState(task.description ?? "");
@@ -156,6 +170,25 @@ export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModal
                     </div>
                   </div>
                 </div>
+
+                {/* Info project — tampil saat task dibuka dari kalender. */}
+                {calendarTask.projectId && calendarTask.projectName && (
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900/60">
+                    <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
+                      <FolderKanban
+                        className="h-3.5 w-3.5 shrink-0 text-slate-400"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{calendarTask.projectName}</span>
+                    </span>
+                    <Link
+                      href={`/projects/${calendarTask.projectId}`}
+                      className="shrink-0 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-300"
+                    >
+                      Buka di project
+                    </Link>
+                  </div>
+                )}
               </>
             )}
 

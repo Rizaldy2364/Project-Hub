@@ -101,7 +101,8 @@ export type NotificationTypeValue =
   | "MENTION"
   | "DUE_SOON"
   | "MEMBER_JOINED"
-  | "PROJECT_COMPLETED";
+  | "PROJECT_COMPLETED"
+  | "TASK_COMMENT";
 
 export type NotificationTabValue = "all" | "unread" | "mention" | "task" | "invite";
 
@@ -129,7 +130,13 @@ export interface InboxNotification {
   actor: InboxActor | null;
   task: InboxTask | null;
   project: { id: string; name: string } | null;
-  comment: { id: string; content: string } | null;
+  /** Komentar pemicu notifikasi (MENTION/TASK_COMMENT) — terbaru bila di-coalesce. */
+  comment: {
+    id: string;
+    content: string;
+    createdAt: string; // ISO string
+    author: InboxActor | null;
+  } | null;
 }
 
 export interface NotificationTabCounts {

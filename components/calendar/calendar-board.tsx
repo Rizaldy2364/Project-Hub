@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { addDays, addMonths, format, isSameMonth } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
@@ -31,10 +32,15 @@ const legend: { label: string; className: string }[] = [
 
 interface CalendarBoardProps {
   tasks: CalendarTask[];
+  /** Opsi filter project (project yang diikuti user). */
+  projects: { id: string; name: string }[];
+  /** "" = semua project; state tersimpan di URL ?project=. */
+  activeProjectId: string;
 }
 
 /** Orkestrator halaman kalender: kontrol bulan, filter member, grid, agenda, modal. */
-export function CalendarBoard({ tasks }: CalendarBoardProps) {
+export function CalendarBoard({ tasks, projects, activeProjectId }: CalendarBoardProps) {
+  const router = useRouter();
   const [anchor, setAnchor] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
   const [memberFilter, setMemberFilter] = useState("ALL");
@@ -97,6 +103,42 @@ export function CalendarBoard({ tasks }: CalendarBoardProps) {
     <section className="space-y-4">
       {/* Baris filter member + legenda */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Project
+          </span>
+
+          {/* Dropdown filter project — state di URL ?project= (revalidate server). */}
+          <div className="relative inline-flex items-center">
+            <FolderKanban
+              className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-slate-400"
+              aria-hidden="true"
+            />
+            <select
+              value={activeProjectId}
+              onChange={(event) => {
+                const value = event.target.value;
+                router.replace(value ? `/calendar?project=${value}` : "/calendar");
+              }}
+              aria-label="Filter project"
+              className="h-8 max-w-[220px] appearance-none rounded-full border border-slate-200 bg-white py-1 pl-8 pr-7 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40"
+            >
+              <option value="">Semua project</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute right-2 text-slate-400"
+            >
+              ▾
+            </span>
+          </div>
+        </div>
+
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Member

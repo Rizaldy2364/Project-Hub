@@ -114,6 +114,17 @@ export async function POST() {
         createdAt: new Date(now - 1000 * 60 * 60 * 50),
       },
     }),
+    prisma.notification.create({
+      data: {
+        type: "TASK_COMMENT",
+        userId,
+        actorId,
+        projectId,
+        taskId: task.id,
+        commentId: comment.id,
+        createdAt: new Date(now - 1000 * 60 * 90),
+      },
+    }),
   ]);
 
   return NextResponse.json({ success: true, count: created.length });

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { FolderKanban } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
 import type { InboxNotification } from "@/types";
@@ -36,7 +37,10 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
   const [sending, setSending] = useState(false);
   const [marking, setMarking] = useState(false);
   const unread = !item.readAt;
-  const showReply = item.type === "TASK_ASSIGNED" || item.type === "MENTION";
+  const showReply =
+    item.type === "TASK_ASSIGNED" ||
+    item.type === "MENTION" ||
+    item.type === "TASK_COMMENT";
   const showTask = item.task !== null && item.type !== "MEMBER_JOINED" && item.type !== "PROJECT_COMPLETED";
 
   async function handleMarkRead() {
@@ -92,10 +96,32 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
         <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-[#E6EAF2]">
           {item.task?.title ?? item.project?.name ?? "Notifikasi"}
         </h2>
+        {item.project && (
+          <span className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#131A2B] dark:text-[#8B96AD]">
+            <FolderKanban className="h-3 w-3 shrink-0" aria-hidden="true" />
+            <span className="truncate">{item.project.name}</span>
+          </span>
+        )}
         {item.comment && (
-          <p className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 dark:border-white/[0.08] dark:bg-[#0F1524] dark:text-slate-200">
-            {item.comment.content}
-          </p>
+          <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/[0.08] dark:bg-[#0F1524]">
+            <div className="flex items-center gap-2">
+              <UserAvatar
+                name={item.comment.author?.name ?? "?"}
+                image={item.comment.author?.avatarUrl ?? null}
+                size="sm"
+                className="h-6 w-6 text-[9px]"
+              />
+              <p className="min-w-0 truncate text-xs font-semibold text-slate-700 dark:text-slate-200">
+                {item.comment.author?.name ?? "-"}
+              </p>
+              <p className="shrink-0 text-[11px] text-slate-400 dark:text-[#8B96AD]">
+                {formatInboxTime(item.comment.createdAt)}
+              </p>
+            </div>
+            <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-slate-700 dark:text-slate-200">
+              {item.comment.content}
+            </p>
+          </div>
         )}
       </div>
 

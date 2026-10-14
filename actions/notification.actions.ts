@@ -6,20 +6,18 @@ import { notificationTabSchema } from "@/lib/validations/notification.schema";
 import {
   findNotificationsByUserId,
   findNotificationById,
+  findNotificationOwnerId,
   countNotificationsByTab,
   countUnreadNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  findUnreadTaskCommentNotificationIds,
   type NotificationTab,
 } from "@/repositories/notification.repository";
-import { prisma } from "@/lib/prisma";
 import { createCommentSchema } from "@/lib/validations/comment.schema";
-import { createComment } from "@/repositories/comment.repository";
-import { createNotification } from "@/repositories/notification.repository";
-import { findTaskById } from "@/repositories/task.repository";
-import { findTaskListById } from "@/repositories/list.repository";
-import { findProjectMember } from "@/repositories/project.repository";
-import { extractMentions } from "@/lib/mentions";
+import { createTaskComment } from "@/actions/comment.actions";
+import { requireUser } from "@/lib/auth-guards";
+import { z } from "zod";
 import type { InboxNotification } from "@/types";
 
 function toInboxNotification(row: {
@@ -38,7 +36,12 @@ function toInboxNotification(row: {
     list: { projectId: string };
   } | null;
   project: { id: string; name: string } | null;
-  comment: { id: string; content: string } | null;
+  comment: {
+    id: string;
+    content: string;
+    createdAt: Date;
+    user: { id: string; name: string; avatarUrl: string | null } | null;
+  } | null;
 }): InboxNotification {
   return {
     id: row.id,
@@ -58,7 +61,14 @@ function toInboxNotification(row: {
         }
       : null,
     project: row.project,
-    comment: row.comment,
+    comment: row.comment
+      ? {
+          id: row.comment.id,
+          content: row.comment.content,
+          createdAt: row.comment.createdAt.toISOString(),
+          author: row.comment.user,
+        }
+      : null,
   };
 }
 
@@ -106,16 +116,34 @@ export async function markNotificationReadAction(notificationId: string) {
   const session = await auth();
   if (!session) return { error: "Unauthorized" };
 
-  const owner = await prisma.notification.findUnique({
-    where: { id: notificationId },
-    select: { userId: true },
-  });
+  const owner = await findNotificationOwnerId(notificationId);
   if (!owner) return { error: "Notifikasi tidak ditemukan" };
   if (owner.userId !== session.user.id) {
     return { error: "Kamu tidak punya akses ke notifikasi ini" };
   }
 
   await markNotificationRead(notificationId);
+  revalidatePath("/inbox");
+  return { success: true as const };
+}
+
+// AUTO-READ TASK_COMMENT — dipanggil saat user membuka detail task: semua
+// notifikasi TASK_COMMENT miliknya untuk task itu ditandai dibaca.
+export async function markTaskCommentsReadAction(taskId: string) {
+  const guard = await requireUser();
+  if ("error" in guard) return { error: guard.error ?? "Unauthorized" };
+
+  const parsed = z.string().cuid().safeParse(taskId);
+  if (!parsed.success) return { error: "Task tidak valid" };
+
+  const ids = await findUnreadTaskCommentNotificationIds(
+    guard.user.id,
+    parsed.data
+  );
+  if (ids.length === 0) return { success: true as const };
+
+  // Memakai mark-read repository yang sama (per ID) seperti aksi manual.
+  await Promise.all(ids.map((id) => markNotificationRead(id)));
   revalidatePath("/inbox");
   return { success: true as const };
 }
@@ -129,8 +157,9 @@ export async function markAllNotificationsReadAction() {
   return { success: true as const };
 }
 
-// BALAS DARI PANEL DETAIL — lewat logika create-comment yang sudah ada
-// (mention di balasan ikut diproses).
+// BALAS DARI PANEL DETAIL — delegate ke pipeline tunggal createTaskComment
+// (mention, aktivitas, dan notifikasi peserta task ikut diproses; penerima
+// notifikasi termasuk pembuat komentar sebelumnya — pemicu notifikasi asli).
 export async function replyNotificationAction(
   notificationId: string,
   formData: FormData
@@ -143,59 +172,24 @@ export async function replyNotificationAction(
     return { error: "Task notifikasi tidak ditemukan" };
   }
 
-  const owner = await prisma.notification.findUnique({
-    where: { id: notificationId },
-    select: { userId: true },
-  });
+  const owner = await findNotificationOwnerId(notificationId);
   if (!owner || owner.userId !== session.user.id) {
     return { error: "Kamu tidak punya akses ke notifikasi ini" };
   }
 
-  const parsed = createCommentSchema.safeParse({
-    content: formData.get("content"),
-    taskId: existing.task.id,
-  });
+  const parsed = createCommentSchema
+    .pick({ content: true })
+    .safeParse({ content: formData.get("content") });
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors };
   }
 
-  const task = await findTaskById(parsed.data.taskId);
-  if (!task) return { error: "Task tidak ditemukan" };
-  const list = await findTaskListById(task.listId);
-  if (!list) return { error: "List tidak ditemukan" };
-  const member = await findProjectMember(session.user.id, list.projectId);
-  if (!member) return { error: "Kamu bukan member project ini" };
-
-  const comment = await createComment({
+  const result = await createTaskComment({
+    taskId: existing.task.id,
     content: parsed.data.content,
-    taskId: parsed.data.taskId,
-    userId: session.user.id,
   });
-
-  const projectMembers = await prisma.projectMember.findMany({
-    where: { projectId: list.projectId },
-    select: { user: { select: { id: true, name: true } } },
-  });
-  const mentioned = extractMentions(
-    parsed.data.content,
-    projectMembers.map((m) => m.user)
-  ).filter((m) => m.id !== session.user.id);
-  if (mentioned.length > 0) {
-    await Promise.all(
-      mentioned.map((m) =>
-        createNotification({
-          type: "MENTION",
-          userId: m.id,
-          actorId: session.user.id,
-          projectId: list.projectId,
-          taskId: parsed.data.taskId,
-          commentId: comment.id,
-        })
-      )
-    );
-  }
+  if ("error" in result) return { error: result.error };
 
   revalidatePath("/inbox");
-  revalidatePath(`/projects/${list.projectId}`);
   return { success: true as const };
 }
