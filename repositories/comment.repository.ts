@@ -39,6 +39,16 @@ export async function updateComment(id: string, data: UpdateCommentInput) {
   });
 }
 
+// Peserta diskusi task — ID user unik pembuat komentar aktif (buat penerima
+// notifikasi TASK_COMMENT: penugasan + pemberi komentar sebelumnya).
+export async function findDistinctCommentAuthorIds(taskId: string) {
+  const rows = await prisma.comment.groupBy({
+    by: ["userId"],
+    where: { taskId, deletedAt: null },
+  });
+  return rows.map((row) => row.userId);
+}
+
 // SOFT DELETE
 export async function softDeleteComment(id: string) {
   return prisma.comment.update({

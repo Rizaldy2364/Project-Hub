@@ -169,6 +169,7 @@ enum NotificationType {
   DUE_SOON
   MEMBER_JOINED
   PROJECT_COMPLETED
+  TASK_COMMENT
 }
 
 model Notification {

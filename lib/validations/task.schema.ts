@@ -37,3 +37,11 @@ export type CreateTaskListInput = z.infer<typeof createTaskListSchema>;
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type MoveTaskInput = z.infer<typeof moveTaskSchema>;
+
+/** Query halaman Kalender (?project=): "" = semua project. ID asing/invalid
+ *  diabaikan di halaman (divalidasi terhadap daftar project user). */
+export const calendarQuerySchema = z.object({
+  project: z.string().cuid().or(z.literal("")).catch("").default(""),
+});
+
+export type CalendarQuery = z.infer<typeof calendarQuerySchema>;

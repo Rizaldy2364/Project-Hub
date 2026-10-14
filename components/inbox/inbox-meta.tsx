@@ -5,6 +5,7 @@ import {
   BellRing,
   CheckCheck,
   Inbox as InboxIcon,
+  MessageSquare,
   UserPlus,
 } from "lucide-react";
 import type { InboxNotification, NotificationTypeValue } from "@/types";
@@ -43,6 +44,12 @@ export const TYPE_META: Record<
     detailLabel: "PROJECT SELESAI",
     box: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/10 dark:text-[#4ADE80]",
     icon: CheckCheck,
+  },
+  TASK_COMMENT: {
+    label: "Komentar",
+    detailLabel: "KOMENTAR TASK BARU",
+    box: "bg-purple-500/10 text-purple-600 dark:bg-purple-500/10 dark:text-[#C4B5FD]",
+    icon: MessageSquare,
   },
 };
 
@@ -87,6 +94,14 @@ export function titleParts(item: InboxNotification): React.ReactNode {
           {" lewat kode undangan"}
         </>
       );
+    case "TASK_COMMENT":
+      return (
+        <>
+          <strong className="font-semibold">{actor}</strong>
+          {" berkomentar di task "}
+          <strong className="font-semibold">{taskTitle}</strong>
+        </>
+      );
     default:
       return (
         <>
@@ -102,6 +117,8 @@ export function subTitle(item: InboxNotification): string {
   const project = item.project?.name ?? "";
   const due = item.task?.dueDate ? dueLabel(item.task.dueDate) : null;
   if (item.type === "MEMBER_JOINED") return project;
+  // Baris bawah notifikasi komentar cukup nama project (sesuai spesifikasi).
+  if (item.type === "TASK_COMMENT") return project;
   if (due) return `${project} • tenggat ${due}`;
   return project;
 }

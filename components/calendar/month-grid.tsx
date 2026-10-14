@@ -1,13 +1,17 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   endOfMonth,
   endOfWeek,
+  format,
   isSameMonth,
   isToday,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 import { cn, toDayKey } from "@/lib/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { statusDot } from "@/components/calendar/agenda-card";
 import { TaskChip } from "@/components/calendar/task-chip";
 import type { CalendarTask } from "@/types";
 
@@ -25,6 +29,8 @@ interface MonthGridProps {
 
 /** Grid bulan 7 kolom (Sen–Min) berisi chip task per hari. */
 export function MonthGrid({ month, tasks, onSelectTask }: MonthGridProps) {
+  // Key hari (toDayKey) yang baris "+N lagi"-nya sedang dibuka; null = tertutup.
+  const [overflowDay, setOverflowDay] = useState<string | null>(null);
   // Rentang hari yang ditampilkan: dari Sen awal minggu pertama
   // sampai Min akhir minggu terakhir (selalu kelipatan 7 hari).
   const days = useMemo(() => {
@@ -103,15 +109,59 @@ export function MonthGrid({ month, tasks, onSelectTask }: MonthGridProps) {
                   />
                 ))}
                 {dayTasks.length > MAX_CHIPS_PER_DAY && (
-                  <p className="px-1 text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                  <button
+                    type="button"
+                    onClick={() => setOverflowDay(toDayKey(day))}
+                    className="px-1 text-left text-[10px] font-medium text-slate-400 hover:text-blue-600 hover:underline dark:text-slate-500 dark:hover:text-blue-300"
+                  >
                     +{dayTasks.length - MAX_CHIPS_PER_DAY} lagi
-                  </p>
+                  </button>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* Dialog "N lagi" — daftar task sisanya, lengkap dengan nama project. */}
+      <Dialog open={overflowDay !== null} onOpenChange={(open) => { if (!open) setOverflowDay(null); }}>
+        <DialogContent
+          title={
+            overflowDay
+              ? `Task lainnya · ${format(new Date(overflowDay), "d MMMM yyyy", { locale: idLocale })}`
+              : "Task lainnya"
+          }
+        >
+          <div className="max-h-[60vh] space-y-1.5 overflow-y-auto">
+            {(overflowDay ? tasksByDay.get(overflowDay) ?? [] : [])
+              .slice(MAX_CHIPS_PER_DAY)
+              .map((task) => (
+                <button
+                  key={task.id}
+                  type="button"
+                  onClick={() => {
+                    setOverflowDay(null);
+                    onSelectTask(task);
+                  }}
+                  className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left transition-colors hover:border-blue-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/40 dark:hover:bg-slate-800/60"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-slate-900 dark:text-white">
+                      {task.title}
+                    </span>
+                    <span className="block truncate text-xs text-slate-500 dark:text-slate-400">
+                      {task.projectName}
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={cn("h-2 w-2 shrink-0 rounded-full", statusDot[task.status])}
+                  />
+                </button>
+              ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

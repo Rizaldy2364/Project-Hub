@@ -86,6 +86,41 @@ export async function findProjectMember(userId: string, projectId: string) {
   });
 }
 
+export interface ProjectOption {
+  id: string;
+  name: string;
+}
+
+// READ — opsi dropdown filter project (hanya project yang diikuti user).
+export async function findProjectOptionsByUserId(
+  userId: string
+): Promise<ProjectOption[]> {
+  return prisma.project.findMany({
+    where: {
+      deletedAt: null,
+      members: { some: { userId } },
+    },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+}
+
+export interface ProjectMemberUser {
+  id: string;
+  name: string;
+}
+
+// READ — daftar anggota project (id + nama) untuk pencocokan mention.
+export async function findProjectMemberUsers(
+  projectId: string
+): Promise<ProjectMemberUser[]> {
+  const rows = await prisma.projectMember.findMany({
+    where: { projectId },
+    select: { user: { select: { id: true, name: true } } },
+  });
+  return rows.map((row) => row.user);
+}
+
 export interface FindProjectNameByIdInput {
   projectId: string;
   /** true = ikut ambil joinCode — hanya untuk ADMIN/DEPUTY_ADMIN (AGENTS 8.1). */

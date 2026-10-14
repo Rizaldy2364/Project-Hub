@@ -19,5 +19,12 @@ export const notificationDetailSelect = {
     },
   },
   project: { select: { id: true, name: true } },
-  comment: { select: { id: true, content: true } },
+  comment: {
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      user: { select: { id: true, name: true, avatarUrl: true } },
+    },
+  },
 } satisfies Prisma.NotificationSelect;

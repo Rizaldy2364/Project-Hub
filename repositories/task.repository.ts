@@ -189,15 +189,23 @@ export async function findMyTasksByUserId(
 }
 
 // KALENDER — semua task yang punya due date dari project yang diikuti user
-export async function findCalendarTasksByUserId(
-  userId: string
-): Promise<CalendarTask[]> {
+export interface FindCalendarTasksInput {
+  userId: string;
+  /** Filter project (dropdown di halaman kalender); kosong = semua project. */
+  projectId?: string;
+}
+
+export async function findCalendarTasksByUserId({
+  userId,
+  projectId,
+}: FindCalendarTasksInput): Promise<CalendarTask[]> {
   const tasks = await prisma.task.findMany({
     where: {
       deletedAt: null,
       dueDate: { not: null },
       list: {
         deletedAt: null,
+        ...(projectId ? { projectId } : {}),
         project: {
           deletedAt: null,
           members: { some: { userId } },

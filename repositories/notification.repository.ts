@@ -24,7 +24,7 @@ const TAB_TYPES: Record<NotificationTab, NotificationType[] | null> = {
   all: null,
   unread: null,
   mention: ["MENTION"],
-  task: ["TASK_ASSIGNED", "DUE_SOON"],
+  task: ["TASK_ASSIGNED", "DUE_SOON", "TASK_COMMENT"],
   invite: ["MEMBER_JOINED"],
 };
 
@@ -77,7 +77,10 @@ export async function countNotificationsByTab(userId: string) {
     prisma.notification.count({ where: { userId, readAt: null } }),
     prisma.notification.count({ where: { userId, type: "MENTION" } }),
     prisma.notification.count({
-      where: { userId, type: { in: ["TASK_ASSIGNED", "DUE_SOON"] } },
+      where: {
+        userId,
+        type: { in: ["TASK_ASSIGNED", "DUE_SOON", "TASK_COMMENT"] },
+      },
     }),
     prisma.notification.count({ where: { userId, type: "MEMBER_JOINED" } }),
   ]);
@@ -100,6 +103,60 @@ export async function markAllNotificationsRead(userId: string) {
   return prisma.notification.updateMany({
     where: { userId, readAt: null },
     data: { readAt: new Date() },
+  });
+}
+
+// TASK_COMMENT — koalesensi: satu notifikasi per user per task; jika masih
+// belum dibaca, baris lama diperbarui (komentar/aktor terbaru) alih-alih dobel.
+export interface UpsertUnreadTaskCommentInput {
+  userId: string;
+  actorId: string;
+  projectId: string;
+  taskId: string;
+  commentId: string;
+}
+
+export async function upsertUnreadTaskCommentNotification({
+  userId,
+  actorId,
+  projectId,
+  taskId,
+  commentId,
+}: UpsertUnreadTaskCommentInput) {
+  const existing = await prisma.notification.findFirst({
+    where: { userId, taskId, type: "TASK_COMMENT", readAt: null },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+  if (existing) {
+    return prisma.notification.update({
+      where: { id: existing.id },
+      data: { actorId, projectId, commentId, createdAt: new Date() },
+    });
+  }
+  return prisma.notification.create({
+    data: { type: "TASK_COMMENT", userId, actorId, projectId, taskId, commentId },
+  });
+}
+
+// TASK_COMMENT — ID notifikasi belum dibaca milik user untuk satu task
+// (dipakai auto-read saat user membuka detail task).
+export async function findUnreadTaskCommentNotificationIds(
+  userId: string,
+  taskId: string
+) {
+  const rows = await prisma.notification.findMany({
+    where: { userId, taskId, type: "TASK_COMMENT", readAt: null },
+    select: { id: true },
+  });
+  return rows.map((row) => row.id);
+}
+
+// OWNER — cek kepemilikan notifikasi di actions/ tanpa query prisma langsung.
+export async function findNotificationOwnerId(id: string) {
+  return prisma.notification.findUnique({
+    where: { id },
+    select: { userId: true },
   });
 }
 

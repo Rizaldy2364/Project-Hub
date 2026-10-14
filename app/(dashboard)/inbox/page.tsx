@@ -46,7 +46,14 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
         }
       : null,
     project: row.project,
-    comment: row.comment,
+    comment: row.comment
+      ? {
+          id: row.comment.id,
+          content: row.comment.content,
+          createdAt: row.comment.createdAt.toISOString(),
+          author: row.comment.user,
+        }
+      : null,
   }));
 
   return (
