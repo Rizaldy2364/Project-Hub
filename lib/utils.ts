@@ -2,6 +2,30 @@ import { customAlphabet } from "nanoid";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+// Zona waktu tampilan aplikasi (AGENTS.md Bagian 2): DateTime disimpan dalam
+// UTC di database, "hari ini / kemarin" dihitung dan ditampilkan dalam
+// Asia/Jakarta.
+export const APP_TIMEZONE = "Asia/Jakarta";
+
+const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: APP_TIMEZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Kunci hari "YYYY-MM-DD" menurut zona APP_TIMEZONE. */
+export function wibDayKey(date: Date | string): string {
+  return dayKeyFormatter.format(typeof date === "string" ? new Date(date) : date);
+}
+
+/** Selisih hari (target − base) berdasarkan kunci hari WIB (bulat). */
+export function wibDayDiff(base: Date | string, target: Date | string): number {
+  const b = Date.parse(`${wibDayKey(base)}T00:00:00Z`);
+  const t = Date.parse(`${wibDayKey(target)}T00:00:00Z`);
+  return Math.round((t - b) / 86_400_000);
+}
+
 // Generate join code untuk project (8 karakter, tanpa 0/O/1/I biar gak ambigu)
 const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 8);
 

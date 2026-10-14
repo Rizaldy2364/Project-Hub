@@ -137,6 +137,13 @@ export interface InboxNotification {
     createdAt: string; // ISO string
     author: InboxActor | null;
   } | null;
+  /** Pesan Diskusi pemicu notifikasi MENTION di chat (tanpa taskId). */
+  message: {
+    id: string;
+    content: string;
+    createdAt: string; // ISO string
+    deleted: boolean;
+  } | null;
 }
 
 export interface NotificationTabCounts {
@@ -238,4 +245,62 @@ export interface ActivityMemberOption {
 
 export interface ActivityTopMember extends ActivityMemberOption {
   count: number;
+}
+
+// ===== Diskusi (/diskusi) — chat grup per project =====
+
+export type ChatMessageKindValue = "USER" | "SYSTEM";
+
+export interface ChatAuthor {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  /** Role penulis DI project ini (bukan global). */
+  role: ProjectRole;
+}
+
+export interface ChatReplyPreview {
+  id: string;
+  content: string;
+  deleted: boolean;
+  authorName: string;
+  createdAt: string; // ISO string
+}
+
+export interface ChatMessage {
+  id: string;
+  kind: ChatMessageKindValue;
+  content: string;
+  pinned: boolean;
+  createdAt: string; // ISO string
+  deleted: boolean;
+  author: ChatAuthor;
+  replyTo: ChatReplyPreview | null;
+  /** Optimistic: sedang dikirim (client-only). */
+  pending?: boolean;
+  /** Optimistic: gagal dikirim, bisa dicoba lagi (client-only). */
+  failed?: boolean;
+}
+
+export interface ChatMember {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  role: ProjectRole;
+}
+
+export interface DiscussionLastMessage {
+  authorName: string;
+  /** Teks pratinjau (token mention sudah menjadi @Nama). */
+  text: string;
+  kind: ChatMessageKindValue;
+  deleted: boolean;
+  createdAt: string; // ISO string
+}
+
+export interface DiscussionSummaryItem {
+  projectId: string;
+  name: string;
+  lastMessage: DiscussionLastMessage | null;
+  unreadCount: number;
 }

@@ -68,6 +68,15 @@ export function titleParts(item: InboxNotification): React.ReactNode {
         </>
       );
     case "MENTION":
+      // Mention di Diskusi (ada messageId, tanpa taskId) vs mention komentar task.
+      if (item.message && !item.task) {
+        return (
+          <>
+            <strong className="font-semibold">{actor}</strong>
+            {" menyebut kamu di diskusi"}
+          </>
+        );
+      }
       return (
         <>
           <strong className="font-semibold">{actor}</strong>
@@ -119,6 +128,19 @@ export function subTitle(item: InboxNotification): string {
   if (item.type === "MEMBER_JOINED") return project;
   // Baris bawah notifikasi komentar cukup nama project (sesuai spesifikasi).
   if (item.type === "TASK_COMMENT") return project;
+  // Mention di Diskusi: sub baris = nama project saja.
+  if (item.type === "MENTION" && item.message && !item.task) return project;
   if (due) return `${project} • tenggat ${due}`;
   return project;
+}
+
+/** Mention di Diskusi = MENTION dengan messageId dan tanpa taskId. */
+export function isChatMention(item: InboxNotification): boolean {
+  return item.type === "MENTION" && item.message !== null && item.task === null;
+}
+
+/** Link ke pesan chat yang menyebut user (/diskusi?project=…&message=…). */
+export function discussionLink(item: InboxNotification): string {
+  if (!item.project) return "/diskusi";
+  return `/diskusi?project=${item.project.id}&message=${item.message?.id ?? ""}`;
 }
