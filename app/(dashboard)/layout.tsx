@@ -60,7 +60,7 @@ export default async function DashboardLayout({
       <div className="flex">
         {/* Sidebar */}
         <aside className="hidden lg:flex w-56 shrink-0 flex-col sticky top-16 h-[calc(100vh-4rem)] border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 [scrollbar-width:thin]">
             <SidebarNav />
           </div>
 
