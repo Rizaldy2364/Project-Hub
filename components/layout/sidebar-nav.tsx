@@ -9,6 +9,7 @@ import {
   CheckSquare,
   FolderKanban,
   LayoutDashboard,
+  MessageSquare,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,12 @@ const items = [
     label: "Tim & Anggota",
     icon: Users,
     match: ["/tim"],
+  },
+  {
+    href: "/diskusi",
+    label: "Diskusi",
+    icon: MessageSquare,
+    match: ["/diskusi"],
   },
   {
     href: "/aktivitas",

@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FolderKanban } from "lucide-react";
+import { FolderKanban, MessageSquare } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
 import type { InboxNotification } from "@/types";
-import { TYPE_META } from "@/components/inbox/inbox-meta";
+import { TYPE_META, discussionLink, isChatMention } from "@/components/inbox/inbox-meta";
 import { ReplyBox } from "@/components/inbox/inbox-item";
 import { formatFullDate, formatInboxTime, taskLink } from "@/lib/inbox-format";
 import {
@@ -37,10 +37,14 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
   const [sending, setSending] = useState(false);
   const [marking, setMarking] = useState(false);
   const unread = !item.readAt;
+  const chatMention = isChatMention(item);
+  // Reply hanya untuk notifikasi berbasis komentar/task — mention chat
+  // dibalas lewat halaman Diskusi, bukan dari Inbox.
   const showReply =
-    item.type === "TASK_ASSIGNED" ||
-    item.type === "MENTION" ||
-    item.type === "TASK_COMMENT";
+    !chatMention &&
+    (item.type === "TASK_ASSIGNED" ||
+      item.type === "MENTION" ||
+      item.type === "TASK_COMMENT");
   const showTask = item.task !== null && item.type !== "MEMBER_JOINED" && item.type !== "PROJECT_COMPLETED";
 
   async function handleMarkRead() {
@@ -123,6 +127,27 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
             </p>
           </div>
         )}
+        {chatMention && item.message && (
+          <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/[0.08] dark:bg-[#0F1524]">
+            <div className="flex items-center gap-2">
+              <UserAvatar
+                name={item.actor?.name ?? "?"}
+                image={item.actor?.avatarUrl ?? null}
+                size="sm"
+                className="h-6 w-6 text-[9px]"
+              />
+              <p className="min-w-0 truncate text-xs font-semibold text-slate-700 dark:text-slate-200">
+                {item.actor?.name ?? "-"}
+              </p>
+              <p className="shrink-0 text-[11px] text-slate-400 dark:text-[#8B96AD]">
+                {formatInboxTime(item.message.createdAt)}
+              </p>
+            </div>
+            <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-slate-700 dark:text-slate-200">
+              {item.message.deleted ? "Pesan ini dihapus" : item.message.content}
+            </p>
+          </div>
+        )}
       </div>
 
       {showTask && item.task ? (
@@ -182,12 +207,22 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
       )}
 
       <div className="flex gap-2">
-        <Link
-          href={taskLink(item)}
-          className="flex h-10 flex-1 items-center justify-center rounded-xl bg-blue-600 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        >
-          Buka Task
-        </Link>
+        {chatMention ? (
+          <Link
+            href={discussionLink(item)}
+            className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            <MessageSquare className="h-4 w-4" aria-hidden="true" />
+            Buka Diskusi
+          </Link>
+        ) : (
+          <Link
+            href={taskLink(item)}
+            className="flex h-10 flex-1 items-center justify-center rounded-xl bg-blue-600 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            Buka Task
+          </Link>
+        )}
         {unread && (
           <button
             type="button"

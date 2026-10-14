@@ -19,8 +19,23 @@ import {
 } from "@/repositories/project.repository";
 import { createManyNotifications } from "@/repositories/notification.repository";
 import { ensureDefaultTaskLists } from "@/repositories/list.repository";
+import { createMessage } from "@/repositories/message.repository";
 import { logActivity } from "@/lib/activity";
 import { prisma } from "@/lib/prisma";
+
+// PESAN SISTEM — dicatat ke Diskusi saat project dibuat / anggota bergabung.
+// Kegagalan TIDAK PERNAH menggagalkan aksi utama (dicek di tempat pemanggil).
+async function logSystemMessage(
+  projectId: string,
+  userId: string,
+  content: string
+) {
+  try {
+    await createMessage({ projectId, userId, content, kind: "SYSTEM" });
+  } catch (error) {
+    console.error("[project] gagal membuat pesan sistem:", error);
+  }
+}
 
 // CREATE PROJECT
 export async function createProjectAction(formData: FormData) {
@@ -42,6 +57,13 @@ export async function createProjectAction(formData: FormData) {
     ownerId: session.user.id,
   });
   await ensureDefaultTaskLists({ projectId: project.id });
+
+  // PESAN SISTEM — "{nama} membuat project {project}".
+  await logSystemMessage(
+    project.id,
+    session.user.id,
+    `${session.user.name ?? "Seseorang"} membuat project ${parsed.data.name}`
+  );
 
   // ACTIVITAS — PROJECT_CREATED (kegagalan logging tidak menggagalkan aksi).
   await logActivity({
@@ -88,6 +110,13 @@ export async function joinProjectAction(formData: FormData) {
     projectId: project.id,
     role: "MEMBER",
   });
+
+  // PESAN SISTEM — "{nama} bergabung ke project lewat kode gabung".
+  await logSystemMessage(
+    project.id,
+    session.user.id,
+    `${session.user.name ?? "Seseorang"} bergabung ke project lewat kode gabung`
+  );
 
   // MEMBER_JOINED — penerima = semua ADMIN project (kecuali user itu sendiri).
   const admins = await prisma.projectMember.findMany({

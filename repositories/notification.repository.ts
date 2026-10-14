@@ -11,6 +11,7 @@ export interface CreateNotificationInput {
   projectId?: string | null;
   taskId?: string | null;
   commentId?: string | null;
+  messageId?: string | null; // mention di Diskusi
 }
 
 export interface FindNotificationsInput {
@@ -157,6 +158,23 @@ export async function findNotificationOwnerId(id: string) {
   return prisma.notification.findUnique({
     where: { id },
     select: { userId: true },
+  });
+}
+
+// DISKUSI — tandai semua notifikasi MENTION chat (punya messageId, tanpa
+// taskId) di satu project sebagai sudah dibaca. Dipanggil saat user membuka
+// chat. updateMany milik user sendiri — otorisasi di actions/.
+export async function markChatMentionsRead(userId: string, projectId: string) {
+  return prisma.notification.updateMany({
+    where: {
+      userId,
+      projectId,
+      type: "MENTION",
+      messageId: { not: null },
+      taskId: null,
+      readAt: null,
+    },
+    data: { readAt: new Date() },
   });
 }
 

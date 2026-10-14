@@ -54,6 +54,14 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
           author: row.comment.user,
         }
       : null,
+    message: row.message
+      ? {
+          id: row.message.id,
+          content: row.message.content,
+          createdAt: row.message.createdAt.toISOString(),
+          deleted: row.message.deletedAt !== null,
+        }
+      : null,
   }));
 
   return (

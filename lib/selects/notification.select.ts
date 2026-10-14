@@ -27,4 +27,13 @@ export const notificationDetailSelect = {
       user: { select: { id: true, name: true, avatarUrl: true } },
     },
   },
+  // Mention di Diskusi (messageId tanpa taskId) — pratinjau teks pesan chat.
+  message: {
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      deletedAt: true,
+    },
+  },
 } satisfies Prisma.NotificationSelect;

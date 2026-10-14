@@ -42,6 +42,12 @@ function toInboxNotification(row: {
     createdAt: Date;
     user: { id: string; name: string; avatarUrl: string | null } | null;
   } | null;
+  message: {
+    id: string;
+    content: string;
+    createdAt: Date;
+    deletedAt: Date | null;
+  } | null;
 }): InboxNotification {
   return {
     id: row.id,
@@ -67,6 +73,14 @@ function toInboxNotification(row: {
           content: row.comment.content,
           createdAt: row.comment.createdAt.toISOString(),
           author: row.comment.user,
+        }
+      : null,
+    message: row.message
+      ? {
+          id: row.message.id,
+          content: row.message.content,
+          createdAt: row.message.createdAt.toISOString(),
+          deleted: row.message.deletedAt !== null,
         }
       : null,
   };

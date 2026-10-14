@@ -40,6 +40,7 @@ model User {
   assignedTasks Task[]    @relation("TaskAssignee")
   comments      Comment[]
 
+  messages               ProjectMessage[]
   notifications          Notification[] @relation("NotificationRecipient")
   triggeredNotifications Notification[] @relation("NotificationActor")
   activityLogs           ActivityLog[]
@@ -64,14 +65,16 @@ model Project {
   lists       TaskList[]
   labels      Label[]
 
-  notifications Notification[]
-  activityLogs  ActivityLog[]
+  messages       ProjectMessage[]
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
 }
 
 model ProjectMember {
-  id       String   @id @default(cuid())
-  role     Role     @default(MEMBER)
-  joinedAt DateTime @default(now())
+  id       String    @id @default(cuid())
+  role     Role      @default(MEMBER)
+  joinedAt DateTime  @default(now())
+  lastReadAt DateTime? // penanda belum dibaca di Diskusi (null = "sudah baca sampai joinedAt")
 
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -163,6 +166,36 @@ model Comment {
   notifications Notification[]
 }
 
+// ===================== Diskusi (chat grup per project) =====================
+
+enum MessageKind {
+  USER
+  SYSTEM // pesan sistem, mis. "Firdaus bergabung ke project"
+}
+
+model ProjectMessage {
+  id        String      @id @default(cuid())
+  kind      MessageKind @default(USER)
+  content   String
+  pinnedAt  DateTime? // pesan tersemat
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  replyToId String?
+  replyTo   ProjectMessage?  @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies   ProjectMessage[] @relation("MessageReply")
+
+  notifications Notification[]
+
+  @@index([projectId, createdAt])
+}
+
 enum NotificationType {
   TASK_ASSIGNED
   MENTION
@@ -190,6 +223,8 @@ model Notification {
   task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
   commentId String?
   comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  messageId String? // mention di Diskusi
+  message   ProjectMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt, createdAt])
   @@index([userId, type, createdAt])
