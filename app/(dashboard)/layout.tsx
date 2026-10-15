@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FolderKanban, Search, Bell } from "lucide-react";
+import { FolderKanban, Bell } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { SidebarUser } from "@/components/layout/sidebar-user";
+import { TopBarSearch } from "@/components/search/topbar-search";
 import { findProfileUserById } from "@/repositories/user.repository";
 
 export default async function DashboardLayout({
@@ -34,12 +35,7 @@ export default async function DashboardLayout({
 
           {/* Search Bar - Desktop */}
           <div className="hidden lg:flex items-center relative w-[320px] lg:w-[420px] ml-4 lg:ml-8">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search tasks, projects, docs..."
-              className="w-full h-9 pl-10 pr-4 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-transparent dark:border-white/5 text-sm focus:bg-white focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 text-slate-900 dark:text-slate-200 placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none transition-all"
-            />
+            <TopBarSearch />
           </div>
         </div>
 
