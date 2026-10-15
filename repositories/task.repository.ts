@@ -9,6 +9,8 @@ export interface CreateTaskInput {
   completedAt?: Date | null;
   listId: string;
   assigneeId?: string;
+  /** Pembuat task (aksi yang sedang berjalan) — dipakai pemberitahuan komentar. */
+  createdById?: string;
   status?: "TODO" | "IN_PROGRESS" | "DONE";
   priority?: "LOW" | "MEDIUM" | "HIGH";
   labelIds?: string[];
@@ -44,6 +46,7 @@ export async function createTask(data: CreateTaskInput) {
       completedAt: data.completedAt,
       listId: data.listId,
       assigneeId: data.assigneeId,
+      createdById: data.createdById,
       status: data.status,
       priority: data.priority,
       order: data.order,

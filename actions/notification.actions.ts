@@ -111,6 +111,26 @@ export async function listNotificationsAction(tab: string, cursor?: string | nul
   };
 }
 
+// PANEL DROPDOWN (lonceng top bar + menu Inbox sidebar) — 8 notifikasi
+// terbaru (read + unread), tanpa filter tab; dimuat saat panel dibuka,
+// bukan dipolling.
+export async function listRecentNotificationsAction() {
+  const session = await auth();
+  if (!session) return { error: "Unauthorized" };
+
+  const rows = await findNotificationsByUserId({
+    userId: session.user.id,
+    tab: "all",
+    take: 8,
+  });
+
+  return {
+    success: true as const,
+    items: rows.map(toInboxNotification),
+    nextCursor: null,
+  };
+}
+
 export async function getNotificationCountsAction() {
   const session = await auth();
   if (!session) return { error: "Unauthorized" };

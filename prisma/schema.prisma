@@ -38,6 +38,7 @@ model User {
 
   memberships   ProjectMember[]
   assignedTasks Task[]    @relation("TaskAssignee")
+  createdTasks  Task[]    @relation("TaskCreator")
   comments      Comment[]
 
   messages               ProjectMessage[]
@@ -119,6 +120,9 @@ model Task {
 
   assigneeId  String?
   assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  createdById String? // pembuat/penugas task
+  createdBy   User?   @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   labels      Label[]    @relation("TaskLabels")
   comments    Comment[]

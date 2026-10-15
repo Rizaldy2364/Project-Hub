@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { navGroups } from "@/components/layout/nav-items";
+import { InboxUnreadBadge } from "@/components/notifications/inbox-unread-badge";
 
 export function SidebarNav() {
   const pathname = usePathname();
@@ -26,8 +27,9 @@ export function SidebarNav() {
               {group.label}
             </div>
             <div className="space-y-1">
-              {group.items.map(({ href, label, icon: Icon, match }) => {
+              {group.items.map(({ href, label, icon: Icon, match, badge }) => {
                 const active = match.some((m) => pathname.startsWith(m));
+
                 return (
                   <Link
                     key={href}
@@ -41,11 +43,13 @@ export function SidebarNav() {
                   >
                     <Icon
                       className={cn(
-                        "w-4 h-4",
+                        "w-4 h-4 shrink-0",
                         active ? "text-blue-600 dark:text-blue-300" : "text-slate-400"
                       )}
                     />
-                    {label}
+                    <span className="min-w-0 flex-1 truncate">{label}</span>
+                    {/* Menu Inbox: link biasa + badge angka (bukan dropdown). */}
+                    {badge ? <InboxUnreadBadge /> : null}
                   </Link>
                 );
               })}
