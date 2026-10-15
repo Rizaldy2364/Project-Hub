@@ -417,3 +417,25 @@ export interface ReportData {
   progressCard: ReportProgressCard;
   overdueTasks: ReportOverdueTask[];
 }
+
+// ===== Pencarian top bar (GET /api/search) =====
+
+export interface SearchProjectResult {
+  id: string;
+  name: string;
+  memberCount: number;
+}
+
+export interface SearchTaskResult {
+  id: string;
+  title: string;
+  status: BoardTaskStatus;
+  /** ISO string, atau null bila task tidak punya tenggat. */
+  dueDate: string | null;
+  project: { id: string; name: string };
+}
+
+export interface SearchResponse {
+  projects: SearchProjectResult[];
+  tasks: SearchTaskResult[];
+}
