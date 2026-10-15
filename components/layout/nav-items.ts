@@ -20,6 +20,9 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   match: string[];
+  /** Item ini menampilkan badge angka notifikasi belum dibaca (menu Inbox)
+   * di dalam link — lihat InboxUnreadBadge. */
+  badge?: boolean;
 }
 
 /**
@@ -43,7 +46,7 @@ export const navGroups: NavGroup[] = [
       { href: "/projects", label: "Project Saya", icon: FolderKanban, match: ["/projects"] },
       { href: "/tasks", label: "Task Project", icon: CheckSquare, match: ["/tasks"] },
       { href: "/calendar", label: "Kalender", icon: CalendarDays, match: ["/calendar"] },
-      { href: "/inbox", label: "Inbox", icon: Bell, match: ["/inbox"] },
+      { href: "/inbox", label: "Inbox", icon: Bell, match: ["/inbox"], badge: true },
     ],
   },
   {

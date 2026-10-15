@@ -18,7 +18,7 @@ import {
   upsertUnreadTaskCommentNotification,
 } from "@/repositories/notification.repository";
 import {
-  findProjectMember,
+  findProjectAdminUserIds,
   findProjectMemberUsers,
 } from "@/repositories/project.repository";
 import { extractMentions } from "@/lib/mentions";
@@ -110,10 +110,19 @@ export async function createTaskComment(input: {
       )
     );
 
-    // Peserta task = assignee + pemberi komentar sebelumnya (schema saat ini
-    // tidak punya createdById pada Task), dikurangi penulis dan yang sudah kena
-    // mention, lalu diverifikasi masih anggota project.
+    // Peserta task = pembuat task (Task.createdById) + assignee + pemberi
+    // komentar sebelumnya. FALLBACK hanya bila task tidak punya createdById
+    // (data lama): semua anggota ADMIN / WAKIL ADMIN project. Kandidat didedupe
+    // lewat Set, penulis & yang sudah kena mention dikurangi, lalu disaring ke
+    // yang masih anggota project (memberUsers — user yang keluar gugur).
     const candidateIds = new Set<string>();
+    if (task.createdById) {
+      candidateIds.add(task.createdById);
+    } else {
+      for (const userId of await findProjectAdminUserIds(projectId)) {
+        candidateIds.add(userId);
+      }
+    }
     if (task.assigneeId) candidateIds.add(task.assigneeId);
     for (const userId of await findDistinctCommentAuthorIds(task.id)) {
       candidateIds.add(userId);
@@ -121,11 +130,8 @@ export async function createTaskComment(input: {
     candidateIds.delete(authorId);
     for (const id of mentionedIds) candidateIds.delete(id);
 
-    const candidates = [...candidateIds];
-    const memberships = await Promise.all(
-      candidates.map((id) => findProjectMember(id, projectId))
-    );
-    const participantIds = candidates.filter((_, i) => memberships[i] !== null);
+    const memberIds = new Set(memberUsers.map((user) => user.id));
+    const participantIds = [...candidateIds].filter((id) => memberIds.has(id));
 
     await Promise.all(
       participantIds.map((userId) =>

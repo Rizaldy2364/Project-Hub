@@ -11,6 +11,7 @@ import type {
 import { groupLabel } from "@/lib/inbox-format";
 import { InboxItem } from "@/components/inbox/inbox-item";
 import { InboxDetail } from "@/components/inbox/inbox-detail";
+import { useUnreadCount } from "@/components/notifications/unread-provider";
 import {
   listNotificationsAction,
   markAllNotificationsReadAction,
@@ -59,6 +60,9 @@ export function InboxView({
   const [markingAll, setMarkingAll] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  // Badge lonceng & sidebar memakai provider yang sama — segarkan setelah
+  // notifikasi ditandai dibaca agar angka turun bersama.
+  const { refresh: refreshUnread } = useUnreadCount();
 
   const selected = useMemo(
     () => items.find((i) => i.id === selectedId) ?? null,
@@ -117,6 +121,7 @@ export function InboxView({
       );
       setCounts((prev) => ({ ...prev, unread: prev.unread + 1 }));
     }
+    void refreshUnread(); // selaraskan badge lonceng/sidebar
   }
 
   async function handleLoadMore() {
@@ -144,6 +149,7 @@ export function InboxView({
     const now = new Date().toISOString();
     setItems((prev) => prev.map((i) => ({ ...i, readAt: i.readAt ?? now })));
     setCounts((prev) => ({ ...prev, unread: 0 }));
+    void refreshUnread(); // selaraskan badge lonceng/sidebar
   }
 
   function markOneRead(id: string) {
@@ -153,6 +159,7 @@ export function InboxView({
       )
     );
     setCounts((prev) => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
+    void refreshUnread(); // selaraskan badge lonceng/sidebar
   }
 
   // Navigasi keyboard: panah atas/bawah memilih item, Enter membuka detail.

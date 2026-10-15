@@ -86,6 +86,7 @@ export async function createTaskAction(formData: FormData) {
     completedAt,
     listId: parsed.data.listId,
     assigneeId: parsed.data.assigneeId,
+    createdById: session.user.id, // pembuat = pelaku aksi (Admin/Wakil Admin)
     status: parsed.data.status,
     priority: parsed.data.priority,
     labelIds: parsed.data.labelIds,

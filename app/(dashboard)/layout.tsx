@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { FolderKanban, Bell } from "lucide-react";
+import { FolderKanban } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { NotifBellDropdown } from "@/components/notifications/notif-bell";
+import { UnreadCountProvider } from "@/components/notifications/unread-provider";
 import { LogoutButton } from "@/components/layout/logout-button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
@@ -21,6 +23,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      {/* Satu sumber kebenaran angka belum dibaca: lonceng top bar + badge Inbox. */}
+      <UnreadCountProvider>
       {/* Top Navbar */}
             <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 lg:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur">
         <div className="flex items-center">
@@ -40,11 +44,7 @@ export default async function DashboardLayout({
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="relative w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-slate-900"></span>
-          </button>
-
+          <NotifBellDropdown />
 
           {/* Fallback logout untuk layar kecil (sidebar disembunyikan di bawah lg) */}
           <LogoutButton variant="icon" withLabel={false} className="lg:hidden" />
@@ -65,6 +65,7 @@ export default async function DashboardLayout({
 
         <main className="flex-1 min-w-0 p-4 lg:p-8">{children}</main>
       </div>
+      </UnreadCountProvider>
     </div>
   );
 }

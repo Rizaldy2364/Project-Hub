@@ -121,6 +121,16 @@ export async function findProjectMemberUsers(
   return rows.map((row) => row.user);
 }
 
+// READ — ID anggota dengan peran ADMIN/DEPUTY_ADMIN (fallback penerima
+// notifikasi TASK_COMMENT untuk task lama tanpa createdById).
+export async function findProjectAdminUserIds(projectId: string) {
+  const rows = await prisma.projectMember.findMany({
+    where: { projectId, role: { in: ["ADMIN", "DEPUTY_ADMIN"] } },
+    select: { userId: true },
+  });
+  return rows.map((row) => row.userId);
+}
+
 export interface FindProjectNameByIdInput {
   projectId: string;
   /** true = ikut ambil joinCode — hanya untuk ADMIN/DEPUTY_ADMIN (AGENTS 8.1). */
