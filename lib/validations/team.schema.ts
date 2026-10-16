@@ -3,8 +3,9 @@ import { z } from "zod";
 export const memberRoleFilterSchema = z.enum([
   "all",
   "ADMIN",
-  "DEPUTY_ADMIN",
+  "MANAGER",
   "MEMBER",
+  "VIEWER",
 ]);
 
 export const memberSortSchema = z.enum([
@@ -33,7 +34,8 @@ export const listMembersQuerySchema = z.object({
 export const updateMemberRoleSchema = z.object({
   projectId: z.string().cuid(),
   targetUserId: z.string().cuid(),
-  role: z.enum(["DEPUTY_ADMIN", "MEMBER"]),
+  // ADMIN tidak bisa di-set/dicabut lewat fitur ini (dicek terpisah di actions).
+  role: z.enum(["MANAGER", "MEMBER", "VIEWER"]),
 });
 
 export const removeMemberSchema = z.object({

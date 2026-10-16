@@ -4,7 +4,7 @@ import type { ProjectRole, TeamMemberRow } from "@/types";
 
 /**
  * Kontrol aksi baris anggota (tombol "Kelola") hanya untuk ADMIN, dan hanya
- * untuk anggota selain dirinya serta selain ADMIN lain. DEPUTY_ADMIN & MEMBER
+ * untuk anggota selain dirinya serta selain ADMIN lain. MANAGER, MEMBER & VIEWER
  * tidak melihatnya. Aturan akses server tetap dijaga terpisah di actions.
  */
 export function canShowMenu(

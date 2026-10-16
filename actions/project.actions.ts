@@ -20,6 +20,10 @@ import {
 import { createManyNotifications } from "@/repositories/notification.repository";
 import { ensureDefaultTaskLists } from "@/repositories/list.repository";
 import { createMessage } from "@/repositories/message.repository";
+import {
+  canEditProjectSettings,
+  canManageMembers,
+} from "@/lib/permissions";
 import { logActivity } from "@/lib/activity";
 import { prisma } from "@/lib/prisma";
 
@@ -153,7 +157,7 @@ export async function updateProjectAction(
   if (!session) return { error: "Unauthorized" };
 
   const member = await findProjectMember(session.user.id, projectId);
-  if (!member || member.role !== "ADMIN") {
+  if (!member || !canEditProjectSettings(member.role)) {
     return { error: "Hanya admin yang boleh mengubah project" };
   }
 
@@ -177,7 +181,7 @@ export async function regenerateJoinCodeAction(projectId: string) {
   if (!session) return { error: "Unauthorized" };
 
   const member = await findProjectMember(session.user.id, projectId);
-  if (!member || member.role !== "ADMIN") {
+  if (!member || !canEditProjectSettings(member.role)) {
     return { error: "Hanya admin yang boleh regenerate code" };
   }
 
@@ -192,7 +196,7 @@ export async function deleteProjectAction(projectId: string) {
   if (!session) return { error: "Unauthorized" };
 
   const member = await findProjectMember(session.user.id, projectId);
-  if (!member || member.role !== "ADMIN") {
+  if (!member || !canEditProjectSettings(member.role)) {
     return { error: "Hanya admin yang boleh menghapus project" };
   }
 
@@ -208,7 +212,7 @@ export async function removeProjectMemberAction(projectId: string, targetUserId:
   if (!session) return { error: "Unauthorized" };
 
   const member = await findProjectMember(session.user.id, projectId);
-  if (!member || member.role !== "ADMIN") {
+  if (!member || !canManageMembers(member.role)) {
     return { error: "Hanya admin yang boleh menendang member" };
   }
 

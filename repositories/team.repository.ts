@@ -4,6 +4,8 @@ import type { CreateActivityLogInput } from "@/repositories/activity.repository"
 
 export type MemberRoleFilter = "all" | ProjectRole;
 export type MemberSort = "joined_desc" | "joined_asc" | "name_asc" | "name_desc";
+/** Peran yang bisa diberikan lewat dialog Kelola (ADMIN tidak bisa di-set). */
+export type ManageableRole = "MANAGER" | "MEMBER" | "VIEWER";
 
 export interface FindProjectMembersInput {
   projectId: string;
@@ -17,7 +19,7 @@ export interface FindProjectMembersInput {
 export interface UpdateMemberRoleInput {
   projectId: string;
   targetUserId: string;
-  role: "DEPUTY_ADMIN" | "MEMBER";
+  role: ManageableRole;
   /** Baris ActivityLog ikut dalam transaksi yang sama (AGENTS.md 9.2). */
   activity?: CreateActivityLogInput;
 }
@@ -135,20 +137,24 @@ export async function countProjectMembersByRole(projectId: string) {
   });
   const byRole: Record<ProjectRole, number> = {
     ADMIN: 0,
-    DEPUTY_ADMIN: 0,
+    MANAGER: 0,
     MEMBER: 0,
+    VIEWER: 0,
   };
   for (const g of groups) byRole[g.role as ProjectRole] = g._count.role;
   return {
-    total: byRole.ADMIN + byRole.DEPUTY_ADMIN + byRole.MEMBER,
+    total: byRole.ADMIN + byRole.MANAGER + byRole.MEMBER + byRole.VIEWER,
     admin: byRole.ADMIN,
-    deputy: byRole.DEPUTY_ADMIN,
+    manager: byRole.MANAGER,
     member: byRole.MEMBER,
+    viewer: byRole.VIEWER,
   };
 }
 
 // UPDATE — ubah peran dalam satu transaksi (aturan divalidasi di actions);
 // bila `activity` diberikan, baris ActivityLog ikut transaksi yang sama.
+// Menjadi VIEWER: task aktif (bukan DONE, tidak terhapus) milik anggota itu
+// di-project ini ikut di-unassign dalam transaksi yang sama (AGENTS.md 8.2).
 export async function updateProjectMemberRole({
   activity,
   ...data
@@ -160,6 +166,19 @@ export async function updateProjectMemberRole({
       },
       data: { role: data.role },
     }),
+    ...(data.role === "VIEWER"
+      ? [
+          prisma.task.updateMany({
+            where: {
+              deletedAt: null,
+              status: { not: "DONE" },
+              assigneeId: data.targetUserId,
+              list: { deletedAt: null, projectId: data.projectId },
+            },
+            data: { assigneeId: null },
+          }),
+        ]
+      : []),
     ...(activity ? [prisma.activityLog.create({ data: activity })] : []),
   ]);
 }

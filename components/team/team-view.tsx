@@ -139,7 +139,7 @@ export function TeamView(props: TeamViewProps) {
     return nums;
   }, [safePage, totalPages]);
 
-  async function handleRoleChange(nextRole: "DEPUTY_ADMIN" | "MEMBER"): Promise<boolean> {
+  async function handleRoleChange(nextRole: "MANAGER" | "VIEWER" | "MEMBER"): Promise<boolean> {
     if (!manageMember || !projectId || acting) return false;
     const member = manageMember;
     setActing(true);
@@ -154,9 +154,11 @@ export function TeamView(props: TeamViewProps) {
       return false;
     }
     showToast(
-      nextRole === "DEPUTY_ADMIN"
-        ? `${member.name} kini Wakil Admin.`
-        : `${member.name} kini Member.`
+      nextRole === "MANAGER"
+        ? `${member.name} kini Manager.`
+        : nextRole === "VIEWER"
+          ? `${member.name} kini Viewer.`
+          : `${member.name} kini Member.`
     );
     await reload();
     return true;

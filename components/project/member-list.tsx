@@ -124,7 +124,7 @@ export function MemberList({ project, isAdmin }: MemberListProps) {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${member.role === "ADMIN" ? "bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400" : "bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300"}`}>
-                        {member.role === "ADMIN" ? "Admin" : member.role === "DEPUTY_ADMIN" ? "Wakil Admin" : "Member"}
+                        {member.role === "ADMIN" ? "Admin" : member.role === "MANAGER" ? "Manager" : member.role === "VIEWER" ? "Viewer" : "Member"}
                       </span>
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">

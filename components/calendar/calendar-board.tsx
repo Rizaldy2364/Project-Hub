@@ -303,7 +303,9 @@ export function CalendarBoard({ tasks, projects, activeProjectId, currentUser }:
         <TaskDetailModal
           key={selectedTask.id}
           task={selectedTask}
-          isAdmin={selectedTask.isAdmin}
+          canEdit={false}
+          canDelete={false}
+          canComment={true}
           currentUser={currentUser}
           onOpenChange={(open) => !open && setSelectedTask(null)}
         />

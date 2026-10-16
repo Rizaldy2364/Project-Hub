@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { calendarTaskSelect, myTaskSelect } from "@/lib/selects/task.select";
+import { canComment, canDeleteTask, canEditTask } from "@/lib/permissions";
 import type { CalendarTask, MyTasksProjectGroup } from "@/types";
 
 export interface CreateTaskInput {
@@ -225,6 +226,7 @@ export async function findCalendarTasksByUserId({
   return tasks.map((task) => {
     const project = task.list.project;
     const membership = project.members.find((m) => m.userId === userId);
+    const role = membership?.role ?? "VIEWER";
     return {
       id: task.id,
       title: task.title,
@@ -237,7 +239,9 @@ export async function findCalendarTasksByUserId({
       commentCount: task._count.comments,
       projectId: project.id,
       projectName: project.name,
-      isAdmin: membership?.role === "ADMIN",
+      canEdit: canEditTask(role),
+      canDelete: canDeleteTask(role),
+      canComment: canComment(role),
     };
   });
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireProjectMember } from "@/lib/auth-guards";
 import {
+  canBeMentioned,
   canPinChatMessage,
   canDeleteChatMessage,
   canSendChatMessage,
@@ -41,9 +42,10 @@ export async function sendMessageAction(input: {
 > {
   const guard = await requireProjectMember(input?.projectId ?? "");
   if ("error" in guard) return { error: guard.error, status: guard.status };
-  // Matriks izin 8.2: semua anggota project boleh mengirim pesan Diskusi.
+  // Matriks izin 8.2: semua anggota aktif project boleh mengirim pesan
+  // Diskusi; VIEWER hanya membaca.
   if (!canSendChatMessage(guard.membership.role)) {
-    return { error: "Kamu bukan member project ini", status: 403 as const };
+    return { error: "Kamu hanya bisa melihat project ini", status: 403 as const };
   }
 
   const rateLimit = checkRateLimit(`chat:${guard.user.id}`, 30, 60_000);
@@ -72,16 +74,20 @@ export async function sendMessageAction(input: {
   });
 
   // MENTION — ekstrak token `@[userId]`, verifikasi masih anggota project yang
-  // sama (token client tidak dipercaya), lalu satu notifikasi per user per
-  // pesan. Kegagalan notifikasi TIDAK menggagalkan pesan tersimpan.
+  // sama (token client tidak dipercaya) dan bukan VIEWER (canBeMentioned),
+  // lalu satu notifikasi per user per pesan. Kegagalan notifikasi TIDAK
+  // menggagalkan pesan tersimpan.
   try {
     const mentionedIds = extractMentionIds(content);
     if (mentionedIds.length > 0) {
-      const memberIds = new Set(
-        (await findChatMembers(projectId)).map((m) => m.userId)
+      const memberRows = await findChatMembers(projectId);
+      const mentionableIds = new Set(
+        memberRows
+          .filter((m) => canBeMentioned(m.role))
+          .map((m) => m.userId)
       );
       const targetIds = mentionedIds.filter(
-        (id) => memberIds.has(id) && id !== guard.user.id
+        (id) => mentionableIds.has(id) && id !== guard.user.id
       );
       if (targetIds.length > 0) {
         await createManyNotifications(
@@ -139,7 +145,7 @@ export async function deleteMessageAction(input: {
   return { success: true as const };
 }
 
-// SEMATKAN — hanya ADMIN dan DEPUTY_ADMIN; satu pesan tersemat per project,
+// SEMATKAN — hanya ADMIN dan MANAGER; satu pesan tersemat per project,
 // pesan lama otomatis dilepas dalam transaksi yang sama.
 export async function pinMessageAction(input: {
   projectId: string;
@@ -149,7 +155,7 @@ export async function pinMessageAction(input: {
   if ("error" in guard) return { error: guard.error, status: guard.status };
   if (!canPinChatMessage(guard.membership.role)) {
     return {
-      error: "Hanya admin dan wakil admin yang boleh menyematkan pesan",
+      error: "Hanya admin dan manager yang boleh menyematkan pesan",
       status: 403 as const,
     };
   }
@@ -181,7 +187,7 @@ export async function unpinMessageAction(input: {
   if ("error" in guard) return { error: guard.error, status: guard.status };
   if (!canPinChatMessage(guard.membership.role)) {
     return {
-      error: "Hanya admin dan wakil admin yang boleh melepas sematan pesan",
+      error: "Hanya admin dan manager yang boleh melepas sematan pesan",
       status: 403 as const,
     };
   }

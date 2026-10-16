@@ -26,10 +26,16 @@ const cards = [
     box: "bg-violet-500/10 text-violet-600 dark:bg-[rgba(167,139,250,.16)] dark:text-[#C4B5FD]",
   },
   {
-    key: "deputy",
-    label: "Wakil Admin",
+    key: "manager",
+    label: "Manager",
     icon: ShieldCheck,
     box: "bg-pink-500/10 text-pink-600 dark:bg-[rgba(244,114,182,.16)] dark:text-[#F9A8D4]",
+  },
+  {
+    key: "viewer",
+    label: "Viewer",
+    icon: Users,
+    box: "bg-[#9CA3AF]/10 text-[#6B7280] dark:bg-[rgba(156,163,175,.16)] dark:text-[#94A3B8]",
   },
   {
     key: "member",
@@ -57,7 +63,7 @@ export function TeamSummaryCards({ summary, joinCode, projectName }: SummaryProp
     <div
       className={cn(
         "grid grid-cols-2 gap-4",
-        joinCode ? "xl:grid-cols-5" : "xl:grid-cols-4"
+        joinCode ? "xl:grid-cols-6" : "xl:grid-cols-5"
       )}
     >
       {cards.map(({ key, label, icon: Icon, box }) => (

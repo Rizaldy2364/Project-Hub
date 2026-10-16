@@ -12,6 +12,12 @@ import {
   countTaskListsByProjectId,
 } from "@/repositories/list.repository";
 
+// Helper internal — kolom task adalah bagian board; VIEWER hanya membaca
+// (matriks 8.2 — semua mutasi ditolak untuk VIEWER).
+function rejectViewer(role: string) {
+  return role === "VIEWER" ? { error: "Kamu hanya bisa melihat project ini" } : null;
+}
+
 // CREATE
 export async function createTaskListAction(formData: FormData) {
   const session = await auth();
@@ -30,6 +36,8 @@ export async function createTaskListAction(formData: FormData) {
   if (!member) {
     return { error: "Kamu bukan member project ini" };
   }
+  const viewerError = rejectViewer(member.role);
+  if (viewerError) return viewerError;
 
   const currentCount = await countTaskListsByProjectId(parsed.data.projectId);
 
@@ -53,6 +61,8 @@ export async function updateTaskListAction(listId: string, name: string) {
 
   const member = await findProjectMember(session.user.id, list.projectId);
   if (!member) return { error: "Kamu bukan member project ini" };
+  const viewerError = rejectViewer(member.role);
+  if (viewerError) return viewerError;
 
   await updateTaskList(listId, { name });
   revalidatePath(`/projects/${list.projectId}`);
@@ -69,6 +79,8 @@ export async function deleteTaskListAction(listId: string) {
 
   const member = await findProjectMember(session.user.id, list.projectId);
   if (!member) return { error: "Kamu bukan member project ini" };
+  const viewerError = rejectViewer(member.role);
+  if (viewerError) return viewerError;
 
   await softDeleteTaskList(listId);
   revalidatePath(`/projects/${list.projectId}`);

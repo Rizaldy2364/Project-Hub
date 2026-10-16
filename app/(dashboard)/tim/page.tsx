@@ -49,7 +49,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
           myUserId={session.user.id}
           initialMembers={[]}
           initialTotal={0}
-          initialSummary={{ total: 0, admin: 0, deputy: 0, member: 0 }}
+          initialSummary={{ total: 0, admin: 0, manager: 0, member: 0, viewer: 0 }}
           initialQuery={{
             role: "all",
             q: "",
@@ -94,7 +94,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         projects={projects}
         projectId={projectId}
         projectName={project?.name ?? ""}
-        // joinCode hanya untuk ADMIN & DEPUTY_ADMIN; untuk MEMBER prop tidak
+        // joinCode hanya untuk ADMIN & MANAGER; untuk MEMBER & VIEWER prop tidak
         // dikirim ke client sama sekali (bukan sekadar disembunyikan).
         joinCode={canViewCode ? project?.joinCode : undefined}
         myRole={membership.role}

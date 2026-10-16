@@ -12,11 +12,17 @@ export const ROLE_META: Record<
     badge:
       "bg-violet-500/10 text-violet-700 dark:bg-[rgba(167,139,250,.16)] dark:text-[#C4B5FD]",
   },
-  DEPUTY_ADMIN: {
-    label: "Wakil Admin",
-    short: "Wakil Admin",
+  MANAGER: {
+    label: "Manager",
+    short: "Manager",
     badge:
       "bg-pink-500/10 text-pink-700 dark:bg-[rgba(244,114,182,.16)] dark:text-[#F9A8D4]",
+  },
+  VIEWER: {
+    label: "Viewer",
+    short: "Viewer",
+    badge:
+      "bg-[#9CA3AF]/10 text-[#9CA3AF] dark:bg-[rgba(156,163,175,.16)] dark:text-[#94A3B8]",
   },
   MEMBER: {
     label: "Member",

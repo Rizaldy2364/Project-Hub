@@ -1,10 +1,10 @@
-export type ProjectRole = "ADMIN" | "DEPUTY_ADMIN" | "MEMBER";
+export type ProjectRole = "ADMIN" | "MANAGER" | "MEMBER" | "VIEWER";
 
 export interface DashboardProject {
   id: string;
   name: string;
   description: string | null;
-  /** Hanya terisi bila role user di project itu ADMIN atau DEPUTY_ADMIN. */
+  /** Hanya terisi bila role user di project itu ADMIN atau MANAGER. */
   joinCode?: string;
   createdAt: string; // ISO string
   role: ProjectRole;
@@ -67,7 +67,7 @@ export interface BoardTask {
 export interface BoardProject {
   id: string;
   name: string;
-  /** Hanya terisi bila role user di project itu ADMIN atau DEPUTY_ADMIN. */
+  /** Hanya terisi bila role user di project itu ADMIN atau MANAGER. */
   joinCode?: string;
   createdAt: string; // ISO string
   role: ProjectRole;
@@ -172,8 +172,9 @@ export interface TeamMemberRow {
 export interface TeamSummary {
   total: number;
   admin: number;
-  deputy: number;
+  manager: number;
   member: number;
+  viewer: number;
 }
 
 export interface TeamProjectOption {
@@ -188,8 +189,10 @@ export interface CalendarTask extends BoardTask {
   dueDate: string;
   projectId: string;
   projectName: string;
-  /** Role user di project pemilik task — menentukan izin aksi (mis. edit/hapus). */
-  isAdmin: boolean;
+  /** Izin aksi user di project pemilik task (dihitung dari role — matriks 8.2). */
+  canEdit: boolean;
+  canDelete: boolean;
+  canComment: boolean;
 }
 
 // ===== Halaman Aktivitas (/aktivitas) =====

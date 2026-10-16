@@ -111,21 +111,23 @@ export interface ProjectMemberUser {
 }
 
 // READ — daftar anggota project (id + nama) untuk pencocokan mention.
+// VIEWER dikeluarkan: tidak muncul di daftar mention dan token `@` untuk
+// VIEWER diabaikan (matriks 8.2 — AGENTS.md).
 export async function findProjectMemberUsers(
   projectId: string
 ): Promise<ProjectMemberUser[]> {
   const rows = await prisma.projectMember.findMany({
-    where: { projectId },
+    where: { projectId, role: { not: "VIEWER" } },
     select: { user: { select: { id: true, name: true } } },
   });
   return rows.map((row) => row.user);
 }
 
-// READ — ID anggota dengan peran ADMIN/DEPUTY_ADMIN (fallback penerima
+// READ — ID anggota dengan peran ADMIN/MANAGER (fallback penerima
 // notifikasi TASK_COMMENT untuk task lama tanpa createdById).
 export async function findProjectAdminUserIds(projectId: string) {
   const rows = await prisma.projectMember.findMany({
-    where: { projectId, role: { in: ["ADMIN", "DEPUTY_ADMIN"] } },
+    where: { projectId, role: { in: ["ADMIN", "MANAGER"] } },
     select: { userId: true },
   });
   return rows.map((row) => row.userId);
@@ -133,7 +135,7 @@ export async function findProjectAdminUserIds(projectId: string) {
 
 export interface FindProjectNameByIdInput {
   projectId: string;
-  /** true = ikut ambil joinCode — hanya untuk ADMIN/DEPUTY_ADMIN (AGENTS 8.1). */
+  /** true = ikut ambil joinCode — hanya untuk ADMIN/MANAGER (AGENTS 8.1). */
   withJoinCode: boolean;
 }
 
@@ -189,7 +191,7 @@ export async function findDashboardProjectsByUserId(
       id: project.id,
       name: project.name,
       description: project.description,
-      // joinCode hanya untuk ADMIN & DEPUTY_ADMIN; untuk MEMBER field ini
+      // joinCode hanya untuk ADMIN & MANAGER; untuk MEMBER field ini
       // tidak ikut dikirim ke client (bukan sekadar disembunyikan).
       ...(canViewJoinCode(role) ? { joinCode: project.joinCode } : {}),
       createdAt: project.createdAt.toISOString(),

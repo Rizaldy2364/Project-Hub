@@ -12,8 +12,9 @@ import type {
 const ROLE_TABS: { key: TeamRoleFilter; label: string; countKey: keyof TeamSummary | "total" }[] = [
   { key: "all", label: "Semua", countKey: "total" },
   { key: "ADMIN", label: "Admin", countKey: "admin" },
-  { key: "DEPUTY_ADMIN", label: "Wakil Admin", countKey: "deputy" },
+  { key: "MANAGER", label: "Manager", countKey: "manager" },
   { key: "MEMBER", label: "Member", countKey: "member" },
+  { key: "VIEWER", label: "Viewer", countKey: "viewer" },
 ];
 
 const SORT_OPTIONS: { value: TeamSort; label: string }[] = [
