@@ -104,11 +104,16 @@ export async function findActivityLogs({
 
 // READ — ringkasan 7 hari terakhir (satu groupBy, tanpa N+1).
 export async function summarizeActivityLast7Days(
-  userId: string
+  userId: string,
+  projectId?: string
 ): Promise<ActivitySummary> {
   const groups = await prisma.activityLog.groupBy({
     by: ["action"],
-    where: { ...scopeWhere(userId), createdAt: { gte: rangeStartDate(7) } },
+    where: {
+      ...scopeWhere(userId),
+      ...(projectId ? { projectId } : {}),
+      createdAt: { gte: rangeStartDate(7) },
+    },
     _count: { action: true },
   });
   const byAction = new Map(groups.map((g) => [g.action, g._count.action]));
@@ -121,10 +126,18 @@ export async function summarizeActivityLast7Days(
 }
 
 // READ — top anggota paling aktif 7 hari terakhir (groupBy + satu query nama).
-export async function findMostActiveMembers(userId: string, take = 3) {
+export async function findMostActiveMembers(
+  userId: string,
+  take = 3,
+  projectId?: string
+) {
   const groups = await prisma.activityLog.groupBy({
     by: ["userId"],
-    where: { ...scopeWhere(userId), createdAt: { gte: rangeStartDate(7) } },
+    where: {
+      ...scopeWhere(userId),
+      ...(projectId ? { projectId } : {}),
+      createdAt: { gte: rangeStartDate(7) },
+    },
     _count: { _all: true },
     orderBy: { _count: { userId: "desc" } },
     take,

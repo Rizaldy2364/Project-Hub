@@ -184,7 +184,7 @@ async function findWeeklyCompleted(
 }
 
 /** Distribusi status task dalam scope. */
-async function findStatusDistribution(
+export async function findStatusDistribution(
   input: FindReportInput
 ): Promise<{ TODO: number; IN_PROGRESS: number; DONE: number; total: number }> {
   const groups = await prisma.task.groupBy({
@@ -200,7 +200,7 @@ async function findStatusDistribution(
 }
 
 /** Beban kerja per anggota (top 8 + baris "Tanpa penanggung jawab"). */
-async function findWorkloadByMember(
+export async function findWorkloadByMember(
   input: FindReportInput
 ): Promise<ReportWorkloadRow[]> {
   const groups = await prisma.task.groupBy({

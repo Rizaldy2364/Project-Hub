@@ -36,6 +36,8 @@ export interface TeamTableProps {
   from: number;
   to: number;
   pageNumbers: number[];
+  /** Sembunyikan pemilih project (fixed ke satu project). */
+  showProjectDropdown?: boolean;
 }
 
 export function TeamTableCard(p: TeamTableProps) {
@@ -68,6 +70,7 @@ export function TeamTableCard(p: TeamTableProps) {
         setQInput={p.setQInput}
         pushQuery={p.pushQuery}
         summary={p.summary}
+        showProjectDropdown={p.showProjectDropdown}
       />
 
       {p.error && <TeamError message={p.error} onRetry={p.reload} />}

@@ -33,30 +33,35 @@ export interface TeamToolbarProps {
   setQInput: (v: string) => void;
   pushQuery: (next: Record<string, string>) => void;
   summary: TeamSummary;
+  /** Sembunyikan pemilih project — dipakai saat anggota difixed ke satu project. */
+  showProjectDropdown?: boolean;
 }
 
 export function TeamToolbar(p: TeamToolbarProps) {
+  const showProjectDropdown = p.showProjectDropdown !== false;
   return (
     <>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-        <label className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-          <span className="shrink-0">Project:</span>
-          <span className="relative inline-flex items-center">
-            <select
-              value={p.projectId}
-              onChange={(e) => p.pushQuery({ project: e.target.value, page: "1" })}
-              aria-label="Pilih project"
-              className="h-10 appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-9 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
-            >
-              {p.projects.map((proj) => (
-                <option key={proj.id} value={proj.id}>
-                  {proj.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 h-4 w-4 text-slate-400" />
-          </span>
-        </label>
+        {showProjectDropdown ? (
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+            <span className="shrink-0">Project:</span>
+            <span className="relative inline-flex items-center">
+              <select
+                value={p.projectId}
+                onChange={(e) => p.pushQuery({ project: e.target.value, page: "1" })}
+                aria-label="Pilih project"
+                className="h-10 appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-9 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+              >
+                {p.projects.map((proj) => (
+                  <option key={proj.id} value={proj.id}>
+                    {proj.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 h-4 w-4 text-slate-400" />
+            </span>
+          </label>
+        ) : null}
 
         <div role="tablist" aria-label="Filter peran" className="flex flex-wrap gap-2">
           {ROLE_TABS.map(({ key, label, countKey }) => (

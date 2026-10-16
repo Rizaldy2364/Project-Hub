@@ -42,6 +42,8 @@ interface ChatPanelProps {
   onUnreadCleared?: (projectId: string) => void;
   /** Tombol kembali (mobile) di header. */
   onBack?: () => void;
+  /** Nonaktifkan komposer (mis. user bukan anggota yang boleh mengirim). */
+  readOnly?: boolean;
   className?: string;
 }
 
@@ -58,6 +60,7 @@ export function ChatPanel({
   highlightMessageId = null,
   onUnreadCleared,
   onBack,
+  readOnly = false,
   className,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -740,7 +743,7 @@ export function ChatPanel({
       <Composer
         members={members.filter((m) => m.id !== myId)}
         projectName={projectName}
-        disabled={sending}
+        disabled={sending || readOnly}
         error={sendError}
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}

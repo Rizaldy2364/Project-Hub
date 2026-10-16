@@ -32,6 +32,8 @@ interface ActivityToolbarProps {
   range: ActivityRangeValue;
   projects: ActivityProjectOption[];
   members: ActivityMemberOption[];
+  /** Sembunyikan filter project (tab Aktivitas di dalam project — fixed). */
+  showProjectDropdown?: boolean;
 }
 
 export function ActivityToolbar({
@@ -41,6 +43,7 @@ export function ActivityToolbar({
   range,
   projects,
   members,
+  showProjectDropdown = true,
 }: ActivityToolbarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -100,6 +103,7 @@ export function ActivityToolbar({
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:ml-auto">
+        {showProjectDropdown && (
         <label className="relative inline-flex items-center">
           <span className="mr-2 shrink-0 text-sm font-medium text-slate-600 dark:text-slate-300">
             Project:
@@ -121,6 +125,7 @@ export function ActivityToolbar({
             <ChevronDown className="pointer-events-none absolute right-2.5 h-4 w-4 text-slate-400" />
           </span>
         </label>
+        )}
 
         {/* Dropdown member dengan pencarian dan scroll internal */}
         <div ref={wrapRef} className="relative">
