@@ -26,7 +26,7 @@ export async function listMyProjectsForTeamAction() {
   return { success: true as const, projects };
 }
 
-// DAFTAR ANGGOTA + ringkasan + joinCode (hanya untuk ADMIN & DEPUTY_ADMIN).
+// DAFTAR ANGGOTA + ringkasan + joinCode (hanya untuk ADMIN & MANAGER).
 export async function listTeamMembersAction(query: {
   projectId: string;
   role?: string;
@@ -64,7 +64,7 @@ export async function listTeamMembersAction(query: {
     ...result,
     summary,
     myRole,
-    // joinCode hanya untuk ADMIN & DEPUTY_ADMIN; untuk MEMBER field ini
+    // joinCode hanya untuk ADMIN & MANAGER; untuk MEMBER field ini
     // tidak ikut di payload yang dikirim ke client (bukan sekadar disembunyikan).
     project:
       canViewCode && project.joinCode !== undefined
@@ -81,7 +81,7 @@ export async function updateMemberRoleAction(input: {
   role: string;
 }) {
   // (1) Otorisasi — requireProjectMember (401/403) + canManageMembers (403).
-  // Dicek di server sehingga DEPUTY_ADMIN/MEMBER tetap ditolak walau action
+  // Dicek di server sehingga MANAGER/MEMBER/VIEWER tetap ditolak walau action
   // dipanggil langsung dari luar UI.
   const guard = await requireProjectMember(input?.projectId ?? "");
   if ("error" in guard) return { error: guard.error, status: guard.status };
@@ -92,7 +92,7 @@ export async function updateMemberRoleAction(input: {
     };
   }
 
-  // (2) Validasi Zod.
+  // (2) Validasi Zod — role hanya MANAGER/MEMBER/VIEWER (bukan ADMIN).
   const parsed = updateMemberRoleSchema.safeParse(input);
   if (!parsed.success) return { error: "Parameter tidak valid", status: 400 as const };
   const { projectId, targetUserId, role } = parsed.data;
@@ -115,21 +115,10 @@ export async function updateMemberRoleAction(input: {
       status: 422 as const,
     };
   }
-  // DEPUTY hanya boleh diberikan ke MEMBER, dicabut kembali ke MEMBER.
-  if (role === "DEPUTY_ADMIN" && target.role !== "MEMBER") {
-    return {
-      error: "Wakil admin hanya bisa diberikan kepada member",
-      status: 422 as const,
-    };
-  }
-  if (role === "MEMBER" && target.role !== "DEPUTY_ADMIN") {
-    return {
-      error: "Hanya peran wakil admin yang bisa dicabut ke member",
-      status: 422 as const,
-    };
-  }
+  // Perpindahan antara MANAGER / MEMBER / VIEWER bebas (AGENTS 8.2).
 
-  // (4) Repositori — transaksi; baris ActivityLog ikut transaksi yang sama.
+  // (4) Repositori — transaksi; menjadi VIEWER sekaligus men-unassign task
+  // aktif dalam transaksi yang sama; baris ActivityLog ikut transaksi.
   const targetProfile = await findProfileUserById(targetUserId);
   await updateProjectMemberRole({
     projectId,
@@ -158,7 +147,7 @@ export async function removeTeamMemberAction(input: {
   targetUserId: string;
 }) {
   // (1) Otorisasi — requireProjectMember (401/403) + canManageMembers (403).
-  // Dicek di server sehingga DEPUTY_ADMIN/MEMBER tetap ditolak walau action
+  // Dicek di server sehingga MANAGER/MEMBER/VIEWER tetap ditolak walau action
   // dipanggil langsung dari luar UI.
   const guard = await requireProjectMember(input?.projectId ?? "");
   if ("error" in guard) return { error: guard.error, status: guard.status };

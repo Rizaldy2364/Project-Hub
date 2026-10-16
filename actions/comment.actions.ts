@@ -23,6 +23,7 @@ import {
   findProjectAdminUserIds,
   findProjectMemberUsers,
 } from "@/repositories/project.repository";
+import { canComment } from "@/lib/permissions";
 import { extractMentions } from "@/lib/mentions";
 import { logActivity } from "@/lib/activity";
 
@@ -105,6 +106,12 @@ export async function createTaskComment(input: {
     return { error: membership.error ?? "Kamu bukan member project ini" };
   }
 
+  // MATRIKS IZIN 8.2 — VIEWER hanya bisa membaca; server menolak walau
+  // action dipanggil langsung dari luar UI.
+  if (!canComment(membership.membership.role)) {
+    return { error: "Kamu hanya bisa melihat project ini" };
+  }
+
   const comment = await createComment({
     content: parsed.data.content,
     taskId: parsed.data.taskId,
@@ -148,7 +155,7 @@ export async function createTaskComment(input: {
 
     // Peserta task = pembuat task (Task.createdById) + assignee + pemberi
     // komentar sebelumnya. FALLBACK hanya bila task tidak punya createdById
-    // (data lama): semua anggota ADMIN / WAKIL ADMIN project. Kandidat didedupe
+    // (data lama): semua anggota ADMIN / MANAGER project. Kandidat didedupe
     // lewat Set, penulis & yang sudah kena mention dikurangi, lalu disaring ke
     // yang masih anggota project (memberUsers — user yang keluar gugur).
     const candidateIds = new Set<string>();
@@ -204,6 +211,19 @@ export async function updateCommentAction(commentId: string, formData: FormData)
     return { error: "Kamu hanya bisa mengubah komentar sendiri" };
   }
 
+  // MATRIKS IZIN 8.2 — VIEWER tidak boleh mengedit komentar.
+  const list = await findTaskListById(
+    (await findTaskById(comment.taskId))?.listId ?? ""
+  );
+  if (!list) return { error: "Task tidak ditemukan" };
+  const membership = await requireProjectMember(list.projectId);
+  if ("error" in membership) {
+    return { error: membership.error ?? "Kamu bukan member project ini" };
+  }
+  if (!canComment(membership.membership.role)) {
+    return { error: "Kamu hanya bisa melihat project ini" };
+  }
+
   const parsed = createCommentSchema.pick({ content: true }).safeParse({
     content: formData.get("content"),
   });
@@ -226,6 +246,18 @@ export async function deleteCommentAction(commentId: string) {
 
   if (comment.userId !== session.user.id) {
     return { error: "Kamu hanya bisa menghapus komentar sendiri" };
+  }
+
+  // MATRIKS IZIN 8.2 — VIEWER tidak boleh menghapus komentar.
+  const task = await findTaskById(comment.taskId);
+  const list = task ? await findTaskListById(task.listId) : null;
+  if (!list) return { error: "Task tidak ditemukan" };
+  const membership = await requireProjectMember(list.projectId);
+  if ("error" in membership) {
+    return { error: membership.error ?? "Kamu bukan member project ini" };
+  }
+  if (!canComment(membership.membership.role)) {
+    return { error: "Kamu hanya bisa melihat project ini" };
   }
 
   await softDeleteComment(commentId);

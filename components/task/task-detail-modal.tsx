@@ -13,16 +13,21 @@ import type { BoardTask } from "@/types";
 
 interface TaskDetailModalProps {
   task: BoardTask;
-  isAdmin: boolean;
+  /** Izin aksi dihitung dari role user di project (matriks 8.2). */
+  canEdit: boolean;
+  canDelete: boolean;
+  canComment: boolean;
   onOpenChange: (open: boolean) => void;
   /** Penulis komentar saat ini (untuk optimistic UI). */
   currentUser?: { id: string; name: string; avatarUrl: string | null };
 }
 
-/** Modal detail task: lihat, edit (admin), dan hapus task (soft delete). */
+/** Modal detail task: lihat, edit (admin/manager), dan hapus task (admin). */
 export function TaskDetailModal({
   task,
-  isAdmin,
+  canEdit,
+  canDelete,
+  canComment,
   onOpenChange,
   currentUser,
 }: TaskDetailModalProps) {
@@ -208,7 +213,7 @@ export function TaskDetailModal({
             )}
 
             {/* Actions */}
-            {isAdmin && (
+            {canEdit && (
               <div className="flex items-center justify-end gap-3 pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
                 {isEditing ? (
                   <>

@@ -75,8 +75,9 @@ const STATUS_LABEL: Record<string, string> = {
 
 const ROLE_LABEL: Record<string, string> = {
   ADMIN: "Admin",
-  DEPUTY_ADMIN: "Wakil Admin",
+  MANAGER: "Manager",
   MEMBER: "Member",
+  VIEWER: "Viewer",
 };
 
 const dayKeyFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE });

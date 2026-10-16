@@ -88,8 +88,9 @@ model ProjectMember {
 
 enum Role {
   ADMIN
-  DEPUTY_ADMIN // Wakil Admin
+  MANAGER
   MEMBER
+  VIEWER
 }
 
 model TaskList {

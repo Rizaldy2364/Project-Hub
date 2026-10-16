@@ -7,7 +7,13 @@ import {
   updateTaskSchema,
 } from "@/lib/validations/task.schema";
 import { findProjectMember } from "@/repositories/project.repository";
-import { canCreateTask } from "@/lib/permissions";
+import {
+  canBeAssigned,
+  canChangeTaskStatus,
+  canCreateTask,
+  canDeleteTask,
+  canEditTask,
+} from "@/lib/permissions";
 import { ensureDefaultTaskLists, findTaskListById, findTaskListByProjectAndName } from "@/repositories/list.repository";
 import {
   createTask,
@@ -21,7 +27,8 @@ import { createNotification } from "@/repositories/notification.repository";
 import { logActivity } from "@/lib/activity";
 import { resolveCompletedAt } from "@/lib/completed-at";
 
-// Helper internal — cek user adalah member dari project pemilik task ini
+// Helper internal — cek user adalah member dari project pemilik task ini;
+// mengembalikan membership (termasuk role) untuk matriks izin 8.2.
 async function getProjectIdAndCheckMembership(userId: string, listId: string) {
   const list = await findTaskListById(listId);
   if (!list) return { error: "List tidak ditemukan" };
@@ -29,7 +36,17 @@ async function getProjectIdAndCheckMembership(userId: string, listId: string) {
   const member = await findProjectMember(userId, list.projectId);
   if (!member) return { error: "Kamu bukan member project ini" };
 
-  return { projectId: list.projectId };
+  return { projectId: list.projectId, member };
+}
+
+// Helper internal — validasi assignee: harus anggota project yang sama dan
+// tidak boleh VIEWER (matriks 8.2 — VIEWER tidak muncul di daftar assignee).
+async function validateAssignee(assigneeId: string, projectId: string) {
+  const assignee = await findProjectMember(assigneeId, projectId);
+  if (!assignee || !canBeAssigned(assignee.role)) {
+    return { error: "Assignee harus anggota project aktif (bukan viewer)" };
+  }
+  return {};
 }
 
 // CREATE
@@ -42,7 +59,7 @@ export async function createTaskAction(formData: FormData) {
 
   const member = await findProjectMember(session.user.id, projectId);
   if (!member || !canCreateTask(member.role)) {
-    return { error: "Hanya admin dan wakil admin yang boleh membuat task" };
+    return { error: "Hanya admin dan manager yang boleh membuat task" };
   }
 
   await ensureDefaultTaskLists({ projectId });
@@ -74,6 +91,12 @@ export async function createTaskAction(formData: FormData) {
 
   if (check.projectId !== projectId) return { error: "Kolom task tidak sesuai dengan project" };
 
+  // ATURAN assignee — hanya anggota aktif project (bukan VIEWER).
+  if (parsed.data.assigneeId) {
+    const assigneeCheck = await validateAssignee(parsed.data.assigneeId, projectId);
+    if ("error" in assigneeCheck) return { error: assigneeCheck.error };
+  }
+
   const currentCount = await countTasksByListId(parsed.data.listId);
 
   // ATURAN completedAt — membuat task langsung DONE langsung dapat timestamp.
@@ -86,7 +109,7 @@ export async function createTaskAction(formData: FormData) {
     completedAt,
     listId: parsed.data.listId,
     assigneeId: parsed.data.assigneeId,
-    createdById: session.user.id, // pembuat = pelaku aksi (Admin/Wakil Admin)
+    createdById: session.user.id, // pembuat = pelaku aksi (Admin/Manager)
     status: parsed.data.status,
     priority: parsed.data.priority,
     labelIds: parsed.data.labelIds,
@@ -128,6 +151,7 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
 
   const check = await getProjectIdAndCheckMembership(session.user.id, task.listId);
   if ("error" in check) return { error: check.error };
+  const role = check.member.role;
 
   const parsed = updateTaskSchema.safeParse({
     title: formData.get("title") || undefined,
@@ -140,6 +164,39 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
 
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors };
+  }
+
+  // MATRIKS IZIN 8.2 — field selain status = edit task (ADMIN/MANAGER);
+  // status = canChangeTaskStatus (MEMBER hanya task yang ditugaskan kepadanya;
+  // VIEWER ditolak untuk keduanya).
+  const wantsFieldEdit =
+    parsed.data.title !== undefined ||
+    parsed.data.description !== undefined ||
+    parsed.data.dueDate !== undefined ||
+    parsed.data.priority !== undefined ||
+    parsed.data.assigneeId !== undefined;
+  if (wantsFieldEdit && !canEditTask(role)) {
+    return { error: "Hanya admin dan manager yang boleh mengedit task" };
+  }
+
+  const wantsStatusChange = parsed.data.status !== undefined;
+  const isAssignee = task.assigneeId === session.user.id;
+  if (wantsStatusChange && !canChangeTaskStatus(role, isAssignee)) {
+    return {
+      error:
+        role === "VIEWER"
+          ? "Kamu hanya bisa melihat project ini"
+          : "Hanya admin, manager, atau penanggung jawab task yang boleh mengubah status",
+    };
+  }
+
+  // ATURAN assignee — hanya anggota aktif project (bukan VIEWER).
+  if (parsed.data.assigneeId) {
+    const assigneeCheck = await validateAssignee(
+      parsed.data.assigneeId,
+      check.projectId
+    );
+    if ("error" in assigneeCheck) return { error: assigneeCheck.error };
   }
 
   // ATURAN completedAt — SATU aturan untuk semua jalur yang menulis status
@@ -223,6 +280,15 @@ export async function moveTaskAction(
   const check = await getProjectIdAndCheckMembership(session.user.id, newListId);
   if ("error" in check) return { error: check.error };
 
+  // Pindah kolom = perubahan status task; VIEWER ditolak, MEMBER hanya task
+  // yang ditugaskan kepadanya (matriks 8.2).
+  const task = await findTaskById(taskId);
+  if (!task) return { error: "Task tidak ditemukan" };
+  const isAssignee = task.assigneeId === session.user.id;
+  if (!canChangeTaskStatus(check.member.role, isAssignee)) {
+    return { error: "Kamu tidak berwenang memindahkan task ini" };
+  }
+
   await moveTask(taskId, newListId, newOrder);
   revalidatePath(`/projects/${check.projectId}`);
   revalidatePath("/tasks");
@@ -239,6 +305,11 @@ export async function deleteTaskAction(taskId: string) {
 
   const check = await getProjectIdAndCheckMembership(session.user.id, task.listId);
   if ("error" in check) return { error: check.error };
+
+  // Hapus task = hanya ADMIN (matriks 8.2).
+  if (!canDeleteTask(check.member.role)) {
+    return { error: "Hanya admin yang boleh menghapus task" };
+  }
 
   await softDeleteTask(taskId);
   revalidatePath(`/projects/${check.projectId}`);

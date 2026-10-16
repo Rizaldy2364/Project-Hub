@@ -61,7 +61,7 @@ export function KanbanBoardTab({ project, currentUser }: KanbanBoardTabProps) {
               )}
               <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 font-semibold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                {project.role === "ADMIN" ? "Admin" : project.role === "DEPUTY_ADMIN" ? "Wakil Admin" : "Member"}
+                {project.role === "ADMIN" ? "Admin" : project.role === "MANAGER" ? "Manager" : project.role === "VIEWER" ? "Viewer" : "Member"}
               </span>
               <span className="inline-flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                 <CalendarDays className="h-3.5 w-3.5" />
@@ -131,7 +131,9 @@ export function KanbanBoardTab({ project, currentUser }: KanbanBoardTabProps) {
         <TaskDetailModal
           key={selectedTask.id}
           task={selectedTask}
-          isAdmin={project.role === "ADMIN"}
+          canEdit={project.role === "ADMIN" || project.role === "MANAGER"}
+          canDelete={project.role === "ADMIN"}
+          canComment={project.role !== "VIEWER"}
           currentUser={currentUser}
           onOpenChange={(open) => !open && setSelectedTask(null)}
         />

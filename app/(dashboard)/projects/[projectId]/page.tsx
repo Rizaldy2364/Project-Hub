@@ -18,7 +18,7 @@ export default async function ProjectBoardPage({ params }: ProjectBoardPageProps
 
   const membership = project.members.find((member) => member.userId === session.user.id);
   if (!membership) redirect("/dashboard");
-  // joinCode hanya untuk ADMIN & DEPUTY_ADMIN; untuk MEMBER field ini tidak
+  // joinCode hanya untuk ADMIN & MANAGER; untuk MEMBER & VIEWER field ini tidak
   // ikut dikirim ke client (bukan sekadar disembunyikan).
   const canViewCode = canViewJoinCode(membership.role);
   const tasks: BoardTask[] = project.lists.flatMap((list) => list.tasks).map((task) => ({

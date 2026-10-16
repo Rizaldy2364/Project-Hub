@@ -23,7 +23,7 @@ export const myTaskSelect = {
 
 /**
  * Select eksplisit untuk halaman Kalender (/calendar): task yang punya due date,
- * lengkap dengan project pemilik + role user di project tersebut (buat `isAdmin`).
+ * lengkap dengan project pemilik + role user di project tersebut (buat izin aksi).
  */
 export const calendarTaskSelect = {
   id: true,

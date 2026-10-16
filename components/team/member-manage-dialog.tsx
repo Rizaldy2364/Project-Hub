@@ -9,7 +9,7 @@ import { formatJoinedAt } from "@/components/team/team-meta";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { TeamMemberRow } from "@/types";
 
-export type ManageableRole = "DEPUTY_ADMIN" | "MEMBER";
+export type ManageableRole = "VIEWER" | "MEMBER" | "MANAGER";
 
 interface MemberManageDialogProps {
   member: TeamMemberRow | null;
@@ -23,10 +23,11 @@ interface MemberManageDialogProps {
 }
 
 const ROLE_OPTIONS: { value: ManageableRole; title: string; desc: string }[] = [
+  { value: "VIEWER", title: "Viewer", desc: "Hanya bisa melihat project ini." },
   { value: "MEMBER", title: "Member", desc: "Mengerjakan task yang ditugaskan." },
   {
-    value: "DEPUTY_ADMIN",
-    title: "Wakil Admin",
+    value: "MANAGER",
+    title: "Manager",
     desc: "Membuat dan menugaskan task menggantikan Admin.",
   },
 ];
@@ -46,7 +47,9 @@ export function MemberManageDialog({
   onRemove,
 }: MemberManageDialogProps) {
   const initialRole: ManageableRole =
-    member?.role === "DEPUTY_ADMIN" ? "DEPUTY_ADMIN" : "MEMBER";
+    member?.role === "MANAGER" ? "MANAGER" : member?.role === "VIEWER"
+      ? "VIEWER"
+      : "MEMBER";
   const [selectedRole, setSelectedRole] = useState<ManageableRole>(initialRole);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [removing, setRemoving] = useState(false);
