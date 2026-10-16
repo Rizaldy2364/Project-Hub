@@ -37,6 +37,10 @@ interface TeamViewProps {
     page: number;
     pageSize: 10 | 25 | 50;
   };
+  /** Saat true (default), pemilih project ditampilkan dan `?project=` di URL
+   * dihormati. Saat false, project difixed ke props.projectId (halaman anggota
+   * di dalam project). */
+  showProjectDropdown?: boolean;
 }
 
 export function TeamView(props: TeamViewProps) {
@@ -65,7 +69,10 @@ export function TeamView(props: TeamViewProps) {
   const page = Math.max(1, Number.parseInt(searchParams.get("page") ?? "", 10) || props.initialQuery.page);
   const rawSize = Number.parseInt(searchParams.get("pageSize") ?? "", 10);
   const pageSize = (rawSize === 25 || rawSize === 50 ? rawSize : 10) as 10 | 25 | 50;
-  const projectId = searchParams.get("project") ?? props.projectId;
+  const projectId =
+    props.showProjectDropdown === false
+      ? props.projectId
+      : (searchParams.get("project") ?? props.projectId);
 
   function showToast(message: string) {
     setToast(message);
@@ -230,6 +237,7 @@ export function TeamView(props: TeamViewProps) {
         from={from}
         to={to}
         pageNumbers={pageNumbers}
+        showProjectDropdown={props.showProjectDropdown}
       />
 
       <MemberManageDialog

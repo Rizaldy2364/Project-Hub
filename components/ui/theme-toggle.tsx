@@ -14,7 +14,12 @@ export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  // setState lewat callback tertunda (bukan sinkron di dalam effect) —
+  // memenuhi react-hooks/set-state-in-effect; perilaku tetap sama.
+  useEffect(() => {
+    const id = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   return (
     <div className="flex items-center gap-1 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1">

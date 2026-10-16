@@ -92,6 +92,16 @@ export async function countUnreadNotifications(userId: string) {
   return prisma.notification.count({ where: { userId, readAt: null } });
 }
 
+/** Sama seperti countUnreadNotifications tapi dibatasi satu project. */
+export async function countUnreadNotificationsByProject(
+  userId: string,
+  projectId: string
+) {
+  return prisma.notification.count({
+    where: { userId, projectId, readAt: null },
+  });
+}
+
 // UPDATE — tandai dibaca (kepemilikan dicek di actions/).
 export async function markNotificationRead(id: string) {
   return prisma.notification.update({

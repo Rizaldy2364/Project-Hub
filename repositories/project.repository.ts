@@ -108,9 +108,11 @@ export async function findProjectOptionsByUserId(
 export interface ProjectMemberUser {
   id: string;
   name: string;
+  avatarUrl: string | null;
 }
 
-// READ — daftar anggota project (id + nama) untuk pencocokan mention.
+// READ — daftar anggota project (id, nama, avatar) untuk pencocokan mention
+// dan filter member halaman Aktivitas.
 // VIEWER dikeluarkan: tidak muncul di daftar mention dan token `@` untuk
 // VIEWER diabaikan (matriks 8.2 — AGENTS.md).
 export async function findProjectMemberUsers(
@@ -118,7 +120,7 @@ export async function findProjectMemberUsers(
 ): Promise<ProjectMemberUser[]> {
   const rows = await prisma.projectMember.findMany({
     where: { projectId, role: { not: "VIEWER" } },
-    select: { user: { select: { id: true, name: true } } },
+    select: { user: { select: { id: true, name: true, avatarUrl: true } } },
   });
   return rows.map((row) => row.user);
 }
