@@ -118,15 +118,19 @@ export async function listRecentNotificationsAction() {
   const session = await auth();
   if (!session) return { error: "Unauthorized" };
 
+  const take = 8;
   const rows = await findNotificationsByUserId({
     userId: session.user.id,
     tab: "all",
-    take: 8,
+    take,
   });
 
+  // CATATAN: repository mengambil `take + 1` sebagai lookahead cursor
+  // pagination. Tanpa dipotong di sini panel menerima 9 baris — itulah
+  // akar masalah "9 rows" pada dropdown lonceng.
   return {
     success: true as const,
-    items: rows.map(toInboxNotification),
+    items: rows.slice(0, take).map(toInboxNotification),
     nextCursor: null,
   };
 }

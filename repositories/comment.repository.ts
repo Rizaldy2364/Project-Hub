@@ -10,6 +10,14 @@ export interface UpdateCommentInput {
   content: string;
 }
 
+export interface CommentWithAuthor {
+  id: string;
+  content: string;
+  createdAt: Date;
+  userId: string;
+  user: { id: string; name: string; avatarUrl: string | null };
+}
+
 // CREATE
 export async function createComment(data: CreateCommentInput) {
   return prisma.comment.create({
@@ -28,6 +36,23 @@ export async function findCommentsByTaskId(taskId: string) {
   return prisma.comment.findMany({
     where: { taskId, deletedAt: null },
     orderBy: { createdAt: "asc" },
+  });
+}
+
+// READ (dengan penulis) — untuk daftar komentar di detail task.
+export async function findCommentsWithAuthors(
+  taskId: string
+): Promise<CommentWithAuthor[]> {
+  return prisma.comment.findMany({
+    where: { taskId, deletedAt: null },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      userId: true,
+      user: { select: { id: true, name: true, avatarUrl: true } },
+    },
   });
 }
 

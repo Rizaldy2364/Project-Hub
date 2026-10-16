@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { FolderKanban, Loader2, Trash2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { TaskComments } from "@/components/task/task-comments";
 import { deleteTaskAction, updateTaskAction } from "@/actions/task.actions";
 import { markTaskCommentsReadAction } from "@/actions/notification.actions";
 import type { BoardTask } from "@/types";
@@ -14,10 +15,17 @@ interface TaskDetailModalProps {
   task: BoardTask;
   isAdmin: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Penulis komentar saat ini (untuk optimistic UI). */
+  currentUser?: { id: string; name: string; avatarUrl: string | null };
 }
 
 /** Modal detail task: lihat, edit (admin), dan hapus task (soft delete). */
-export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModalProps) {
+export function TaskDetailModal({
+  task,
+  isAdmin,
+  onOpenChange,
+  currentUser,
+}: TaskDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -170,6 +178,13 @@ export function TaskDetailModal({ task, isAdmin, onOpenChange }: TaskDetailModal
                     </div>
                   </div>
                 </div>
+
+                {/* Komentar task — daftar + form kirim dengan toast. */}
+                {currentUser && (
+                  <div className="border-t border-slate-100 pt-4 dark:border-slate-800">
+                    <TaskComments taskId={task.id} currentUser={currentUser} />
+                  </div>
+                )}
 
                 {/* Info project — tampil saat task dibuka dari kalender. */}
                 {calendarTask.projectId && calendarTask.projectName && (

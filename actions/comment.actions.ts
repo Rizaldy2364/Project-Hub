@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { createCommentSchema } from "@/lib/validations/comment.schema";
 import { requireProjectMember, requireUser } from "@/lib/auth-guards";
@@ -11,6 +12,7 @@ import {
   softDeleteComment,
   updateComment,
   findCommentById,
+  findCommentsWithAuthors,
   findDistinctCommentAuthorIds,
 } from "@/repositories/comment.repository";
 import {
@@ -37,6 +39,40 @@ export async function createCommentAction(formData: FormData) {
 export type TaskCommentResult =
   | { success: true; commentId: string; projectId: string }
   | { error: string | Record<string, string[]> };
+
+// LIST — daftar komentar task (beserta penulisnya) untuk UI detail task.
+// Tanpa guard project? Tetap guard: hanya anggota project pemilik task.
+export async function listTaskCommentsAction(taskId: string) {
+  const guard = await requireUser();
+  if ("error" in guard) return { error: guard.error ?? "Unauthorized" };
+
+  const parsed = z.string().cuid().safeParse(taskId);
+  if (!parsed.success) return { error: "Task tidak valid" };
+
+  const task = await findTaskById(parsed.data);
+  if (!task) return { error: "Task tidak ditemukan" };
+  const list = await findTaskListById(task.listId);
+  if (!list) return { error: "List tidak ditemukan" };
+  const membership = await requireProjectMember(list.projectId);
+  if ("error" in membership) {
+    return { error: membership.error ?? "Kamu bukan member project ini" };
+  }
+
+  const rows = await findCommentsWithAuthors(parsed.data);
+  return {
+    success: true as const,
+    items: rows.map((row) => ({
+      id: row.id,
+      content: row.content,
+      createdAt: row.createdAt.toISOString(),
+      author: {
+        id: row.user.id,
+        name: row.user.name,
+        avatarUrl: row.user.avatarUrl,
+      },
+    })),
+  };
+}
 
 /**
  * PIPELINE TUNGGAL pembuatan komentar. Semua jalur — form task maupun balasan

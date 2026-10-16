@@ -12,17 +12,47 @@ export function formatChatTime(iso: string): string {
   });
 }
 
-/** Chip pemisah tanggal di antar pesan: "HARI INI" / "KEMARIN" / "30 SEP". */
+/**
+ * Chip pemisah tanggal di antar pesan — sentence case (bukan kapital semua):
+ * "Hari ini" / "Kemarin" / nama hari 2–6 hari lalu ("Senin") / tanggal penuh
+ * untuk yang lebih tua ("9 Okt"; tahun hanya ditambahkan bila bukan tahun
+ * berjalan, mis. "9 Okt 2025"). Semua dihitung dari createdAt (UTC) dalam
+ * zona Asia/Jakarta — tidak dipengaruhi zona waktu browser.
+ */
 export function dayChipLabel(iso: string): string {
-  const diff = wibDayDiff(iso, new Date());
-  if (diff <= 0) return "HARI INI";
-  if (diff === 1) return "KEMARIN";
-  const formatted = new Date(iso).toLocaleDateString("id-ID", {
+  const date = new Date(iso);
+  const now = new Date();
+  const diff = wibDayDiff(date, now);
+  if (diff <= 0) return "Hari ini";
+  if (diff === 1) return "Kemarin";
+  if (diff <= 6) {
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      timeZone: APP_TIMEZONE,
+    });
+  }
+  const short = date.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "short",
     timeZone: APP_TIMEZONE,
   });
-  return formatted.toUpperCase();
+  const yearOf = (d: Date) =>
+    d.toLocaleDateString("id-ID", { year: "numeric", timeZone: APP_TIMEZONE });
+  return yearOf(date) === yearOf(now) ? short : `${short} ${yearOf(date)}`;
+}
+
+/**
+ * Label panjang untuk aria-label pemisah tanggal,
+ * mis. "Jumat, 9 Oktober 2025" (tetap zona Asia/Jakarta).
+ */
+export function daySeparatorFullLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: APP_TIMEZONE,
+  });
 }
 
 /**

@@ -30,6 +30,11 @@ export default async function ProjectBoardPage({ params }: ProjectBoardPageProps
   return (
     <div className="mx-auto max-w-6xl">
       <KanbanBoardTab
+        currentUser={{
+          id: session.user.id,
+          name: session.user.name ?? "Kamu",
+          avatarUrl: session.user.image ?? null,
+        }}
         project={{
           id: project.id,
           name: project.name,

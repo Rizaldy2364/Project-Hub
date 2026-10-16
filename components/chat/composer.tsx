@@ -128,6 +128,8 @@ export function Composer({
     setText("");
     setPicked([]);
     setMentionQuery(null);
+    // Fokus kembali ke textarea komposer (mis. setelah kirim lewat klik tombol).
+    requestAnimationFrame(() => textareaRef.current?.focus());
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {

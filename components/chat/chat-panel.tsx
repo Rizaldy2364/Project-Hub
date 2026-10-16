@@ -5,6 +5,7 @@ import { ArrowDown, ArrowLeft, Loader2, Pin } from "lucide-react";
 import { cn, wibDayKey } from "@/lib/utils";
 import {
   dayChipLabel,
+  daySeparatorFullLabel,
   formatChatTime,
   projectAvatarClass,
   projectInitial,
@@ -61,6 +62,9 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [members, setMembers] = useState<ChatMember[]>([]);
+  // Tick 1 menit: label separator tanggal ("Hari ini"→"Kemarin") dievaluasi
+  // ulang setelah lewat tengah malam tanpa reload.
+  const [, setNowTick] = useState(0);
   const [pinned, setPinned] = useState<ChatMessage | null>(null);
   const [othersMinLastReadAt, setOthersMinLastReadAt] = useState<string | null>(
     null
@@ -89,6 +93,13 @@ export function ChatPanel({
   const markedReadRef = useRef(false);
 
   const myId = currentUserId;
+
+  // Evaluasi ulang label tanggal tiap 1 menit (rollover tengah malam:
+  // "Hari ini" menjadi "Kemarin" tanpa reload).
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowTick((n) => n + 1), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // ===== Muat halaman terbaru =====
   // Catatan: `setLoading(true)` TIDAK dipanggil di sini agar tidak ada
@@ -352,8 +363,15 @@ export function ChatPanel({
 
   /** Coba kirim ulang pesan yang gagal (konten sudah ber-token; balasan ikut). */
   async function retryMessage(message: ChatMessage) {
+    // Gagal → keluarkan bubble gagal, kirim ulang konten SAMA (composer tidak
+    // disentuh, teks tidak hilang).
     setMessages((prev) => prev.filter((m) => m.id !== message.id));
     await sendChatMessage(message.content, message.replyTo ?? undefined);
+  }
+
+  /** Buang bubble gagal dari daftar (tanpa dialog pemblokir). */
+  function discardFailedMessage(message: ChatMessage) {
+    setMessages((prev) => prev.filter((m) => m.id !== message.id));
   }
 
   // ===== Muat pesan lebih tua saat scroll ke atas (tanpa lompatan) =====
@@ -626,12 +644,14 @@ export function ChatPanel({
             ({ message, showHeader, showDayChip, isUnreadBoundary }) => (
               <div key={message.id}>
                 {showDayChip && (
-                  <div className="my-3 flex items-center gap-3">
-                    <span className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
-                    <span className="rounded-full bg-slate-200 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-slate-500 dark:bg-[#131A2B] dark:text-[#8B96AD]">
+                  <div className="flex justify-center pb-2 pt-3.5">
+                    <span
+                      role="separator"
+                      aria-label={`Pesan tanggal ${daySeparatorFullLabel(message.createdAt)}`}
+                      className="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 dark:bg-[#1B2438] dark:text-[#8B96AD]"
+                    >
                       {dayChipLabel(message.createdAt)}
                     </span>
-                    <span className="h-px flex-1 bg-slate-200 dark:bg-white/[0.08]" />
                   </div>
                 )}
                 {isUnreadBoundary && (
@@ -656,29 +676,21 @@ export function ChatPanel({
                     </span>
                   </div>
                 ) : message.pending || message.failed ? (
-                  <div data-message-id={message.id} className="flex justify-end">
-                    <div className="max-w-[75%] rounded-2xl rounded-br-md bg-[#3B66EE]/60 px-3 py-2 text-sm text-white">
-                      <p className="whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
-                      <div className="mt-1 flex items-center justify-end text-[10px] text-white/80">
-                        {message.pending ? (
-                          <span className="inline-flex items-center gap-1">
-                            <Loader2 className="h-3 w-3 animate-spin" aria-hidden />{" "}
-                            Mengirim...
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => void retryMessage(message)}
-                            className="rounded font-semibold underline underline-offset-2 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                          >
-                            Gagal terkirim, coba lagi
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  <MessageBubble
+                    message={message}
+                    own
+                    showHeader={false}
+                    readByOthers={false}
+                    canPin={false}
+                    canDelete={false}
+                    members={members}
+                    highlighted={highlightId === message.id}
+                    onReply={setReplyTo}
+                    onPinToggle={(m) => void handlePinToggle(m)}
+                    onDelete={(m) => void handleDelete(m)}
+                    onRetry={(m) => void retryMessage(m)}
+                    onDiscard={discardFailedMessage}
+                  />
                 ) : (
                   <MessageBubble
                     message={message}
@@ -699,6 +711,8 @@ export function ChatPanel({
                     onReply={setReplyTo}
                     onPinToggle={(m) => void handlePinToggle(m)}
                     onDelete={(m) => void handleDelete(m)}
+                    onRetry={(m) => void retryMessage(m)}
+                    onDiscard={discardFailedMessage}
                   />
                 )}
               </div>

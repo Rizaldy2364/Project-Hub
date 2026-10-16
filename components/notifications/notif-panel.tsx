@@ -18,12 +18,20 @@ import {
  * Panel notifikasi via portal ke document.body — dipakai lonceng top bar dan
  * menu Inbox sidebar supaya perilaku & data identik tanpa duplikasi.
  *
- * - Muat 8 notifikasi terbaru saat panel dibuka (bukan dipolling).
+ * - Muat 8 notifikasi terbaru (MAX_ROWS) saat panel dibuka (bukan dipolling).
+ * - Tiga bagian: header (judul + "Tandai semua dibaca") menempel di atas,
+ *   daftar scroll di tengah (flex-1 min-h-0), footer "Lihat semua di Inbox"
+ *   selalu terlihat di bawah.
+ * - Tinggi: min(480px, viewport − posisi atas − 16px); dihitung ulang saat
+ *   dibuka dan pada resize/scroll. Di bawah 640px menjadi sheet full-width
+ *   dengan tinggi calc(100dvh − bawah top bar − 16px). TIDAK PERNAH lebih
+ *   tinggi dari viewport.
  * - Posisi relatif `triggerRef` (rata kanan; digeser bila keluar viewport).
  * - Escape menutup + fokus kembali ke pemicu; klik backdrop menutup.
  * - Klik baris: tandai dibaca (optimistik, rollback via refresh) lalu
  *   navigasi — mention chat → `/diskusi?project&message`, lainnya → `/inbox`.
- * - Angka badge dari `useUnreadCount` (provider yang sama).
+ * - Angka badge dari `useUnreadCount` (provider yang sama); badge header
+ *   disembunyikan saat 0 dan di-cap "99+".
  */
 export interface NotifPanelProps {
   open: boolean;
@@ -32,24 +40,48 @@ export interface NotifPanelProps {
   triggerRef: React.RefObject<HTMLElement | null>;
 }
 
+/** Lebar panel desktop. */
 const PANEL_WIDTH = 380;
+/** Jumlah baris yang dimuat & dirender (sama dengan `take` di action). */
+const MAX_ROWS = 8;
+/** Tinggi maksimum panel desktop. */
+const MAX_HEIGHT = 480;
+/** Di bawah lebar ini panel menjadi sheet selebar layar. */
+const SHEET_BREAKPOINT = 640;
+/** Ruang aman di tepi bawah viewport. */
+const VIEWPORT_GAP = 16;
 
 interface PanelPos {
   top: number;
   left: number;
-  maxHeight: number;
+  width: number;
+  maxHeight: number | string;
 }
 
 function computePos(el: HTMLElement): PanelPos {
   const rect = el.getBoundingClientRect();
   const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const top = rect.bottom + 8;
+
+  // Sheet full-width di layar kecil: tinggi = 100dvh − bawah top bar − 16px.
+  if (vw < SHEET_BREAKPOINT) {
+    return {
+      top,
+      left: 12,
+      width: Math.max(240, vw - 24),
+      maxHeight: `calc(100dvh - ${Math.ceil(rect.bottom) + VIEWPORT_GAP}px)`,
+    };
+  }
+
   let left = rect.right - PANEL_WIDTH;
   if (left < 12) left = rect.left;
   if (left + PANEL_WIDTH > vw - 12) left = vw - 12 - PANEL_WIDTH;
   if (left < 12) left = 12;
-  const top = rect.bottom + 8;
-  const maxHeight = Math.max(160, window.innerHeight - top - 12);
-  return { top, left, maxHeight };
+
+  // min(480px, viewport − posisi atas − 16px) — tidak pernah melebihi viewport.
+  const maxHeight = Math.max(1, Math.min(MAX_HEIGHT, vh - top - VIEWPORT_GAP));
+  return { top, left, width: PANEL_WIDTH, maxHeight };
 }
 
 export function NotifPanel({ open, onClose, triggerRef }: NotifPanelProps) {
@@ -211,9 +243,11 @@ export function NotifPanel({ open, onClose, triggerRef }: NotifPanelProps) {
       );
     }
 
+    // Batasi 8 baris terbaru — jaring pengaman di sisi klien (sumber utama
+    // sudah dipotong di listRecentNotificationsAction).
     return (
       <div className="space-y-2">
-        {items.map((item) => (
+        {items.slice(0, MAX_ROWS).map((item) => (
           <button
             key={item.id}
             type="button"
@@ -240,47 +274,62 @@ export function NotifPanel({ open, onClose, triggerRef }: NotifPanelProps) {
         className="fixed z-50 flex w-96 max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-white/[0.08] dark:bg-[#0F1524]"
         style={
           pos
-            ? { top: pos.top, left: pos.left, width: PANEL_WIDTH, maxHeight: pos.maxHeight }
-            : { top: 72, right: 16, maxHeight: "calc(100vh - 88px)" }
+            ? {
+                top: pos.top,
+                left: pos.left,
+                width: pos.width,
+                maxHeight: pos.maxHeight,
+              }
+            : { top: 72, right: 16, maxHeight: "calc(100dvh - 88px)" }
         }
       >
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/[0.08]">
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
-            Notifikasi
-          </h2>
-          <span
-            aria-hidden
-            className={cn(
-              "flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white",
-              count > 99 ? "bg-slate-900 dark:bg-white dark:text-slate-900" : "bg-blue-600",
-              "pointer-events-none"
+        {/* Header — menempel di atas: judul + badge (hanya bila > 0) + tandai semua */}
+        <div className="shrink-0 border-b border-slate-200 dark:border-white/[0.08]">
+          <div className="flex items-center justify-between px-4 py-3">
+            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+              Notifikasi
+            </h2>
+            {count > 0 && (
+              <span
+                aria-hidden
+                className={cn(
+                  "flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold text-white",
+                  count > 99
+                    ? "bg-slate-900 dark:bg-white dark:text-slate-900"
+                    : "bg-blue-600",
+                  "pointer-events-none"
+                )}
+              >
+                {count > 99 ? "99+" : count}
+              </span>
             )}
-          >
-            {count > 99 ? "99+" : count}
-          </span>
+          </div>
+          <div className="px-4 pb-3">
+            <button
+              type="button"
+              onClick={() => void handleMarkAll()}
+              disabled={count === 0}
+              className={cn(
+                "flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40",
+                count === 0
+                  ? "cursor-not-allowed text-slate-400 dark:text-[#8B96AD]"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1B2438]"
+              )}
+            >
+              <CheckCheck className="h-4 w-4" />
+              {count === 0 ? "Tidak ada yang belum dibaca" : "Tandai semua dibaca"}
+            </button>
+          </div>
         </div>
 
-        <div className="px-4 pb-3 pt-2">
-          <button
-            type="button"
-            onClick={() => void handleMarkAll()}
-            disabled={count === 0}
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-colors",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40",
-              count === 0
-                ? "cursor-not-allowed text-slate-400 dark:text-[#8B96AD]"
-                : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1B2438]"
-            )}
-          >
-            <CheckCheck className="h-4 w-4" />
-            {count === 0 ? "Tidak ada yang belum dibaca" : "Tandai semua dibaca"}
-          </button>
+        {/* Daftar — scroll di dalam panel (flex-1 min-h-0, scrollbar tipis) */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2 [scrollbar-color:rgba(148,163,184,0.5)_transparent] [scrollbar-width:thin] dark:[scrollbar-color:rgba(255,255,255,0.25)_transparent]">
+          {renderContent()}
         </div>
 
-        <div className="px-3 py-2">{renderContent()}</div>
-
-        <div className="border-t border-slate-200 px-4 py-3 dark:border-white/[0.08]">
+        {/* Footer — selalu terlihat di bawah */}
+        <div className="shrink-0 border-t border-slate-200 px-4 py-3 dark:border-white/[0.08]">
           <button
             type="button"
             className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"

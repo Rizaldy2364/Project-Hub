@@ -1,6 +1,7 @@
 "use client";
 
-import { Send } from "lucide-react";
+import { useRef, useState } from "react";
+import { Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InboxNotification } from "@/types";
 import { formatInboxTime } from "@/lib/inbox-format";
@@ -81,34 +82,76 @@ export function ReplyBox({
 }: {
   actorName: string;
   sending: boolean;
-  onSend: (content: string) => void;
+  /** Kembalikan true bila server sukses (field dikosongkan); false bila gagal. */
+  onSend: (content: string) => Promise<boolean> | boolean;
 }) {
+  // Controlled agar isi dipertahankan bila kirim gagal; dikosongkan hanya
+  // setelah parent mengonfirmasi sukses.
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const sendingRef = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function submit() {
+    const content = draft.trim();
+    if (!content || sending || busy || sendingRef.current) return;
+    sendingRef.current = true;
+    setBusy(true);
+    try {
+      const ok = await onSend(content);
+      if (ok) {
+        setDraft("");
+        // Fokus kembali ke input setelah enabled lagi (disabled = blur).
+        requestAnimationFrame(() => inputRef.current?.focus());
+      }
+    } finally {
+      sendingRef.current = false;
+      setBusy(false);
+    }
+  }
+
+  const disabled = sending || busy;
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        const data = new FormData(e.currentTarget);
-        const content = String(data.get("content") ?? "").trim();
-        if (!content) return;
-        onSend(content);
-        e.currentTarget.reset();
+        void submit();
       }}
       className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 dark:border-white/[0.08] dark:bg-[#0F1524]"
     >
       <input
-        name="content"
+        ref={inputRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          // Enter kirim; abaikan saat request masih jalan (cegah dobel).
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (!disabled) void submit();
+          }
+        }}
         maxLength={1000}
+        disabled={disabled}
         placeholder={`Balas ${actorName}...`}
         aria-label={`Balas ${actorName}`}
-        className="h-9 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 dark:text-[#E6EAF2] dark:placeholder:text-[#8B96AD]"
+        className="h-9 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-60 dark:text-[#E6EAF2] dark:placeholder:text-[#8B96AD]"
       />
       <button
         type="submit"
-        disabled={sending}
-        aria-label="Kirim balasan"
-        className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50"
+        disabled={disabled || !draft.trim()}
+        aria-label={disabled ? "Mengirim balasan..." : "Kirim balasan"}
+        title={disabled ? "Mengirim..." : "Kirim balasan"}
+        className="flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-2 text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50"
       >
-        <Send className="h-4 w-4" />
+        {disabled ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            <span className="pr-1 text-xs font-semibold">Mengirim...</span>
+          </>
+        ) : (
+          <Send className="h-4 w-4" aria-hidden />
+        )}
       </button>
     </form>
   );
