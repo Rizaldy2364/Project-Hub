@@ -12,10 +12,11 @@ import type { BoardProject, BoardTask } from "@/types";
 
 interface KanbanBoardTabProps {
   project: BoardProject;
+  currentUser: { id: string; name: string; avatarUrl: string | null };
 }
 
 /** Shell halaman detail project: header project + tab Kanban Board / Team Members. */
-export function KanbanBoardTab({ project }: KanbanBoardTabProps) {
+export function KanbanBoardTab({ project, currentUser }: KanbanBoardTabProps) {
   const [activeTab, setActiveTab] = useState<"KANBAN" | "MEMBERS">("KANBAN");
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
   const [copied, setCopied] = useState(false);
@@ -131,6 +132,7 @@ export function KanbanBoardTab({ project }: KanbanBoardTabProps) {
           key={selectedTask.id}
           task={selectedTask}
           isAdmin={project.role === "ADMIN"}
+          currentUser={currentUser}
           onOpenChange={(open) => !open && setSelectedTask(null)}
         />
       )}

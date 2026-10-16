@@ -39,6 +39,11 @@ export default async function CalendarPage({ searchParams }: CalendarPageProps) 
         tasks={tasks}
         projects={projects}
         activeProjectId={activeProjectId}
+        currentUser={{
+          id: session.user.id,
+          name: session.user.name ?? "Kamu",
+          avatarUrl: session.user.image ?? null,
+        }}
       />
     </div>
   );

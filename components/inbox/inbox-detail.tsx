@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { InboxNotification } from "@/types";
 import { TYPE_META, discussionLink, isChatMention } from "@/components/inbox/inbox-meta";
 import { ReplyBox } from "@/components/inbox/inbox-item";
+import { Toast, toToastError, useToast } from "@/components/ui/toast";
 import { formatFullDate, formatInboxTime, taskLink } from "@/lib/inbox-format";
 import {
   markNotificationReadAction,
@@ -36,6 +37,7 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
   const meta = TYPE_META[item.type];
   const [sending, setSending] = useState(false);
   const [marking, setMarking] = useState(false);
+  const { toast, show } = useToast();
   const unread = !item.readAt;
   const chatMention = isChatMention(item);
   // Reply hanya untuk notifikasi berbasis komentar/task — mention chat
@@ -55,14 +57,32 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
     if (!("error" in res)) onRead(item.id);
   }
 
-  async function handleReply(content: string) {
-    if (sending) return;
+  async function handleReply(content: string): Promise<boolean> {
+    // Dipanggil ReplyBox (controlled): kembalikan true = sukses (field
+    // dikosongkan), false = gagal (isi dipertahankan) + toast merah.
+    if (sending) return false;
     setSending(true);
-    const formData = new FormData();
-    formData.set("content", content);
-    const res = await replyNotificationAction(item.id, formData);
-    setSending(false);
-    if (!("error" in res)) onReplied();
+    try {
+      const formData = new FormData();
+      formData.set("content", content);
+      const res = await replyNotificationAction(item.id, formData);
+      if ("error" in res) {
+        show(toToastError(res.error), "error");
+        return false;
+      }
+      const recipient = item.actor?.name?.trim();
+      show(
+        recipient ? `Balasan terkirim ke ${recipient}` : "Balasan terkirim",
+        "success"
+      );
+      onReplied();
+      return true;
+    } catch {
+      show("Gagal mengirim, coba lagi", "error");
+      return false;
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -236,11 +256,14 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
       </div>
 
       {showReply && (
-        <ReplyBox
-          actorName={item.actor?.name ?? "mereka"}
-          sending={sending}
-          onSend={handleReply}
-        />
+        <>
+          <ReplyBox
+            actorName={item.actor?.name ?? "mereka"}
+            sending={sending}
+            onSend={handleReply}
+          />
+          <Toast toast={toast} />
+        </>
       )}
     </div>
   );

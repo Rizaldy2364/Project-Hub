@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pin, PinOff, Reply, Trash2 } from "lucide-react";
+import { Clock, Pin, PinOff, Reply, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { splitMentions } from "@/lib/mentions";
 import { formatChatTime, senderColorClass } from "@/components/chat/chat-utils";
@@ -23,6 +23,10 @@ interface MessageBubbleProps {
   onReply: (message: ChatMessage) => void;
   onPinToggle: (message: ChatMessage) => void;
   onDelete: (message: ChatMessage) => void;
+  /** Kirim ulang pesan gagal (optimistic tetap di daftar, teks tidak hilang). */
+  onRetry?: (message: ChatMessage) => void;
+  /** Buang pesan gagal dari daftar. */
+  onDiscard?: (message: ChatMessage) => void;
 }
 
 /** Render teks pesan; token `@[userId]` menjadi @Nama (fallback @pengguna). */
@@ -64,6 +68,8 @@ export function MessageBubble({
   onReply,
   onPinToggle,
   onDelete,
+  onRetry,
+  onDiscard,
 }: MessageBubbleProps) {
   const [hovered, setHovered] = useState(false);
 
@@ -165,7 +171,8 @@ export function MessageBubble({
           "max-w-[75%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
           own
             ? "rounded-br-md bg-[#3B66EE] text-white"
-            : "rounded-bl-md bg-slate-100 text-slate-900 dark:bg-[#1B2438] dark:text-[#E6EAF2]"
+            : "rounded-bl-md bg-slate-100 text-slate-900 dark:bg-[#1B2438] dark:text-[#E6EAF2]",
+          message.pending && "opacity-70"
         )}
       >
         {!own && showHeader && (
@@ -206,17 +213,53 @@ export function MessageBubble({
 
         <span
           className={cn(
-            "ml-2 inline-flex translate-y-[2px] items-center gap-0.5 text-[10px] leading-none",
-            own ? "text-white/70" : "text-slate-400 dark:text-[#8B96AD]"
+            "ml-2 inline-flex translate-y-[2px] items-center gap-1 text-xs leading-none",
+            own ? "text-white/80" : "text-slate-400 dark:text-[#8B96AD]"
           )}
         >
           {formatChatTime(message.createdAt)}
-          {own && message.kind === "USER" && (
-            <span aria-label={readByOthers ? "Dibaca" : "Terkirim"}>
+          {own && message.kind === "USER" && message.pending && (
+            <span
+              role="img"
+              aria-label="Mengirim"
+              className="inline-flex items-center gap-0.5"
+            >
+              <Clock className="h-3.5 w-3.5" aria-hidden />
+            </span>
+          )}
+          {own && message.kind === "USER" && !message.pending && !message.failed && (
+            <span role="img" aria-label={readByOthers ? "Dibaca" : "Terkirim"}>
               {readByOthers ? "✓✓" : "✓"}
             </span>
           )}
+          {own && message.kind === "USER" && message.failed && (
+            <span role="img" aria-label="Gagal terkirim">
+              !
+            </span>
+          )}
         </span>
+        {message.failed && (
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs leading-none">
+            <span role="alert" className="font-semibold text-red-600 dark:text-red-400">
+              Gagal terkirim
+            </span>
+            <button
+              type="button"
+              onClick={() => onRetry?.(message)}
+              className="font-semibold text-blue-600 underline underline-offset-2 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-blue-300 dark:hover:text-blue-200"
+            >
+              Coba lagi
+            </button>
+            <button
+              type="button"
+              onClick={() => onDiscard?.(message)}
+              aria-label="Hapus pesan gagal"
+              className="font-medium text-slate-500 underline underline-offset-2 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-[#8B96AD] dark:hover:text-[#E6EAF2]"
+            >
+              Hapus
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

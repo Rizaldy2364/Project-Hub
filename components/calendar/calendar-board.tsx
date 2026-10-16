@@ -36,10 +36,11 @@ interface CalendarBoardProps {
   projects: { id: string; name: string }[];
   /** "" = semua project; state tersimpan di URL ?project=. */
   activeProjectId: string;
+  currentUser: { id: string; name: string; avatarUrl: string | null };
 }
 
 /** Orkestrator halaman kalender: kontrol bulan, filter member, grid, agenda, modal. */
-export function CalendarBoard({ tasks, projects, activeProjectId }: CalendarBoardProps) {
+export function CalendarBoard({ tasks, projects, activeProjectId, currentUser }: CalendarBoardProps) {
   const router = useRouter();
   const [anchor, setAnchor] = useState(() => new Date());
   const [view, setView] = useState<CalendarView>("month");
@@ -303,6 +304,7 @@ export function CalendarBoard({ tasks, projects, activeProjectId }: CalendarBoar
           key={selectedTask.id}
           task={selectedTask}
           isAdmin={selectedTask.isAdmin}
+          currentUser={currentUser}
           onOpenChange={(open) => !open && setSelectedTask(null)}
         />
       )}
