@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireProjectMember, requireUser } from "@/lib/auth-guards";
-import { canManageMembers, canViewJoinCode } from "@/lib/permissions";
+import { canManageMembers } from "@/lib/permissions";
 import {
   listMembersQuerySchema,
   updateMemberRoleSchema,
@@ -15,7 +15,7 @@ import {
   updateProjectMemberRole,
   removeProjectMemberWithUnassign,
 } from "@/repositories/team.repository";
-import { findProjectMember, findProjectNameById } from "@/repositories/project.repository";
+import { findProjectMember } from "@/repositories/project.repository";
 import { findProfileUserById } from "@/repositories/user.repository";
 
 // DAFTAR PROJECT milik user (untuk dropdown).
@@ -26,7 +26,8 @@ export async function listMyProjectsForTeamAction() {
   return { success: true as const, projects };
 }
 
-// DAFTAR ANGGOTA + ringkasan + joinCode (hanya untuk ADMIN & MANAGER).
+// DAFTAR ANGGOTA + ringkasan per peran. joinCode TIDAK ikut payload action ini —
+// kode gabung hanya dikirim lewat chip header project (ADMIN & MANAGER).
 export async function listTeamMembersAction(query: {
   projectId: string;
   role?: string;
@@ -44,32 +45,16 @@ export async function listTeamMembersAction(query: {
   const parsed = listMembersQuerySchema.safeParse(query);
   if (!parsed.success) return { error: "Parameter tidak valid", status: 400 as const };
 
-  const myRole = guard.membership.role;
-  const canViewCode = canViewJoinCode(myRole);
-
-  const [result, summary, project] = await Promise.all([
+  const [result, summary] = await Promise.all([
     findProjectMembers(parsed.data),
     countProjectMembersByRole(parsed.data.projectId),
-    // joinCode hanya dibaca dari DB bila role diizinkan melihatnya; untuk
-    // MEMBER field ini tidak pernah dibaca apalagi dikirim ke client.
-    findProjectNameById({
-      projectId: parsed.data.projectId,
-      withJoinCode: canViewCode,
-    }),
   ]);
-  if (!project) return { error: "Project tidak ditemukan", status: 404 as const };
 
   return {
     success: true as const,
     ...result,
     summary,
-    myRole,
-    // joinCode hanya untuk ADMIN & MANAGER; untuk MEMBER field ini
-    // tidak ikut di payload yang dikirim ke client (bukan sekadar disembunyikan).
-    project:
-      canViewCode && project.joinCode !== undefined
-        ? { id: parsed.data.projectId, name: project.name, joinCode: project.joinCode }
-        : { id: parsed.data.projectId, name: project.name },
+    myRole: guard.membership.role,
   };
 }
 

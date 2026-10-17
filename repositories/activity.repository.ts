@@ -22,7 +22,9 @@ export interface FindActivityLogsInput {
   project: string;
   /** "" = semua member (filter per pelaku/actor). */
   member: string;
-  range: 7 | 30 | 90;
+  /** Opsional; dihilangkan = tanpa batas rentang (mis. kartu "Aktivitas
+   * terbaru" di Ringkasan yang selalu menampilkan 5 log terakhir). */
+  range?: 7 | 30 | 90;
   cursor?: string;
   take?: number;
 }
@@ -87,7 +89,7 @@ export async function findActivityLogs({
   const actions = TYPE_ACTIONS[type];
   const where: Prisma.ActivityLogWhereInput = {
     ...scopeWhere(userId),
-    createdAt: { gte: rangeStartDate(range) },
+    ...(range ? { createdAt: { gte: rangeStartDate(range) } } : {}),
     ...(actions ? { action: { in: actions } } : {}),
     ...(project ? { projectId: project } : {}),
     ...(member ? { userId: member } : {}),
