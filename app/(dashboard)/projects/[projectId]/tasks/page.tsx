@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getProjectMembership } from "@/lib/project-guard";
-import { canViewJoinCode, canComment, canDeleteTask, canEditTask } from "@/lib/permissions";
+import { canViewJoinCode, canComment, canDeleteTask, canEditTask, canCreateTask } from "@/lib/permissions";
 import { findProjectBoardById } from "@/repositories/project.repository";
 import type { BoardProject, BoardTask } from "@/types";
 import { TaskBoardShell } from "@/components/task/task-board-shell";
@@ -11,9 +11,10 @@ interface ProjectTasksPageProps {
 }
 
 /**
- * Tab Task project: papan task yang dipindahkan dari halaman project lama
- * (kanban-board-tab). Header dan tab switchernya dihapus — render dalam
- * shared layout app/(dashboard)/projects/[projectId]/layout.tsx.
+ * Tab Task project: papan task (Board | Daftar) yang dipindahkan dari halaman
+ * project lama (kanban-board-tab). Header dan tab switchernya dihapus — render
+ * dalam shared layout app/(dashboard)/projects/[projectId]/layout.tsx.
+ * View (?view=board|list) dan semua filter dikelola oleh TaskBoardShell di klien.
  */
 export default async function ProjectTasksPage({
   params,
@@ -22,6 +23,7 @@ export default async function ProjectTasksPage({
   if (!session) redirect("/login");
 
   const { projectId } = await params;
+
   const guard = await getProjectMembership(projectId, session.user.id);
   if (!guard) notFound();
   const myRole = guard.membership.role;
@@ -87,6 +89,8 @@ export default async function ProjectTasksPage({
       canEdit={canEditTask(myRole)}
       canDelete={canDeleteTask(myRole)}
       canComment={canComment(myRole)}
+      canCreateTask={canCreateTask(myRole)}
+      myRole={myRole}
     />
   );
 }

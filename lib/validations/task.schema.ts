@@ -30,7 +30,10 @@ export const updateTaskSchema = z.object({
 export const moveTaskSchema = z.object({
   taskId: z.string().cuid(),
   newListId: z.string().cuid(),
+  /** Posisi sisip (0-based) di kolom tujuan SETELAH task dipindah. */
   newOrder: z.number().int().min(0),
+  /** ID task yang akan berada tepat sesudah posisi sisip (null = taruh paling akhir). */
+  afterTaskId: z.string().cuid().nullable().default(null),
 });
 
 export type CreateTaskListInput = z.infer<typeof createTaskListSchema>;
