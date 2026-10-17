@@ -23,8 +23,6 @@ import {
 interface TeamViewProps {
   projects: TeamProjectOption[];
   projectId: string | null;
-  projectName: string | null;
-  joinCode?: string;
   myRole: ProjectRole | null;
   myUserId: string;
   initialMembers: TeamMemberRow[];
@@ -51,8 +49,6 @@ export function TeamView(props: TeamViewProps) {
   const [members, setMembers] = useState<TeamMemberRow[]>(props.initialMembers);
   const [total, setTotal] = useState(props.initialTotal);
   const [summary, setSummary] = useState<TeamSummary>(props.initialSummary);
-  const [joinCode, setJoinCode] = useState<string | null>(props.joinCode ?? null);
-  const [projectName, setProjectName] = useState<string | null>(props.projectName);
   const [myRole, setMyRole] = useState<ProjectRole | null>(props.myRole);
 
   const [qInput, setQInput] = useState(props.initialQuery.q);
@@ -108,8 +104,6 @@ export function TeamView(props: TeamViewProps) {
     setMembers(res.members);
     setTotal(res.total);
     setSummary(res.summary);
-    setJoinCode("joinCode" in res.project ? (res.project.joinCode ?? null) : null);
-    setProjectName(res.project.name);
     setMyRole(res.myRole as ProjectRole);
   }, [projectId, role, q, sort, page, pageSize]);
 
@@ -209,11 +203,7 @@ export function TeamView(props: TeamViewProps) {
     <div className="space-y-5">
       <TeamHeader />
 
-      <TeamSummaryCards
-        summary={summary}
-        joinCode={joinCode}
-        projectName={projectName ?? ""}
-      />
+      <TeamSummaryCards summary={summary} />
 
       <TeamTableCard
         projects={props.projects}

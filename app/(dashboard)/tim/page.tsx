@@ -11,8 +11,7 @@ import {
   findProjectMembers,
   countProjectMembersByRole,
 } from "@/repositories/team.repository";
-import { findProjectMember, findProjectNameById } from "@/repositories/project.repository";
-import { canViewJoinCode } from "@/lib/permissions";
+import { findProjectMember } from "@/repositories/project.repository";
 import { TeamView } from "@/components/team/team-view";
 
 interface TeamPageProps {
@@ -44,7 +43,6 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
         <TeamView
           projects={[]}
           projectId={null}
-          projectName={null}
           myRole={null}
           myUserId={session.user.id}
           initialMembers={[]}
@@ -79,13 +77,11 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   const membership = await findProjectMember(session.user.id, projectId);
   if (!membership) redirect("/dashboard");
 
-  const canViewCode = canViewJoinCode(membership.role);
-  const [result, summary, project] = await Promise.all([
+  // joinCode TIDAK dibaca/dikirim di halaman ini — kode gabung hanya tampil
+  // sebagai chip di header project (ADMIN & MANAGER, lihat lib/permissions).
+  const [result, summary] = await Promise.all([
     findProjectMembers(query),
     countProjectMembersByRole(projectId),
-    // joinCode hanya dibaca dari DB bila role diizinkan melihatnya; untuk
-    // MEMBER field ini tidak pernah dibaca apalagi dikirim ke client.
-    findProjectNameById({ projectId, withJoinCode: canViewCode }),
   ]);
 
   return (
@@ -93,10 +89,6 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
       <TeamView
         projects={projects}
         projectId={projectId}
-        projectName={project?.name ?? ""}
-        // joinCode hanya untuk ADMIN & MANAGER; untuk MEMBER & VIEWER prop tidak
-        // dikirim ke client sama sekali (bukan sekadar disembunyikan).
-        joinCode={canViewCode ? project?.joinCode : undefined}
         myRole={membership.role}
         myUserId={session.user.id}
         initialMembers={result.members}

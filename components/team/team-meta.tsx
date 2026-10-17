@@ -39,7 +39,3 @@ export function formatJoinedAt(iso: string): string {
     year: "numeric",
   });
 }
-
-export function spacedCode(code: string): string {
-  return code.toUpperCase().split("").join(" ");
-}

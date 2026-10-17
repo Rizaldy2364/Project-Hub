@@ -57,15 +57,23 @@ export function ProjectTabs({
   else if (pathname.startsWith(`${base}/aktivitas`)) activeKey = "aktivitas";
 
   const listRef = useRef<HTMLDivElement>(null);
-  const activeIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!activeKey) return;
-    const id = `project-tab-${activeKey}`;
-    activeIdRef.current = id;
-    const el = document.getElementById(id);
-    if (el && listRef.current) {
-      el.scrollIntoView({ block: "nearest", inline: "center" });
+    const el = document.getElementById(`project-tab-${activeKey}`);
+    const container = listRef.current;
+    if (!el || !container) return;
+
+    // Geser HANYA wadah tab yang bisa di-scroll horizontal (scrollLeft).
+    // Jangan pakai scrollIntoView: ia ikut menggulir semua leluhur yang bisa
+    // di-scroll — termasuk window — sehingga halaman project terbuka sudah
+    // terscroll ke bawah dan header/tabs tidak terlihat.
+    const elRect = el.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    if (elRect.left < containerRect.left) {
+      container.scrollLeft += elRect.left - containerRect.left;
+    } else if (elRect.right > containerRect.right) {
+      container.scrollLeft += elRect.right - containerRect.right;
     }
   }, [pathname, activeKey]);
 
@@ -88,9 +96,6 @@ export function ProjectTabs({
               aria-controls={`project-panel-${tab.key}`}
               aria-selected={active}
               aria-current={active ? "page" : undefined}
-              onClick={() => {
-                activeIdRef.current = null;
-              }}
               className={cn(
                 "flex items-center gap-2 shrink-0 whitespace-nowrap pb-3 border-b-2 font-semibold text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                 active

@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getProjectMembership } from "@/lib/project-guard";
-import { canViewJoinCode } from "@/lib/permissions";
 import { listMembersQuerySchema } from "@/lib/validations/team.schema";
 import {
   findProjectMembers,
@@ -25,10 +24,11 @@ export default async function ProjectAnggotaPage({
   if (!guard) notFound();
   const { project } = guard;
   const myRole = guard.membership.role;
-  const canViewCode = canViewJoinCode(myRole);
 
   // Halaman ini tanpa searchParams — seed daftar dengan query default agar
   // tabel tidak kosong sesaat sebelum TeamView memuat (pola sama dgn /tim).
+  // joinCode TIDAK ikut payload di sini — kode gabung hanya ada di chip
+  // header project (ADMIN & MANAGER).
   const query = listMembersQuerySchema.parse({ projectId: project.id });
   const [result, summary] = await Promise.all([
     findProjectMembers(query),
@@ -40,8 +40,6 @@ export default async function ProjectAnggotaPage({
       <TeamView
         projects={[{ id: project.id, name: project.name }]}
         projectId={project.id}
-        projectName={project.name}
-        joinCode={canViewCode ? project.joinCode : undefined}
         myRole={myRole}
         myUserId={session.user.id}
         initialMembers={result.members}

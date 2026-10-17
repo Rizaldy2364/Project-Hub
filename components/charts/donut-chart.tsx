@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 interface DonutSegment {
   label: string;
   value: number;
@@ -12,13 +14,15 @@ interface DonutChartProps {
   total: number;
   /** Label di tengah donut (mis. "task"). */
   centerLabel: string;
+  /** true = ukuran kecil (~112px) untuk kartu ringkasan. */
+  compact?: boolean;
 }
 
 /**
  * Donut SVG distribusi status. Setiap segmen punya legenda dengan angka,
  * jadi tidak mengandalkan warna saja. Responsive via viewBox.
  */
-export function DonutChart({ segments, total, centerLabel }: DonutChartProps) {
+export function DonutChart({ segments, total, centerLabel, compact }: DonutChartProps) {
   const size = 120;
   const stroke = 16;
   const radius = (size - stroke) / 2;
@@ -46,7 +50,10 @@ export function DonutChart({ segments, total, centerLabel }: DonutChartProps) {
         .join(", ")}.`}
       className="flex flex-col items-center gap-4"
     >
-      <svg viewBox={`0 0 ${size} ${size}`} className="h-32 w-32 shrink-0">
+      <svg
+        viewBox={`0 0 ${size} ${size}`}
+        className={cn("shrink-0", compact ? "h-28 w-28" : "h-32 w-32")}
+      >
         {/* Latar donut */}
         <circle
           cx={size / 2}

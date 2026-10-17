@@ -1,14 +1,15 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getProjectMembership } from "@/lib/project-guard";
-import { canViewJoinCode } from "@/lib/permissions";
 import { cn, wibDayDiff, formatDayMonthWib } from "@/lib/utils";
 import { findCalendarTasksByUserId } from "@/repositories/task.repository";
 import { findWorkloadByMember, findStatusDistribution } from "@/repositories/report.repository";
-import { CopyCodeButton } from "@/components/project/copy-code-button";
+import { findActivityLogs } from "@/repositories/activity.repository";
+import { toActivityItem } from "@/lib/activity";
 import { DonutChart } from "@/components/charts/donut-chart";
 import { StackedBar } from "@/components/charts/stacked-bar";
 import { WorkloadLegend } from "@/components/report/report-workload-card";
+import { ActivityItemCard } from "@/components/activity/activity-item";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import Link from "next/link";
 import type { BoardTaskStatus } from "@/types";
@@ -41,17 +42,27 @@ export default async function ProjectRingkasanPage({
   const { project } = guard;
   const members = project.members;
   const myRole = guard.membership.role;
-  const canViewCode = canViewJoinCode(myRole);
 
-  const [calendarRows, workloadRows, status] = await Promise.all([
+  const [calendarRows, workloadRows, status, activityRows] = await Promise.all([
     findCalendarTasksByUserId({ userId: session.user.id, projectId }),
     findWorkloadByMember({ userId: session.user.id, projectId, assigneeId: null, range: 30 }),
     findStatusDistribution({ userId: session.user.id, projectId, assigneeId: null, range: 30 }),
+    // 5 log terakhir project ini (tanpa filter rentang); satu query dengan
+    // select relasi aktor+project — tanpa N+1.
+    findActivityLogs({
+      userId: session.user.id,
+      type: "all",
+      project: projectId,
+      member: "",
+      take: 5,
+    }),
   ]);
 
   const upcoming = calendarRows
     .filter((task) => task.status !== "DONE" && task.dueDate)
     .slice(0, 3);
+
+  const recentActivities = activityRows.slice(0, 5).map(toActivityItem);
 
   const memberCount = members.length;
 
@@ -70,9 +81,9 @@ export default async function ProjectRingkasanPage({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
         <div className="space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+          <section className="min-h-40 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Tenggat terdekat</h2>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-[#8B96AD]">
               Task belum selesai yang punya tenggat, urut yang segera jatuh tempo.
@@ -132,7 +143,7 @@ export default async function ProjectRingkasanPage({
             )}
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+          <section className="min-h-40 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white">Beban kerja anggota</h2>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-[#8B96AD]">
               Jumlah task per anggota menurut status (task tidak terhapus).
@@ -183,6 +194,36 @@ export default async function ProjectRingkasanPage({
               </ul>
             )}
           </section>
+
+          <section className="min-h-40 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                Aktivitas terbaru
+              </h2>
+              <Link
+                href={`/projects/${projectId}/aktivitas`}
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-300"
+              >
+                Lihat semua →
+              </Link>
+            </div>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-[#8B96AD]">
+              Kejadian terakhir di project ini.
+            </p>
+            {recentActivities.length === 0 ? (
+              <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+                Belum ada aktivitas
+              </p>
+            ) : (
+              <ul className="mt-2 space-y-0.5">
+                {recentActivities.map((item) => (
+                  <li key={item.id}>
+                    <ActivityItemCard item={item} showProjectLink={false} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </div>
 
         <div className="space-y-6">
@@ -205,14 +246,6 @@ export default async function ProjectRingkasanPage({
                   {roleLabel(myRole)}
                 </dd>
               </div>
-              {canViewCode && project.joinCode ? (
-                <div className="flex justify-between gap-2">
-                  <dt className="text-slate-500 dark:text-slate-400">Kode gabung</dt>
-                  <dd className="flex items-center gap-2">
-                    <CopyCodeButton code={project.joinCode} />
-                  </dd>
-                </div>
-              ) : null}
             </dl>
           </section>
 
@@ -225,6 +258,7 @@ export default async function ProjectRingkasanPage({
               segments={segments}
               total={status.TODO + status.IN_PROGRESS + status.DONE}
               centerLabel="task"
+              compact
             />
           </section>
 
@@ -236,7 +270,7 @@ export default async function ProjectRingkasanPage({
               {memberCount} anggota di project ini.
             </p>
             <ul className="mt-4 space-y-2">
-              {members.slice(0, 5).map((m) => (
+              {members.slice(0, 4).map((m) => (
                 <li key={m.userId} className="flex items-center gap-3">
                   <UserAvatar name={m.user.name} image={m.user.avatarUrl} size="sm" />
                   <div className="min-w-0">
@@ -252,11 +286,6 @@ export default async function ProjectRingkasanPage({
                   </span>
                 </li>
               ))}
-              {memberCount > 5 && (
-                <li className="text-xs text-slate-500 dark:text-slate-400">
-                  +{memberCount - 5} anggota lainnya
-                </li>
-              )}
             </ul>
             <p className="mt-3 text-right">
               <Link
