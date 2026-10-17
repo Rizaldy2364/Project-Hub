@@ -119,7 +119,7 @@ export function KanbanBoardTab({ project, currentUser }: KanbanBoardTabProps) {
 
       {activeTab === "KANBAN" ? (
         <div role="tabpanel" id="panel-kanban" aria-labelledby="tab-kanban" className="space-y-5">
-          <BoardView project={project} onSelectTask={setSelectedTask} />
+          <BoardView tasks={project.tasks} onSelectTask={setSelectedTask} />
         </div>
       ) : (
         <div role="tabpanel" id="panel-members" aria-labelledby="tab-members">

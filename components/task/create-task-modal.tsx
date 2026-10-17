@@ -13,13 +13,28 @@ interface CreateTaskModalProps {
   members: { id: string; name: string; avatarUrl: string | null }[];
   labels: { id: string; name: string; color: string }[];
   children: ReactNode;
+  /** Status awal form (dipakai footer "+ Tambah task" per kolom board). */
+  initialStatus?: TaskStatusValue;
+  /** Mode controlled: bila diisi, pembuka/penutup modal dikendalikan pemanggil. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
-const statuses = [{ value: "TODO", label: "To Do", dot: "bg-slate-500" }, { value: "IN_PROGRESS", label: "In Progress", dot: "bg-blue-500" }] as const;
+const statuses = [
+  { value: "TODO", label: "To Do", dot: "bg-slate-500" },
+  { value: "IN_PROGRESS", label: "In Progress", dot: "bg-blue-500" },
+] as const;
+type StatusValue = (typeof statuses)[number]["value"];
+type TaskStatusValue = StatusValue | "DONE";
 
 const labelTemplates = [{ name: "Feature", color: "#6366F1" }, { name: "Security", color: "#8B5CF6" }, { name: "Bug", color: "#EF4444" }, { name: "Urgent", color: "#F97316" }, { name: "DevOps", color: "#06B6D4" }, { name: "Design", color: "#0EA5E9" }];
-export function CreateTaskModal({ projectId, lists, members, labels, children }: CreateTaskModalProps) {
+export function CreateTaskModal({ projectId, lists, members, labels, children, initialStatus, open: openProp, onOpenChange }: CreateTaskModalProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false); const [title, setTitle] = useState(""); const [description, setDescription] = useState(""); const [status, setStatus] = useState<(typeof statuses)[number]["value"]>("TODO");
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = openProp ?? uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
+  const [title, setTitle] = useState(""); const [description, setDescription] = useState("");
+  const initialFormStatus: StatusValue = initialStatus === "IN_PROGRESS" ? "IN_PROGRESS" : "TODO";
+  const [status, setStatus] = useState<StatusValue>(initialFormStatus);
   const [priority, setPriority] = useState("MEDIUM"); const [listId] = useState(lists[0]?.id ?? ""); const [assigneeId, setAssigneeId] = useState(""); const [dueDate, setDueDate] = useState(""); const [availableLabels, setAvailableLabels] = useState(labels); const [labelIds, setLabelIds] = useState<string[]>([]); const [showLabelForm, setShowLabelForm] = useState(false); const [labelName, setLabelName] = useState(""); const [labelColor, setLabelColor] = useState("#6366F1"); const [error, setError] = useState<string | null>(null); const [isPending, startTransition] = useTransition();
   const titleRef = useRef<HTMLInputElement>(null);
   useEffect(() => { if (open) window.setTimeout(() => titleRef.current?.focus(), 0); }, [open]);

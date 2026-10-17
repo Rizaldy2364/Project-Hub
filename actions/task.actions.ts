@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import {
   createTaskSchema,
+  moveTaskSchema,
   updateTaskSchema,
 } from "@/lib/validations/task.schema";
 import { findProjectMember } from "@/repositories/project.repository";
@@ -14,14 +15,18 @@ import {
   canDeleteTask,
   canEditTask,
 } from "@/lib/permissions";
-import { ensureDefaultTaskLists, findTaskListById, findTaskListByProjectAndName } from "@/repositories/list.repository";
+import {
+  ensureDefaultTaskLists,
+  findTaskListById,
+  findTaskListByProjectAndName,
+} from "@/repositories/list.repository";
 import {
   createTask,
   updateTask,
-  moveTask,
   softDeleteTask,
   findTaskById,
   countTasksByListId,
+  moveTaskToPosition,
 } from "@/repositories/task.repository";
 import { createNotification } from "@/repositories/notification.repository";
 import { logActivity } from "@/lib/activity";
@@ -268,30 +273,104 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
   return { success: true };
 }
 
-// MOVE TASK (drag-and-drop)
+// Nama list default per status (dibuat ensureDefaultTaskLists saat project dibuat).
+const STATUS_LIST_NAME: Record<string, string> = {
+  TODO: "To Do",
+  IN_PROGRESS: "In Progress",
+  DONE: "Done",
+};
+
+// MOVE TASK (drag-and-drop di Board).
+// Berbasis STATUS (kolom board = status). listId turunan dicari dari daftar
+// list project (dibuat bila belum ada — project lama tanpa list default).
+// Perubahan status memakai ATURAN TUNGGAL completedAt yang sama dengan
+// updateTaskAction, dan penomoran ulang kolom ditulis dalam SATU transaksi.
 export async function moveTaskAction(
   taskId: string,
-  newListId: string,
-  newOrder: number
+  projectId: string,
+  status: "TODO" | "IN_PROGRESS" | "DONE",
+  newOrder: number,
+  afterTaskId?: string | null
 ) {
+  const parsed = moveTaskSchema.safeParse({
+    taskId,
+    newListId: "c".repeat(25), // placeholder cuid-valid; listId nyata dihitung di bawah
+    newOrder,
+    afterTaskId: afterTaskId ?? null,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+
   const session = await auth();
   if (!session) return { error: "Unauthorized" };
 
-  const check = await getProjectIdAndCheckMembership(session.user.id, newListId);
+  const task = await findTaskById(taskId);
+  if (!task) return { error: "Task tidak ditemukan" };
+
+  // Izin + cegah pindah lintas project: task harus milik project yang sama.
+  const check = await getProjectIdAndCheckMembership(session.user.id, task.listId);
   if ("error" in check) return { error: check.error };
+  if (check.projectId !== projectId) {
+    return { error: "Task tidak termasuk project ini" };
+  }
 
   // Pindah kolom = perubahan status task; VIEWER ditolak, MEMBER hanya task
   // yang ditugaskan kepadanya (matriks 8.2).
-  const task = await findTaskById(taskId);
-  if (!task) return { error: "Task tidak ditemukan" };
   const isAssignee = task.assigneeId === session.user.id;
   if (!canChangeTaskStatus(check.member.role, isAssignee)) {
-    return { error: "Kamu tidak berwenang memindahkan task ini" };
+    return { error: "Kamu tidak punya izin memindahkan task ini" };
   }
 
-  await moveTask(taskId, newListId, newOrder);
+  await ensureDefaultTaskLists({ projectId });
+  const targetList = await findTaskListByProjectAndName(
+    projectId,
+    STATUS_LIST_NAME[status]
+  );
+  if (!targetList) return { error: "Kolom task tidak ditemukan" };
+
+  const statusChanged = task.status !== status;
+
+  // ATURAN completedAt — SATU aturan untuk semua jalur yang menulis status.
+  const completedAt = resolveCompletedAt({
+    currentStatus: task.status,
+    currentCompletedAt: task.completedAt,
+    nextStatus: status,
+  });
+
+  try {
+    await moveTaskToPosition({
+      taskId,
+      newListId: targetList.id,
+      newOrder: parsed.data.newOrder,
+      afterTaskId: parsed.data.afterTaskId,
+      status,
+      ...(completedAt !== undefined ? { completedAt } : {}),
+    });
+  } catch {
+    return { error: "Gagal memindahkan task. Coba lagi." };
+  }
+
+  if (statusChanged) {
+    const becameDone = status === "DONE";
+    await logActivity({
+      userId: session.user.id,
+      projectId: check.projectId,
+      taskId,
+      action: becameDone ? "TASK_COMPLETED" : "TASK_UPDATED",
+      meta: {
+        title: task.title,
+        kind: becameDone ? "completed" : "status",
+        from: task.status,
+        to: status,
+      },
+    });
+  }
+
   revalidatePath(`/projects/${check.projectId}`);
+  revalidatePath(`/projects/${check.projectId}/tasks`);
   revalidatePath("/tasks");
+  revalidatePath("/calendar");
   return { success: true };
 }
 

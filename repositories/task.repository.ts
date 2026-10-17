@@ -84,18 +84,90 @@ export async function updateTask(id: string, data: UpdateTaskInput) {
   });
 }
 
-// MOVE TASK — pindah ke list lain dan/atau ubah urutan (buat drag-and-drop)
-export async function moveTask(
-  taskId: string,
-  newListId: string,
-  newOrder: number
-) {
-  return prisma.task.update({
-    where: { id: taskId },
-    data: {
-      listId: newListId,
-      order: newOrder,
-    },
+// MOVE TASK — pindah ke list lain dan/atau ubah urutan (buat drag-and-drop).
+// Menulis ulang `order` SETIAP task yang terdampak dalam SATU transaksi agar
+// tidak ada dua task yang berbagi nomor urut yang sama di satu kolom.
+export interface MoveTaskToPositionInput {
+  taskId: string;
+  newListId: string;
+  /** Posisi sisip (0-based) di kolom tujuan SETELAH task dipindah. */
+  newOrder: number;
+  /**
+   * ID task yang akan berada tepat sesudah posisi sisip (null = paling akhir).
+   * Jangkar ini membuat operasi tahan terhadap data basi — urutan kolom tujuan
+   * dibaca ulang di dalam transaksi. Tanpa skema baru; memakai field `order`.
+   */
+  afterTaskId?: string | null;
+  /** Status baru kolom tujuan (kolom board = status). */
+  status?: "TODO" | "IN_PROGRESS" | "DONE";
+  /**
+   * Nilai `completedAt` yang sudah dihitung action lewat `resolveCompletedAt`.
+   * `undefined` = jangan sentuh field-nya.
+   */
+  completedAt?: Date | null;
+}
+
+export async function moveTaskToPosition({
+  taskId,
+  newListId,
+  newOrder,
+  afterTaskId = null,
+  status,
+  completedAt,
+}: MoveTaskToPositionInput) {
+  const task = await prisma.task.findUnique({
+    where: { id: taskId, deletedAt: null },
+    select: { id: true, listId: true },
+  });
+  if (!task) throw new Error("Task tidak ditemukan");
+
+  const sourceListId = task.listId;
+  const clampedIndex = Math.max(0, newOrder);
+
+  await prisma.$transaction(async (tx) => {
+    // Daftar kolom tujuan TANPA task yang dipindah (dibaca di dalam transaksi).
+    const targetRows = await tx.task.findMany({
+      where: { listId: newListId, deletedAt: null, id: { not: taskId } },
+      orderBy: [{ order: "asc" }, { id: "asc" }],
+      select: { id: true },
+    });
+
+    let insertIndex = Math.min(clampedIndex, targetRows.length);
+    if (afterTaskId) {
+      const anchor = targetRows.findIndex((row) => row.id === afterTaskId);
+      if (anchor >= 0) insertIndex = anchor;
+    }
+
+    const orderedTargetIds = targetRows.map((row) => row.id);
+    orderedTargetIds.splice(insertIndex, 0, taskId);
+
+    for (const [index, id] of orderedTargetIds.entries()) {
+      await tx.task.update({
+        where: { id },
+        data: {
+          ...(id === taskId
+            ? {
+                listId: newListId,
+                ...(status ? { status } : {}),
+                ...(completedAt !== undefined ? { completedAt } : {}),
+              }
+            : {}),
+          order: index,
+        },
+      });
+    }
+
+    // Kolom asal ikut dinomori ulang bila task keluar dari kolom itu.
+    if (sourceListId !== newListId) {
+      const sourceRows = await tx.task.findMany({
+        where: { listId: sourceListId, deletedAt: null, id: { not: taskId } },
+        orderBy: [{ order: "asc" }, { id: "asc" }],
+        select: { id: true },
+      });
+      for (const [index, row] of sourceRows.entries()) {
+        await tx.task.update({ where: { id: row.id }, data: { order: index } });
+      }
+    }
   });
 }
 
