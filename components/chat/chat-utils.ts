@@ -126,3 +126,11 @@ export function conversationPreview(
   if (last.kind === "SYSTEM" || last.deleted) return last.text;
   return `${last.authorName}: ${last.text}`;
 }
+
+/**
+ * Kelas scrollbar tipis bersama (daftar pesan & daftar percakapan):
+ * `scrollbar-width: thin` + thumb 8px rounded — gelap rgba(255,255,255,.18),
+ * terang memakai token slate setara kontras, track transparan.
+ */
+export const chatScrollbarCls =
+  "[scrollbar-width:thin] [scrollbar-color:rgba(15,23,42,0.25)_transparent] dark:[scrollbar-color:rgba(255,255,255,0.18)_transparent] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[rgba(15,23,42,0.25)] dark:[&::-webkit-scrollbar-thumb]:bg-[rgba(255,255,255,0.18)]";

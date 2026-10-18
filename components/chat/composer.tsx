@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AtSign, X } from "lucide-react";
+import { Loader2, Send, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import type { ChatMember, ChatMessage } from "@/types";
 
 interface ComposerProps {
   members: ChatMember[];
-  /** Nama project untuk placeholder ("Tulis pesan ke {nama}..."). */
-  projectName: string;
+  /** VIEWER: ganti pil dengan baris redup "hanya bisa melihat". */
+  readOnly?: boolean;
+  /** Sedang mengirim — spinner di dalam tombol kirim. */
   disabled?: boolean;
   /** Error kirim (mis. rate limit) ditampilkan di area composer. */
   error: string | null;
@@ -25,12 +26,14 @@ interface PickedMention {
 }
 
 /**
- * Area input pesan: auto-grow (maks ~5 baris), Enter kirim / Shift+Enter baru,
- * popup mention saat mengetik "@" (keyboard navigable), pratinjau balasan.
+ * Komposer berbentuk pil: baris input rounded (1 baris → auto-grow maks ~5
+ * baris, radius menyusut ke ~22px saat multi-baris) + tombol kirim bulat di
+ * kanan. Enter kirim / Shift+Enter baru, popup mention saat mengetik "@"
+ * (keyboard navigable), pratinjau balasan. VIEWER melihat baris redup saja.
  */
 export function Composer({
   members,
-  projectName,
+  readOnly = false,
   disabled = false,
   error,
   replyTo,
@@ -43,6 +46,8 @@ export function Composer({
   const [mentionIndex, setMentionIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  /** Wadah pil — radius diatur langsung (penuh saat 1 baris, ~22px multi). */
+  const pillRef = useRef<HTMLDivElement>(null);
 
   const candidates =
     mentionQuery !== null
@@ -52,15 +57,19 @@ export function Composer({
       : [];
 
   // Auto-grow: mulai 1 baris, tumbuh maks ~5 baris (baris 20px). Overflow
-  // disembunyikan sampai batas maks, baru muncul scrollbar di situ.
+  // disembunyikan sampai batas maks (baru muncul scrollbar di situ), dan radius
+  // pil menyusut ke ~22px begitu konten melebihi satu baris visual.
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     const MAX = 116; // ~5 baris
     el.style.height = "auto";
-    const next = Math.min(el.scrollHeight, MAX);
-    el.style.height = `${next}px`;
-    el.style.overflowY = el.scrollHeight > MAX ? "auto" : "hidden";
+    const raw = el.scrollHeight;
+    el.style.height = `${Math.min(raw, MAX)}px`;
+    el.style.overflowY = raw > MAX ? "auto" : "hidden";
+    if (pillRef.current) {
+      pillRef.current.style.borderRadius = raw > 24 ? "22px" : "";
+    }
   }, [text]);
 
   // Gulir item aktif popup mention ke tampilan.
@@ -161,23 +170,6 @@ export function Composer({
     }
   }
 
-  /** Tombol "@" pada toolbar: sisipkan "@" di kursor lalu buka popup mention. */
-  function openMentionPicker() {
-    const el = textareaRef.current;
-    const caret = el?.selectionStart ?? text.length;
-    // @ harus diawali spasi/awal teks agar deteksi mention tetap valid.
-    const sep = caret > 0 && !/\s/.test(text[caret - 1]) ? " @" : "@";
-    const next = `${text.slice(0, caret)}${sep}${text.slice(caret)}`;
-    setText(next);
-    setMentionQuery("");
-    setMentionIndex(0);
-    requestAnimationFrame(() => {
-      const pos = caret + sep.length;
-      el?.focus();
-      el?.setSelectionRange(pos, pos);
-    });
-  }
-
   const canSend = text.trim().length > 0 && !disabled;
 
   return (
@@ -218,8 +210,8 @@ export function Composer({
         </ul>
       )}
 
-      {/* Pratinjau balasan (di atas kotak) */}
-      {replyTo && (
+      {/* Pratinjau balasan (di atas pil; VIEWER tidak punya kolom balas) */}
+      {replyTo && !readOnly && (
         <div className="mb-2 flex items-start gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/[0.08] dark:bg-[#0F1524]">
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-semibold text-slate-500 dark:text-[#8B96AD]">
@@ -240,43 +232,50 @@ export function Composer({
         </div>
       )}
 
-      {/* Kotak input: textarea + toolbar, radius 14px, padding 10px 12px */}
-      <div className="rounded-[14px] border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-white/[0.08] dark:bg-[#0F1524]">
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          rows={1}
-          maxLength={2000}
-          placeholder={`Tulis pesan ke ${projectName || "project"}... gunakan @ untuk menyebut anggota`}
-          aria-label="Tulis pesan"
-          className="block w-full resize-none overflow-y-hidden bg-transparent text-sm leading-5 text-slate-900 outline-none placeholder:text-slate-400 focus-visible:outline-none dark:text-[#E6EAF2] dark:placeholder:text-[#8B96AD]"
-        />
-        <div className="mt-2 flex items-center gap-1">
-          <button
-            type="button"
-            onClick={openMentionPicker}
-            aria-label="Sebut anggota"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-200/60 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:text-[#8B96AD] dark:hover:bg-[#1B2438] dark:hover:text-[#E6EAF2]"
+      {readOnly ? (
+        /* VIEWER: tanpa kolom input — chat tetap bisa dibaca. */
+        <p className="py-2 text-center text-sm text-slate-500 dark:text-[#8B96AD]">
+          Kamu hanya bisa melihat percakapan ini
+        </p>
+      ) : (
+        <div className="flex items-end gap-2.5">
+          {/* Pil input: 1 baris (radius penuh) → auto-grow maks ~5 baris
+              (radius ~22px). Tanpa scrollbar sampai batas maks. */}
+          <div
+            ref={pillRef}
+            className="min-w-0 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 transition-shadow focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-white/[0.08] dark:bg-[#0F1524]"
           >
-            <AtSign className="h-4 w-4" />
-          </button>
-          <span className="hidden text-[11px] text-slate-400 sm:block dark:text-[#8B96AD]">
-            Enter kirim · Shift+Enter baris baru
-          </span>
+            <textarea
+              ref={textareaRef}
+              value={text}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              maxLength={2000}
+              placeholder="Tulis pesan... ketik @ untuk menyebut anggota project"
+              aria-label="Tulis pesan"
+              className="block w-full resize-none overflow-y-hidden bg-transparent text-sm leading-5 text-slate-900 outline-none placeholder:text-slate-400 focus-visible:outline-none dark:text-[#E6EAF2] dark:placeholder:text-[#8B96AD]"
+            />
+          </div>
+          {/* Tombol kirim bulat terpisah (42px) — spinner saat mengirim,
+              redup/disabled saat teks kosong atau hanya spasi. */}
           <button
             type="button"
             onClick={submit}
             disabled={!canSend}
-            className="ml-auto h-9 shrink-0 rounded-[10px] bg-[#3B66EE] px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40"
+            aria-label="Kirim pesan"
+            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[#3B66EE] text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-40"
           >
-            Kirim
+            {disabled ? (
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+            ) : (
+              <Send className="h-[18px] w-[18px]" aria-hidden />
+            )}
           </button>
         </div>
-      </div>
+      )}
 
-      {/* Error kirim (mis. rate limit) — di bawah kotak. */}
+      {/* Error kirim (mis. rate limit) — di bawah pil. */}
       {error && (
         <p
           role="alert"

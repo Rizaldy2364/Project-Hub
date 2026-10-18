@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowLeft, Loader2, Pin } from "lucide-react";
 import { cn, wibDayKey } from "@/lib/utils";
 import {
+  chatScrollbarCls,
   dayChipLabel,
   daySeparatorFullLabel,
   formatChatTime,
@@ -94,6 +95,8 @@ export function ChatPanel({
   /** scrollHeight sebelum prepend — dipakai memulihkan posisi scroll. */
   const restoreScrollRef = useRef<number | null>(null);
   const markedReadRef = useRef(false);
+  /** Timer sorot strip tersemat (dibersihkan saat klik ulang / unmount). */
+  const pinnedHighlightTimerRef = useRef<number | null>(null);
 
   const myId = currentUserId;
 
@@ -103,6 +106,16 @@ export function ChatPanel({
     const timer = window.setInterval(() => setNowTick((n) => n + 1), 60_000);
     return () => window.clearInterval(timer);
   }, []);
+
+  // Bersihkan timer sorot strip tersemat saat unmount.
+  useEffect(
+    () => () => {
+      if (pinnedHighlightTimerRef.current !== null) {
+        window.clearTimeout(pinnedHighlightTimerRef.current);
+      }
+    },
+    []
+  );
 
   // ===== Muat halaman terbaru =====
   // Catatan: `setLoading(true)` TIDAK dipanggil di sini agar tidak ada
@@ -478,6 +491,53 @@ export function ChatPanel({
     if (pinned?.id === message.id) setPinned(null);
   }
 
+  // ===== Strip pesan tersemat: gulir ke pesan + sorot sebentar =====
+  function handlePinnedClick() {
+    const target = pinned;
+    if (!target) return;
+
+    const scrollToAndHighlight = () => {
+      setHighlightId(target.id);
+      scrollToMessage(target.id);
+      if (pinnedHighlightTimerRef.current !== null) {
+        window.clearTimeout(pinnedHighlightTimerRef.current);
+      }
+      pinnedHighlightTimerRef.current = window.setTimeout(() => {
+        pinnedHighlightTimerRef.current = null;
+        setHighlightId(null);
+      }, 2400);
+    };
+
+    if (messages.some((m) => m.id === target.id)) {
+      scrollToAndHighlight();
+      return;
+    }
+    // Pesan tersemat di luar halaman terbaru — muat ke belakang pakai cursor
+    // lokal (maks 5 halaman), lalu sorot setelah pesan ter-render.
+    void (async () => {
+      let cursor = messages[0]?.id ?? null;
+      for (let attempt = 0; attempt < 5 && cursor; attempt++) {
+        const res = await fetch(
+          `/api/projects/${projectId}/messages?before=${cursor}`,
+          { cache: "no-store" }
+        );
+        if (!res.ok) break;
+        const data: { messages: ChatMessage[]; hasMoreBefore: boolean } =
+          await res.json();
+        setHasMoreBefore(data.hasMoreBefore);
+        setMessages((prev) => {
+          const known = new Set(prev.map((m) => m.id));
+          return [...data.messages.filter((m) => !known.has(m.id)), ...prev];
+        });
+        if (data.messages.some((m) => m.id === target.id)) break;
+        if (!data.hasMoreBefore || data.messages.length === 0) break;
+        cursor = data.messages[0].id;
+      }
+      // Tunggu render berikutnya agar bubble sudah ada di DOM.
+      requestAnimationFrame(() => requestAnimationFrame(scrollToAndHighlight));
+    })();
+  }
+
   // ===== Kelompokkan pesan: nama tampil hanya di pesan pertama grup =====
   const grouped = useMemo(() => {
     const readCutoff = readAnchor ? new Date(readAnchor) : null;
@@ -593,23 +653,21 @@ export function ChatPanel({
         </div>
       </div>
 
-      {/* Strip pesan tersemat */}
+      {/* Strip pesan tersemat — tipis (~44px), satu baris, aksen amber */}
       {pinned && (
         <button
           type="button"
-          onClick={() => scrollToMessage(pinned.id)}
-          className="flex w-full items-center gap-2 border-b border-slate-200 bg-white/70 px-4 py-2 text-left transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-white/[0.08] dark:bg-[#131A2B]/70 dark:hover:bg-[#131A2B]"
+          onClick={handlePinnedClick}
+          className="flex h-11 w-full shrink-0 items-center gap-2 border-b border-slate-200 bg-white/70 px-4 text-left transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:border-white/[0.08] dark:bg-[#131A2B]/70 dark:hover:bg-[#131A2B]"
         >
-          <Pin className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-[#8FAAFF]" />
-          <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-bold tracking-wider text-slate-400 dark:text-[#8B96AD]">
-              PESAN TERSEMAT
-            </span>
-            <span className="block truncate text-xs text-slate-700 dark:text-slate-200">
-              {pinned.deleted
-                ? "Pesan ini dihapus"
-                : `${pinned.author.name}: ${pinned.content}`}
-            </span>
+          <Pin className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-hidden />
+          <span className="shrink-0 text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+            Pesan tersemat
+          </span>
+          <span className="min-w-0 flex-1 truncate text-xs text-slate-600 dark:text-slate-300">
+            {pinned.deleted
+              ? "Pesan ini dihapus"
+              : `${pinned.author.name}: ${pinned.content}`}
           </span>
         </button>
       )}
@@ -621,7 +679,10 @@ export function ChatPanel({
         role="log"
         aria-live="polite"
         aria-label={`Pesan diskusi ${projectName}`}
-        className="relative flex flex-1 flex-col overflow-y-auto px-4 py-3"
+        className={cn(
+          "relative flex flex-1 flex-col overflow-y-auto px-4 py-3",
+          chatScrollbarCls
+        )}
       >
         <p className="mb-3 shrink-0 text-center text-[11px] italic text-slate-400 dark:text-[#8B96AD]">
           Percakapan ini khusus anggota project {projectName || "ini"}.
@@ -742,8 +803,8 @@ export function ChatPanel({
 
       <Composer
         members={members.filter((m) => m.id !== myId)}
-        projectName={projectName}
-        disabled={sending || readOnly}
+        readOnly={readOnly || myRole === "VIEWER"}
+        disabled={sending}
         error={sendError}
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}
