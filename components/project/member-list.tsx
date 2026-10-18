@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Loader2, MoreHorizontal, Search, Trash2, Users } from "lucide-react";
-import { MemberProfileModal } from "@/components/project/member-profile-modal";
+import { MemberProfileModal } from "@/components/members/member-profile-modal";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { removeProjectMemberAction } from "@/actions/project.actions";
@@ -13,7 +13,7 @@ interface MemberListProps {
   isAdmin: boolean;
 }
 
-/** Tab Team Members: daftar anggota, filter role, undang via kode gabung, dan tendang member (admin). */
+/** Tab Team Members lama (tidak dirujuk halaman aktif): selaras alignment dengan tabel Tim & Anggota. */
 export function MemberList({ project, isAdmin }: MemberListProps) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -61,11 +61,11 @@ export function MemberList({ project, isAdmin }: MemberListProps) {
               <button
                 type="button"
                 onClick={copyInviteCode}
-                title="Salin kode gabung untuk mengundang anggota"
+                title="Salin kode gabung project"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
               >
                 <Users className="h-4 w-4" />
-                {inviteCopied ? "Kode tersalin" : "Undang anggota"}
+                {inviteCopied ? "Kode tersalin" : "Salin kode gabung"}
               </button>
             )}
           </div>
@@ -111,16 +111,18 @@ export function MemberList({ project, isAdmin }: MemberListProps) {
                 return (
                   <tr key={member.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                     <td className="px-6 py-4">
-                      <div 
-                        className="flex items-center gap-3 cursor-pointer group"
+                      <button
+                        type="button"
                         onClick={() => setSelectedMember(member)}
+                        aria-label={`Lihat profil ${member.name}`}
+                        className="group flex min-w-0 items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                       >
-                        <UserAvatar name={member.name} image={member.avatarUrl} size="md" className="ring-2 ring-transparent group-hover:ring-blue-500 transition-all" />
-                        <div>
-                          <p className="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{member.name}</p>
-                          <p className="text-xs text-slate-400">{member.email}</p>
-                        </div>
-                      </div>
+                        <UserAvatar name={member.name} image={member.avatarUrl} size="md" className="h-9 w-9 shrink-0 self-center ring-2 ring-transparent group-hover:ring-blue-500 transition-all" />
+                        <span className="flex min-w-0 flex-col items-start text-left">
+                          <span title={member.name} className="block w-full truncate text-sm font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{member.name}</span>
+                          <span title={member.email} className="block w-full truncate text-xs text-slate-400">{member.email}</span>
+                        </span>
+                      </button>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${member.role === "ADMIN" ? "bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400" : "bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-300"}`}>
@@ -205,7 +207,7 @@ export function MemberList({ project, isAdmin }: MemberListProps) {
 
       <MemberProfileModal
         member={selectedMember}
-        tasks={project.tasks}
+        projectId={project.id}
         onOpenChange={(open) => !open && setSelectedMember(null)}
       />
     </div>

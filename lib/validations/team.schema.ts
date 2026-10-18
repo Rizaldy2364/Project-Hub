@@ -9,6 +9,7 @@ export const memberRoleFilterSchema = z.enum([
 ]);
 
 export const memberSortSchema = z.enum([
+  "role",
   "joined_desc",
   "joined_asc",
   "name_asc",
@@ -26,7 +27,7 @@ export const listMembersQuerySchema = z.object({
   projectId: z.string().cuid(),
   role: memberRoleFilterSchema.default("all"),
   q: z.string().max(100).default(""),
-  sort: memberSortSchema.default("joined_desc"),
+  sort: memberSortSchema.default("role"),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: memberPageSizeSchema.default(10),
 });

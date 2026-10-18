@@ -157,7 +157,7 @@ export interface NotificationTabCounts {
 // ===== Halaman Tim (/tim) — anggota project =====
 
 export type TeamRoleFilter = "all" | ProjectRole;
-export type TeamSort = "joined_desc" | "joined_asc" | "name_asc" | "name_desc";
+export type TeamSort = "role" | "joined_desc" | "joined_asc" | "name_asc" | "name_desc";
 
 export interface TeamMemberRow {
   id: string;

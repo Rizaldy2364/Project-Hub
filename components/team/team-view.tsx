@@ -14,6 +14,7 @@ import { TeamSummaryCards } from "@/components/team/team-summary";
 import { TeamTableCard } from "@/components/team/team-table";
 import { TeamHeader } from "@/components/team/team-cards";
 import { MemberManageDialog } from "@/components/team/member-manage-dialog";
+import { MemberProfileModal } from "@/components/members/member-profile-modal";
 import {
   listTeamMembersAction,
   removeTeamMemberAction,
@@ -56,6 +57,10 @@ export function TeamView(props: TeamViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [manageMember, setManageMember] = useState<TeamMemberRow | null>(null);
+  const [profileMember, setProfileMember] = useState<{
+    member: TeamMemberRow;
+    projectId: string;
+  } | null>(null);
   const [acting, setActing] = useState(false);
   const debounceRef = useRef<number | null>(null);
 
@@ -73,6 +78,11 @@ export function TeamView(props: TeamViewProps) {
   function showToast(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(null), 2500);
+  }
+
+  function handleViewProfile(member: TeamMemberRow) {
+    if (!projectId) return;
+    setProfileMember({ member, projectId });
   }
 
   function pushQuery(next: Record<string, string>) {
@@ -201,7 +211,7 @@ export function TeamView(props: TeamViewProps) {
 
   return (
     <div className="space-y-5">
-      <TeamHeader />
+      <TeamHeader compact={props.showProjectDropdown === false} />
 
       <TeamSummaryCards summary={summary} />
 
@@ -221,6 +231,7 @@ export function TeamView(props: TeamViewProps) {
         myRole={myRole}
         myUserId={props.myUserId}
         onManage={setManageMember}
+        onViewProfile={handleViewProfile}
         total={total}
         pageSize={pageSize}
         safePage={safePage}
@@ -237,6 +248,12 @@ export function TeamView(props: TeamViewProps) {
         onOpenChange={(open) => !open && setManageMember(null)}
         onSaveRole={handleRoleChange}
         onRemove={handleRemove}
+      />
+
+      <MemberProfileModal
+        member={profileMember?.member ?? null}
+        projectId={profileMember?.projectId ?? ""}
+        onOpenChange={(open) => !open && setProfileMember(null)}
       />
 
       {toast && (

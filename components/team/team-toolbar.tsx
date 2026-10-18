@@ -18,12 +18,13 @@ const ROLE_TABS: { key: TeamRoleFilter; label: string; countKey: keyof TeamSumma
 ];
 
 const SORT_OPTIONS: { value: TeamSort; label: string }[] = [
+  { value: "role", label: "Peran" },
   { value: "joined_desc", label: "Terbaru bergabung" },
   { value: "joined_asc", label: "Terlama bergabung" },
   { value: "name_asc", label: "Nama A–Z" },
-  { value: "name_desc", label: "Nama Z–A" },
+  { value: "name_desc", label: "Nama Z–A" }, 
 ];
-
+ 
 export interface TeamToolbarProps {
   projects: TeamProjectOption[];
   projectId: string;
