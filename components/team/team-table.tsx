@@ -30,6 +30,7 @@ export interface TeamTableProps {
   myRole: ProjectRole | null;
   myUserId: string;
   onManage: (member: TeamMemberRow) => void;
+  onViewProfile: (member: TeamMemberRow) => void;
   total: number;
   pageSize: 10 | 25 | 50;
   safePage: number;
@@ -81,15 +82,22 @@ export function TeamTableCard(p: TeamTableProps) {
         <TeamEmpty />
       ) : (
         <>
-          <div className="mt-4 hidden overflow-x-auto md:block">
-            <table className="w-full text-left">
+          <div className="mt-4 hidden overflow-x-auto lg:block">
+            <table className="w-full table-fixed text-left">
+              <colgroup>
+                <col />
+                <col className="w-32" />
+                <col className="w-32" />
+                <col className="w-40" />
+                <col className="w-28" />
+              </colgroup>
               <thead>
                 <tr className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-[#8B96AD]">
                   <th scope="col" className="px-4 py-2 sm:px-6">ANGGOTA</th>
-                  <th scope="col" className="hidden px-4 py-2 sm:px-6 md:table-cell">PERAN</th>
+                  <th scope="col" className="hidden px-4 py-2 sm:px-6 lg:table-cell">PERAN</th>
                   <th scope="col" className="hidden px-4 py-2 sm:px-6 lg:table-cell">TASK AKTIF</th>
-                  <th scope="col" className="hidden px-4 py-2 sm:px-6 sm:table-cell">BERGABUNG</th>
-                  <th scope="col" className="px-4 py-2 sm:px-6"><span className="sr-only">Menu</span></th>
+                  <th scope="col" className="hidden px-4 py-2 sm:px-6 lg:table-cell">BERGABUNG</th>
+                  <th scope="col" className="px-4 py-2 text-right sm:px-6"><span className="sr-only">Menu</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -98,6 +106,7 @@ export function TeamTableCard(p: TeamTableProps) {
                     <MemberCells
                       member={m}
                       isSelf={m.id === p.myUserId}
+                      onViewProfile={p.onViewProfile}
                       menu={manageFor(m)}
                     />
                   </tr>
@@ -106,12 +115,13 @@ export function TeamTableCard(p: TeamTableProps) {
             </table>
           </div>
 
-          <div className="mt-4 space-y-3 md:hidden">
+          <div className="mt-4 space-y-3 lg:hidden">
             {p.members.map((m) => (
               <MemberCard
                 key={m.id}
                 member={m}
                 isSelf={m.id === p.myUserId}
+                onViewProfile={p.onViewProfile}
                 menu={manageFor(m)}
               />
             ))}

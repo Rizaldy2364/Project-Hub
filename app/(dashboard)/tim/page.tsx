@@ -51,7 +51,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
           initialQuery={{
             role: "all",
             q: "",
-            sort: "joined_desc",
+            sort: "role",
             page: 1,
             pageSize: 10,
           }}
@@ -61,7 +61,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
   }
 
   const parsedRole = memberRoleFilterSchema.safeParse(params.role ?? "all");
-  const parsedSort = memberSortSchema.safeParse(params.sort ?? "joined_desc");
+  const parsedSort = memberSortSchema.safeParse(params.sort ?? "role");
   const parsedSize = memberPageSizeSchema.safeParse(params.pageSize ?? "10");
   const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
 
@@ -69,7 +69,7 @@ export default async function TeamPage({ searchParams }: TeamPageProps) {
     projectId,
     role: parsedRole.success ? parsedRole.data : "all",
     q: params.q ?? "",
-    sort: parsedSort.success ? parsedSort.data : "joined_desc",
+    sort: parsedSort.success ? parsedSort.data : "role",
     page,
     pageSize: parsedSize.success ? parsedSize.data : 10,
   });

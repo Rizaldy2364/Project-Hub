@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/app/generated/prisma/client";
 import type { ProjectRole } from "@/types";
 import type { CreateActivityLogInput } from "@/repositories/activity.repository";
 
 export type MemberRoleFilter = "all" | ProjectRole;
-export type MemberSort = "joined_desc" | "joined_asc" | "name_asc" | "name_desc";
+export type MemberSort = "role" | "joined_desc" | "joined_asc" | "name_asc" | "name_desc";
 /** Peran yang bisa diberikan lewat dialog Kelola (ADMIN tidak bisa di-set). */
 export type ManageableRole = "MANAGER" | "MEMBER" | "VIEWER";
 
@@ -42,18 +43,41 @@ function buildWhere(projectId: string, role: MemberRoleFilter, q: string) {
   };
 }
 
-function buildOrderBy(sort: MemberSort) {
+function buildMemberOrderSql(sort: MemberSort) {
+  // Urutan fisik enum Role di Postgres adalah ADMIN, MEMBER, MANAGER, VIEWER
+  // (migrasi: init ADMIN/MEMBER, tambah DEPUTY_ADMIN, rename jadi MANAGER,
+  // tambah VIEWER) — JANGAN andalkan ORDER BY role bawaan. Sort peran memakai
+  // CASE eksplisit ADMIN → MANAGER → MEMBER → VIEWER; nama selalu
+  // case-insensitive (LOWER) dan setiap opsi diikat userId agar stabil.
+  const roleRank = Prisma.sql`CASE pm."role" WHEN 'ADMIN' THEN 0 WHEN 'MANAGER' THEN 1 WHEN 'MEMBER' THEN 2 ELSE 3 END`;
   switch (sort) {
+    case "role":
+      return Prisma.sql`${roleRank} ASC, LOWER(u."name") ASC, pm."userId" ASC`;
     case "joined_asc":
-      return { joinedAt: "asc" as const };
+      return Prisma.sql`pm."joinedAt" ASC, pm."userId" ASC`;
     case "name_asc":
-      return { user: { name: "asc" as const } };
+      return Prisma.sql`LOWER(u."name") ASC, pm."userId" ASC`;
     case "name_desc":
-      return { user: { name: "desc" as const } };
+      return Prisma.sql`LOWER(u."name") DESC, pm."userId" ASC`;
     case "joined_desc":
     default:
-      return { joinedAt: "desc" as const };
+      return Prisma.sql`pm."joinedAt" DESC, pm."userId" ASC`;
   }
+}
+
+/** Escape karakter khusus LIKE agar %/_ pada kata kunci tidak jadi wildcard. */
+function escapeLike(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
+
+interface MemberListRow {
+  userId: string;
+  role: ProjectRole;
+  joinedAt: Date;
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
 }
 
 // READ — daftar project yang diikuti user (untuk dropdown), tanpa joinCode.
@@ -76,24 +100,30 @@ export async function findProjectMembers({
 }: FindProjectMembersInput) {
   const where = buildWhere(projectId, role, q);
   const safePage = Math.max(1, page);
+  const query = q.trim();
 
-  const [total, rows] = await Promise.all([
-    prisma.projectMember.count({ where }),
-    prisma.projectMember.findMany({
-      where,
-      orderBy: buildOrderBy(sort),
-      skip: (safePage - 1) * pageSize,
-      take: pageSize,
-      select: {
-        userId: true,
-        role: true,
-        joinedAt: true,
-        user: {
-          select: { id: true, name: true, email: true, avatarUrl: true },
-        },
-      },
-    }),
-  ]);
+  const total = await prisma.projectMember.count({ where });
+
+  // Baris memakai $queryRaw agar ORDER BY CASE peran + LOWER(nama) dikerjakan
+  // di database (pagination tetap benar). Select eksplisit, tanpa password.
+  const rows = await prisma.$queryRaw<MemberListRow[]>(
+    Prisma.sql`
+      SELECT pm."userId" AS "userId",
+             pm."role" AS "role",
+             pm."joinedAt" AS "joinedAt",
+             u."id" AS "id",
+             u."name" AS "name",
+             u."email" AS "email",
+             u."avatarUrl" AS "avatarUrl"
+      FROM "ProjectMember" pm
+      JOIN "User" u ON u."id" = pm."userId"
+      WHERE pm."projectId" = ${projectId}
+      ${role !== "all" ? Prisma.sql`AND pm."role" = ${role}` : Prisma.empty}
+      ${query ? Prisma.sql`AND (u."name" ILIKE ${`%${escapeLike(query)}%`} ESCAPE '\\' OR u."email" ILIKE ${`%${escapeLike(query)}%`} ESCAPE '\\')` : Prisma.empty}
+      ORDER BY ${buildMemberOrderSql(sort)}
+      LIMIT ${pageSize} OFFSET ${(safePage - 1) * pageSize}
+    `,
+  );
 
   // activeTaskCount untuk satu halaman sekaligus (satu groupBy, bukan per baris).
   const userIds = rows.map((r) => r.userId);
@@ -117,10 +147,10 @@ export async function findProjectMembers({
   return {
     total,
     members: rows.map((r) => ({
-      id: r.user.id,
-      name: r.user.name,
-      email: r.user.email,
-      avatarUrl: r.user.avatarUrl,
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      avatarUrl: r.avatarUrl,
       role: r.role,
       joinedAt: r.joinedAt.toISOString(),
       activeTaskCount: countMap.get(r.userId) ?? 0,

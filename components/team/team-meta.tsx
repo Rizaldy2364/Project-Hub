@@ -22,7 +22,7 @@ export const ROLE_META: Record<
     label: "Viewer",
     short: "Viewer",
     badge:
-      "bg-[#9CA3AF]/10 text-[#9CA3AF] dark:bg-[rgba(156,163,175,.16)] dark:text-[#94A3B8]",
+      "bg-teal-500/10 text-teal-700 dark:bg-[rgba(45,212,191,.16)] dark:text-[#5EEAD4]",
   },
   MEMBER: {
     label: "Member",
