@@ -200,7 +200,7 @@ export async function findTasksWithFilters(params: TaskFilterParams) {
         priority: params.priority,
       }),
     },
-    orderBy: { order: "asc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     include: {
       assignee: {
         select: { id: true, name: true, avatarUrl: true },
@@ -263,6 +263,7 @@ export async function findMyTasksByUserId(
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate?.toISOString() ?? null,
+      createdAt: task.createdAt.toISOString(),
       assignee: task.assignee,
       labels: task.labels,
       commentCount: 0,
@@ -316,6 +317,7 @@ export async function findCalendarTasksByUserId({
       status: task.status,
       priority: task.priority,
       dueDate: task.dueDate!.toISOString(),
+      createdAt: task.createdAt.toISOString(),
       assignee: task.assignee,
       labels: task.labels,
       commentCount: task._count.comments,

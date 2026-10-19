@@ -1,10 +1,11 @@
 "use client";
 
 import { useTransition, type MouseEvent } from "react";
-import { format } from "date-fns";
 import { CalendarDays, CheckCircle2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { updateTaskAction } from "@/actions/task.actions";
+import { formatDayMonthWib } from "@/lib/utils";
+import { statusLabel } from "@/components/calendar/agenda-card";
 import type { BoardTask } from "@/types";
 
 interface TaskRowProps {
@@ -59,7 +60,7 @@ export function TaskRow({ task, onClick }: TaskRowProps) {
         )}
 
         <span className={`w-24 text-center px-2.5 py-1.5 text-[10px] font-bold rounded-md tracking-wide ${done ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400" : inProgress ? "bg-blue-500 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300"}`}>
-          {done ? "DONE" : inProgress ? "IN PROGRESS" : "TO DO"}
+          {statusLabel[task.status]}
         </span>
 
         <div className="flex items-center gap-2 w-36">
@@ -69,14 +70,14 @@ export function TaskRow({ task, onClick }: TaskRowProps) {
               <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">{task.assignee.name}</span>
             </>
           ) : (
-            <span className="text-xs text-slate-500">Unassigned</span>
+            <span className="text-xs text-slate-500">Belum ditugaskan</span>
           )}
         </div>
 
         <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 w-20 justify-end shrink-0">
           <CalendarDays className="w-3.5 h-3.5 opacity-70" />
           {task.dueDate ? (
-            <span>{format(new Date(task.dueDate), "dd MMM")}</span>
+            <span>{formatDayMonthWib(new Date(task.dueDate))}</span>
           ) : (
             <span className="text-slate-400" title="Tanpa tenggat">—</span>
           )}

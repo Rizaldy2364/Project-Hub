@@ -54,6 +54,7 @@ export interface BoardMember {
 
 export interface BoardTask {
   id: string;
+  createdAt: string; // ISO string
   title: string;
   description: string | null;
   status: BoardTaskStatus;
