@@ -9,6 +9,7 @@ export const myTaskSelect = {
   priority: true,
   dueDate: true,
   order: true,
+  createdAt: true,
   assignee: { select: { id: true, name: true, avatarUrl: true } },
   labels: {
     where: { deletedAt: null },
@@ -32,6 +33,7 @@ export const calendarTaskSelect = {
   status: true,
   priority: true,
   dueDate: true,
+  createdAt: true,
   assignee: { select: { id: true, name: true, avatarUrl: true } },
   labels: {
     where: { deletedAt: null },

@@ -38,6 +38,7 @@ export default async function ProjectTasksPage({
     status: task.status,
     priority: task.priority,
     dueDate: task.dueDate?.toISOString() ?? null,
+    createdAt: task.createdAt.toISOString(),
     assignee: task.assignee,
     labels: task.labels,
     commentCount: task._count.comments,

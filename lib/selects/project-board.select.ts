@@ -29,6 +29,7 @@ export const projectBoardSelect = {
         orderBy: { order: "asc" },
         select: {
           id: true,
+          createdAt: true,
           title: true,
           description: true,
           status: true,

@@ -108,6 +108,18 @@ export function TaskBoardShell({
     });
   }, [tasks, search, memberId, labelId]);
 
+  // Daftar: urut terbaru dulu (createdAt desc, id desc sebagai penyeimbang).
+  // Salinan terpisah — Board terus menerima filteredTasks dalam urutan asli,
+  // jadi urutan task di dalam kolom board tidak berubah.
+  const listTasks = useMemo(() => {
+    return [...filteredTasks].sort((a, b) => {
+      if (b.createdAt !== a.createdAt) {
+        return b.createdAt < a.createdAt ? -1 : 1;
+      }
+      return b.id.localeCompare(a.id);
+    });
+  }, [filteredTasks]);
+
   // --- Modals ---
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -139,6 +151,7 @@ export function TaskBoardShell({
       const tempId = `temp-${Date.now()}`;
       const tempTask: BoardTask = {
         id: tempId,
+        createdAt: new Date().toISOString(),
         title: typeof title === "string" ? title : "",
         description,
         status: status as BoardTaskStatus,
@@ -373,7 +386,7 @@ export function TaskBoardShell({
         />
       ) : (
         <BoardView
-          tasks={filteredTasks}
+          tasks={view === "list" ? listTasks : filteredTasks}
           onSelectTask={setSelectedTask}
           canCreateTask={canCreateTask}
           onAddTask={() => handleAddTask("TODO")}

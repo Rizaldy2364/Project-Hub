@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { FolderKanban, Loader2, Trash2 } from "lucide-react";
@@ -40,6 +40,7 @@ export function TaskDetailModal({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const saveGuard = useRef(false);
 
   // Task dari kalender membawa info project (BoardTask tidak memilikinya).
   const calendarTask = task as BoardTask & {
@@ -58,17 +59,26 @@ export function TaskDetailModal({
   const [editPriority, setEditPriority] = useState(task.priority);
 
   const handleSave = () => {
+    if (saveGuard.current) return;
+    saveGuard.current = true;
     startTransition(async () => {
-      const data = new FormData();
-      data.set("title", editTitle);
-      data.set("description", editDesc);
-      data.set("priority", editPriority);
-      if (onTaskUpdated) {
-        onTaskUpdated(task.id, data);
-      } else {
-        await updateTaskAction(task.id, data);
+      try {
+        const data = new FormData();
+        data.set("title", editTitle);
+        data.set("description", editDesc);
+        data.set("priority", editPriority);
+        if (onTaskUpdated) {
+          onTaskUpdated(task.id, data);
+        } else {
+          await updateTaskAction(task.id, data);
+        }
+        setIsEditing(false);
+      } catch {
+        // Gagal disimpan — nilai formulir dipertahankan dan tombol dapat
+        // ditekan kembali (saveGuard di-reset di finally di bawah).
+      } finally {
+        saveGuard.current = false;
       }
-      setIsEditing(false);
     });
   };
 
@@ -245,8 +255,7 @@ export function TaskDetailModal({
                       disabled={isPending}
                       className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-semibold text-white transition-colors flex items-center gap-2"
                     >
-                      {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                      Save
+                      {isPending ? (<span className="flex items-center gap-1"><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</span>) : "Simpan"}
                     </button>
                   </>
                 ) : (
