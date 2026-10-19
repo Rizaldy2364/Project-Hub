@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, MessageSquare } from "lucide-react";
+import { CalendarDays, Check, MessageSquare } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -12,16 +12,24 @@ interface BoardCardProps {
   onSelectTask: (task: BoardTask) => void;
   canDrag: boolean;
   overlay?: boolean;
+  /**
+   * Tandai selesai sekali klik. Hanya dikirim kolom Belum/Dikerjakan;
+   * button hanya dirender bila `canDrag` (izinkan ubah status per task).
+   */
+  onMarkDone?: (task: BoardTask) => void;
 }
 
 /** Kartu task di kolom board: judul, label, assignee, komentar, tenggat WIB. */
-export function BoardCard({ task, onSelectTask, canDrag, overlay }: BoardCardProps) {
+export function BoardCard({ task, onSelectTask, canDrag, overlay, onMarkDone }: BoardCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
     disabled: !canDrag,
   });
   const done = task.status === "DONE";
   const due = dueInfo(task);
+  // Izin ubah status (matriks 8.2) = izin drag; VIEWER/Member bukan assignee
+  // tidak melihat check. Server tetap menolak lewat moveTaskAction.
+  const showMarkDone = !overlay && !done && canDrag && Boolean(onMarkDone);
 
   return (
     <article
@@ -49,14 +57,46 @@ export function BoardCard({ task, onSelectTask, canDrag, overlay }: BoardCardPro
         canDrag && !overlay ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
       )}
     >
-      <h4
-        className={cn(
-          "text-sm font-semibold leading-snug",
-          done ? "text-slate-400 line-through" : "text-slate-900 dark:text-slate-100"
-        )}
-      >
-        {task.title}
-      </h4>
+      <div className="flex items-start gap-2">
+        {done ? (
+          /* Kolom Selesai: check hijau statis (bukan tombol). */
+          <span
+            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white"
+            aria-hidden
+          >
+            <Check className="h-3 w-3" />
+          </span>
+        ) : showMarkDone ? (
+          <button
+            type="button"
+            aria-label={`Tandai selesai: ${task.title}`}
+            /* Cegah card click membuka modal, drag sensor mulai, dan keydown
+               card (Enter/Space) ter-bubble. */
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMarkDone?.(task);
+            }}
+            onKeyDown={(e) => e.stopPropagation()}
+            className={cn(
+              "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-transparent transition-colors",
+              "border-slate-300 dark:border-slate-600",
+              "hover:border-emerald-500 hover:bg-emerald-500 hover:text-white",
+              "focus-visible:border-emerald-500 focus-visible:bg-emerald-500 focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            )}
+          >
+            <Check className="h-3 w-3" aria-hidden />
+          </button>
+        ) : null}
+        <h4
+          className={cn(
+            "min-w-0 flex-1 text-sm font-semibold leading-snug",
+            done ? "text-slate-400 line-through" : "text-slate-900 dark:text-slate-100"
+          )}
+        >
+          {task.title}
+        </h4>
+      </div>
       {task.labels.length > 0 && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {task.labels.slice(0, 2).map((label) => (

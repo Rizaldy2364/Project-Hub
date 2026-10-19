@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { getProjectMembership } from "@/lib/project-guard";
 import { canCreateTask, canViewJoinCode } from "@/lib/permissions";
@@ -91,7 +92,13 @@ export default async function ProjectLayout({
           ...(canViewCode ? { joinCode: project.joinCode } : {}),
         }}
         role={myRole}
-        members={members}
+        progress={{
+          todo: counts.TODO,
+          inProgress: counts.IN_PROGRESS,
+          done: taskDone,
+          total: taskTotal,
+          percent: taskPercent,
+        }}
         createTaskTrigger={
           canCreate ? (
             <CreateTaskModal
@@ -100,11 +107,13 @@ export default async function ProjectLayout({
               members={members.map((m) => m.user)}
               labels={labels}
             >
+              {/* Satu ikon Plus, tanpa karakter "+", tanpa wrap. */}
               <button
                 type="button"
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
               >
-                + Buat task
+                <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                Buat task
               </button>
             </CreateTaskModal>
           ) : null
@@ -112,56 +121,6 @@ export default async function ProjectLayout({
         joinCode={canViewCode ? project.joinCode : undefined}
         canViewJoinCode={canViewCode}
       />
-
-      {/* Strip progres di bawah judul. */}
-      <section
-        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-semibold">
-            <span
-              className="h-1.5 w-1.5 shrink-0 rounded-full bg-slate-400 dark:bg-slate-500"
-              aria-hidden
-            />
-            <span className="text-slate-700 dark:text-slate-300">Progres project</span>
-          </div>
-          <span className="font-semibold text-slate-900 dark:text-white">
-            {taskDone} / {taskTotal} task · {taskPercent}%
-          </span>
-        </div>
-        <div className="mt-3 flex items-center gap-3">
-          <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-blue-600 transition-all duration-500"
-              style={{ width: `${taskPercent}%` }}
-            />
-          </div>
-          <div className="flex gap-4 text-xs">
-            {[...statusRows]
-              .sort((a, b) => b._count._all - a._count._all)
-              .map((row) => {
-                const dot =
-                  row.status === "DONE"
-                    ? "bg-emerald-500"
-                    : row.status === "IN_PROGRESS"
-                      ? "bg-blue-500"
-                      : "bg-slate-400";
-                const label =
-                  row.status === "DONE"
-                    ? "Selesai"
-                    : row.status === "IN_PROGRESS"
-                      ? "Dikerjakan"
-                      : "Belum";
-                return (
-                  <span key={row.status} className="flex items-center gap-1.5">
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} aria-hidden />
-                    {label}: {row._count._all}
-                  </span>
-                );
-              })}
-          </div>
-        </div>
-      </section>
 
       <ProjectTabs
         projectId={projectId}
