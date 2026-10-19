@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { createLabelSchema } from "@/lib/validations/label.schema";
 import { findProjectMember } from "@/repositories/project.repository";
 import { findTaskById } from "@/repositories/task.repository";
@@ -48,6 +49,21 @@ export async function createLabelAction(formData: FormData) {
   );
   if ("error" in check) return { error: check.error };
 
+  // Guard: tolak nama label duplikat (case-insensitive, trim, project yang sama).
+  const existing = await prisma.label.findFirst({
+    where: {
+      projectId: parsed.data.projectId,
+      deletedAt: null,
+      name: {
+        equals: parsed.data.name.trim(),
+        mode: "insensitive",
+      },
+    },
+  });
+  if (existing) {
+    return { error: "Label dengan nama itu sudah ada" };
+  }
+
   const label = await createLabel(parsed.data);
   revalidatePath(`/projects/${parsed.data.projectId}`);
   return { success: true, labelId: label.id };
@@ -66,6 +82,25 @@ export async function updateLabelAction(
 
   const check = await checkLabelManageable(session.user.id, label.projectId);
   if ("error" in check) return { error: check.error };
+
+  // Guard rename: tolak nama label duplikat (case-insensitive, trim, project
+  // yang sama, kecuali label itu sendiri).
+  if (data.name !== undefined) {
+    const existing = await prisma.label.findFirst({
+      where: {
+        projectId: label.projectId,
+        deletedAt: null,
+        id: { not: labelId },
+        name: {
+          equals: data.name.trim(),
+          mode: "insensitive",
+        },
+      },
+    });
+    if (existing) {
+      return { error: "Label dengan nama itu sudah ada" };
+    }
+  }
 
   await updateLabel(labelId, data);
   revalidatePath(`/projects/${label.projectId}`);

@@ -16,7 +16,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { BoardCard } from "@/components/task/board-card";
 import { BoardColumn } from "@/components/task/board-column";
 import { planTaskDrop } from "@/components/task/board-dnd";
-import { Toast, useToast } from "@/components/ui/toast";
+import type { ShowToast } from "@/components/ui/toast";
 import { moveTaskAction } from "@/actions/task.actions";
 import type { BoardTask, BoardTaskStatus } from "@/types";
 
@@ -36,6 +36,10 @@ interface TaskBoardProps {
   canMoveTask: (task: BoardTask) => boolean;
   canCreateTask: boolean;
   onAddTask: (status: BoardTaskStatus) => void;
+  /** Tandai selesai sekali klik (kolom Belum/Dikerjakan) — milik shell. */
+  onMarkDone: (task: BoardTask) => void;
+  /** Toast milik shell (satu toast untuk seluruh tab Task). */
+  showToast: ShowToast;
 }
 
 const dropAnimation: DropAnimation = {
@@ -51,8 +55,9 @@ export function TaskBoard({
   canMoveTask,
   canCreateTask,
   onAddTask,
+  onMarkDone,
+  showToast,
 }: TaskBoardProps) {
-  const { toast, show } = useToast();
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -97,7 +102,7 @@ export function TaskBoard({
     const res = await moveTaskAction(activeTask.id, projectId, plan.targetStatus, plan.pos, plan.afterTaskId);
     if ("error" in res) {
       onTasksChange(snapshot); // rollback
-      show(typeof res.error === "string" ? res.error : "Kamu tidak punya izin memindahkan task ini", "error");
+      showToast(typeof res.error === "string" ? res.error : "Kamu tidak punya izin memindahkan task ini", "error");
     }
   }
 
@@ -111,6 +116,7 @@ export function TaskBoard({
       onDragCancel={() => setActiveId(null)}
     >
       <div
+        id="dnd-board-container"
         aria-label="Papan task"
         className="grid gap-4 md:grid-cols-3 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:overflow-x-auto max-md:pb-2"
       >
@@ -124,13 +130,15 @@ export function TaskBoard({
             canMoveTask={canMoveTask}
             canCreateTask={canCreateTask}
             onAddTask={onAddTask}
+            onMarkDone={onMarkDone}
           />
         ))}
       </div>
       <DragOverlay dropAnimation={dropAnimation}>
-        {overlayTask ? <BoardCard task={overlayTask} overlay onSelectTask={() => {}} canDrag /> : null}
+        {overlayTask ? (
+          <BoardCard task={overlayTask} overlay onSelectTask={() => {}} canDrag />
+        ) : null}
       </DragOverlay>
-      <Toast toast={toast} />
     </DndContext>
   );
 }

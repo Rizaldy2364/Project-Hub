@@ -24,7 +24,7 @@ export function TaskViewToggle({ view, onChange }: TaskViewToggleProps) {
     <div
       role="tablist"
       aria-label="Tampilan task"
-      className="inline-flex shrink-0 items-center gap-0.5 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800/60"
+      className="inline-flex h-10 shrink-0 items-center gap-0.5 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800/60"
     >
       {VIEW_OPTIONS.map(({ value, label, Icon }) => {
         const active = view === value;

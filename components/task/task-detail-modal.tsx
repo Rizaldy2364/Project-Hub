@@ -20,6 +20,10 @@ interface TaskDetailModalProps {
   onOpenChange: (open: boolean) => void;
   /** Penulis komentar saat ini (untuk optimistic UI). */
   currentUser?: { id: string; name: string; avatarUrl: string | null };
+  /** Dipanggil setelah task berhasil diupdate (dengan taskId + FormData). */
+  onTaskUpdated?: (taskId: string, formData: FormData) => void;
+  /** Dipanggil setelah task berhasil dihapus (dengan taskId). */
+  onTaskDeleted?: (taskId: string) => void;
 }
 
 /** Modal detail task: lihat, edit (admin/manager), dan hapus task (admin). */
@@ -30,6 +34,8 @@ export function TaskDetailModal({
   canComment,
   onOpenChange,
   currentUser,
+  onTaskUpdated,
+  onTaskDeleted,
 }: TaskDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -57,14 +63,22 @@ export function TaskDetailModal({
       data.set("title", editTitle);
       data.set("description", editDesc);
       data.set("priority", editPriority);
-      await updateTaskAction(task.id, data);
+      if (onTaskUpdated) {
+        onTaskUpdated(task.id, data);
+      } else {
+        await updateTaskAction(task.id, data);
+      }
       setIsEditing(false);
     });
   };
 
   const handleDelete = () => {
     startTransition(async () => {
-      await deleteTaskAction(task.id);
+      if (onTaskDeleted) {
+        onTaskDeleted(task.id);
+      } else {
+        await deleteTaskAction(task.id);
+      }
       onOpenChange(false);
     });
   };

@@ -15,6 +15,8 @@ export interface BoardColumnProps {
   canMoveTask: (task: BoardTask) => boolean;
   canCreateTask: boolean;
   onAddTask: (status: BoardTaskStatus) => void;
+  /** Tandai selesai sekali klik — hanya dirender di kolom Belum/Dikerjakan. */
+  onMarkDone: (task: BoardTask) => void;
 }
 
 /** Satu kolom status: header jumlah, daftar sortable, footer tambah task. */
@@ -26,6 +28,7 @@ export function BoardColumn({
   canMoveTask,
   canCreateTask,
   onAddTask,
+  onMarkDone,
 }: BoardColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: `col:${status}` });
   return (
@@ -54,12 +57,19 @@ export function BoardColumn({
         ) : (
           <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
             {tasks.map((task) => (
-              <BoardCard key={task.id} task={task} onSelectTask={onSelectTask} canDrag={canMoveTask(task)} />
+              <BoardCard
+                key={task.id}
+                task={task}
+                onSelectTask={onSelectTask}
+                canDrag={canMoveTask(task)}
+                {...(status !== "DONE" ? { onMarkDone } : {})}
+              />
             ))}
           </SortableContext>
         )}
       </div>
-      {canCreateTask && (
+      {/* Kolom "Selesai" tanpa tombol tambah — pindah balik lewat drag. */}
+      {canCreateTask && status !== "DONE" && (
         <button
           type="button"
           onClick={() => onAddTask(status)}

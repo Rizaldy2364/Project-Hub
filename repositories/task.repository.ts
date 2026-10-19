@@ -173,7 +173,7 @@ export async function moveTaskToPosition({
 
 // SEARCH & FILTER
 export async function findTasksWithFilters(params: TaskFilterParams) {
-  return prisma.task.findMany({
+  const tasks = await prisma.task.findMany({
     where: {
       deletedAt: null,
       list: {
@@ -210,6 +210,16 @@ export async function findTasksWithFilters(params: TaskFilterParams) {
       },
     },
   });
+
+  // Dedupe labels per task by label.id — mencegah chip label duplikat (mis.
+  // "#Feature" muncul dua kali) saat Prisma mengembalikan entri label ganda
+  // pada relasi many-to-many.
+  return tasks.map((task) => ({
+    ...task,
+    labels: Array.from(
+      new Map(task.labels.map((label) => [label.id, label]))
+    ).map(([, label]) => label),
+  }));
 }
 
 // TASK PROJECT — semua task dari project yang diikuti user, dikelompokkan per project
