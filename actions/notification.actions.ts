@@ -35,7 +35,7 @@ function toInboxNotification(row: {
     assignee: { id: string; name: string; avatarUrl: string | null } | null;
     list: { projectId: string };
   } | null;
-  project: { id: string; name: string } | null;
+  project: { id: string; name: string; deletedAt: Date | null } | null;
   comment: {
     id: string;
     content: string;
@@ -66,7 +66,15 @@ function toInboxNotification(row: {
           projectId: row.task.list.projectId,
         }
       : null,
-    project: row.project,
+    // Project soft-deleted tetap dikirim (flag deleted) agar baris Inbox tidak
+    // crash; UI menampilkannya sebagai "Project dihapus" dengan target non-klik.
+    project: row.project
+      ? {
+          id: row.project.id,
+          name: row.project.name,
+          deleted: row.project.deletedAt !== null,
+        }
+      : null,
     comment: row.comment
       ? {
           id: row.comment.id,

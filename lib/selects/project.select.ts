@@ -20,3 +20,13 @@ export const projectDashboardSelect = {
     },
   },
 } satisfies Prisma.ProjectSelect;
+
+/** Select eksplisit untuk halaman Pengaturan project (hanya ADMIN). */
+export const projectSettingsSelect = {
+  id: true,
+  name: true,
+  description: true,
+  joinCode: true,
+  joinEnabled: true,
+  createdAt: true,
+} satisfies Prisma.ProjectSelect;

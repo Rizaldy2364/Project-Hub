@@ -12,5 +12,11 @@ export const joinProjectSchema = z.object({
     .toUpperCase(),
 });
 
+/** Konfirmasi hapus project (zona berbahaya): nama harus diketik ulang. */
+export const deleteProjectConfirmSchema = z.object({
+  name: z.string().min(1, "Nama project wajib diisi"),
+});
+
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type JoinProjectInput = z.infer<typeof joinProjectSchema>;
+export type DeleteProjectConfirmInput = z.infer<typeof deleteProjectConfirmSchema>;

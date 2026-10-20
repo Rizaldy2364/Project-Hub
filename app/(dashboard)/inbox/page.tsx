@@ -45,7 +45,15 @@ export default async function InboxPage({ searchParams }: InboxPageProps) {
           projectId: row.task.list.projectId,
         }
       : null,
-    project: row.project,
+    // Project soft-deleted tetap dikirim (flag deleted) agar baris Inbox tidak
+    // crash; UI menampilkannya sebagai "Project dihapus" dengan target non-klik.
+    project: row.project
+      ? {
+          id: row.project.id,
+          name: row.project.name,
+          deleted: row.project.deletedAt !== null,
+        }
+      : null,
     comment: row.comment
       ? {
           id: row.comment.id,

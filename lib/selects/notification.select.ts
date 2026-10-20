@@ -18,7 +18,9 @@ export const notificationDetailSelect = {
       list: { select: { projectId: true } },
     },
   },
-  project: { select: { id: true, name: true } },
+  // Project soft-deleted tetap dikirim (dengan flag deleted) agar baris Inbox
+  // tidak crash; UI menampilkannya sebagai "Project dihapus" + target non-klik.
+  project: { select: { id: true, name: true, deletedAt: true } },
   comment: {
     select: {
       id: true,

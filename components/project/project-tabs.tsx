@@ -14,19 +14,21 @@ interface Tab {
 }
 
 /**
- * Tab bar halaman project: Ringkasan | Task | Anggota | Diskusi | Aktivitas.
- * Aktif diturunkan dari pathname (usePathname); tidak ada Pengaturan tab.
+ * Tab bar halaman project: Ringkasan | Task | Anggota | Diskusi | Aktivitas |
+ * Pengaturan (khusus ADMIN). Aktif diturunkan dari pathname (usePathname).
  */
 export function ProjectTabs({
   projectId,
   taskCount,
   memberCount,
   unreadDiskusi,
+  isAdmin,
 }: {
   projectId: string;
   taskCount: number;
   memberCount: number;
   unreadDiskusi: number;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const base = `/projects/${projectId}`;
@@ -47,6 +49,7 @@ export function ProjectTabs({
       unread: unreadDiskusi,
     },
     { key: "aktivitas", href: `${base}/aktivitas`, label: "Aktivitas" },
+    ...(isAdmin ? [{ key: "pengaturan", href: `${base}/pengaturan`, label: "Pengaturan" }] : []),
   ];
 
   let activeKey: string | null = null;
@@ -55,6 +58,7 @@ export function ProjectTabs({
   else if (pathname.startsWith(`${base}/anggota`)) activeKey = "anggota";
   else if (pathname.startsWith(`${base}/diskusi`)) activeKey = "diskusi";
   else if (pathname.startsWith(`${base}/aktivitas`)) activeKey = "aktivitas";
+  else if (pathname.startsWith(`${base}/pengaturan`)) activeKey = "pengaturan";
 
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -66,7 +70,7 @@ export function ProjectTabs({
 
     // Geser HANYA wadah tab yang bisa di-scroll horizontal (scrollLeft).
     // Jangan pakai scrollIntoView: ia ikut menggulir semua leluhur yang bisa
-    // di-scroll — termasuk window — sehingga halaman project terbuka sudah
+    // di-scroll — termasuk window — sehingga halaman project terbuka sudah
     // terscroll ke bawah dan header/tabs tidak terlihat.
     const elRect = el.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();

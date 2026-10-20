@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { notificationDetailSelect } from "@/lib/selects/notification.select";
-import type { NotificationType } from "@/app/generated/prisma/client";
+import type {
+  NotificationType,
+  Prisma,
+} from "@/app/generated/prisma/client";
 
 export type NotificationTab = "all" | "unread" | "mention" | "task" | "invite";
 
@@ -35,8 +38,25 @@ function buildWhere(userId: string, tab: NotificationTab) {
     userId,
     ...(tab === "unread" ? { readAt: null } : {}),
     ...(types ? { type: { in: types } } : {}),
+    // CATATAN: daftar Inbox SENGAJA tetap memuat notifikasi project yang
+    // soft-deleted — UI menandainya "Project dihapus" dan menonaktifkan
+    // target navigasinya (lihat inbox-meta.projectDisplayName). Filter
+    // `notDeletedProjectFilter` hanya dipakai untuk hitungan/badge.
   };
 }
+
+/**
+ * Angka badge/tab TIDAK menghitung notifikasi project yang sudah soft-deleted
+ * (agar "project tidak muncul lagi" di mana pun). Daftar Inbox tetap
+ * menampilkan barisnya — ditandai "Project dihapus" oleh UI.
+ *
+ * Tipe eksplisit `Prisma.NotificationWhereInput` (bukan `as const`) supaya
+ * array `OR` tetap mutable — Prisma menuntut `NotificationWhereInput[]`,
+ * sedangkan `as const` menghasilkan tuple readonly yang tidak bisa di-assign.
+ */
+const notDeletedProjectFilter: Prisma.NotificationWhereInput = {
+  OR: [{ projectId: null }, { project: { deletedAt: null } }],
+};
 
 // CREATE — murni insert, tanpa validasi/cek sesi (dicek di actions/).
 export async function createNotification(data: CreateNotificationInput) {
@@ -71,25 +91,37 @@ export async function findNotificationById(id: string) {
   });
 }
 
-// Hitungan per tab (untuk angka di tab Inbox).
+// Hitungan per tab (untuk angka di tab Inbox) — tanpa project soft-deleted.
 export async function countNotificationsByTab(userId: string) {
   const [all, unread, mention, task, invite] = await Promise.all([
-    prisma.notification.count({ where: { userId } }),
-    prisma.notification.count({ where: { userId, readAt: null } }),
-    prisma.notification.count({ where: { userId, type: "MENTION" } }),
+    prisma.notification.count({
+      where: { userId, ...notDeletedProjectFilter },
+    }),
+    prisma.notification.count({
+      where: { userId, readAt: null, ...notDeletedProjectFilter },
+    }),
+    prisma.notification.count({
+      where: { userId, type: "MENTION", ...notDeletedProjectFilter },
+    }),
     prisma.notification.count({
       where: {
         userId,
         type: { in: ["TASK_ASSIGNED", "DUE_SOON", "TASK_COMMENT"] },
+        ...notDeletedProjectFilter,
       },
     }),
-    prisma.notification.count({ where: { userId, type: "MEMBER_JOINED" } }),
+    prisma.notification.count({
+      where: { userId, type: "MEMBER_JOINED", ...notDeletedProjectFilter },
+    }),
   ]);
   return { all, unread, mention, task, invite };
 }
 
+/** Badge sidebar — tanpa notifikasi project soft-deleted. */
 export async function countUnreadNotifications(userId: string) {
-  return prisma.notification.count({ where: { userId, readAt: null } });
+  return prisma.notification.count({
+    where: { userId, readAt: null, ...notDeletedProjectFilter },
+  });
 }
 
 /** Sama seperti countUnreadNotifications tapi dibatasi satu project. */
@@ -98,7 +130,7 @@ export async function countUnreadNotificationsByProject(
   projectId: string
 ) {
   return prisma.notification.count({
-    where: { userId, projectId, readAt: null },
+    where: { userId, projectId, readAt: null, ...notDeletedProjectFilter },
   });
 }
 

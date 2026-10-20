@@ -68,7 +68,12 @@ export async function getMemberProfile({
         assigneeId: userId,
         status: { not: "DONE" },
         deletedAt: null,
-        list: { deletedAt: null, projectId },
+        list: {
+          deletedAt: null,
+          projectId,
+          // Project soft-deleted: task-nya ikut disembunyikan.
+          project: { deletedAt: null },
+        },
       },
     }),
     // Task selesai — statistik "Diselesaikan" pada kartu profil lama.
@@ -77,7 +82,11 @@ export async function getMemberProfile({
         assigneeId: userId,
         status: "DONE",
         deletedAt: null,
-        list: { deletedAt: null, projectId },
+        list: {
+          deletedAt: null,
+          projectId,
+          project: { deletedAt: null },
+        },
       },
     }),
   ]);

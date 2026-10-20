@@ -4,7 +4,7 @@ import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { InboxNotification } from "@/types";
 import { formatInboxTime, dueLabel } from "@/lib/inbox-format";
-import { isChatMention, TYPE_META, titleParts, subTitle } from "@/components/inbox/inbox-meta";
+import { isChatMention, projectDisplayName, TYPE_META, titleParts, subTitle } from "@/components/inbox/inbox-meta";
 
 /**
  * Baris notifikasi yang dipakai di Inbox panel (halaman + bell dropdown).
@@ -48,7 +48,7 @@ export function InboxRow({ item, compact = false }: InboxRowProps) {
       aria-label={
         compact
           ? `${meta.label} ${unread ? "belum dibaca" : "dibaca"} • ${
-              item.task?.title ?? item.project?.name ?? "—"
+              item.task?.title || projectDisplayName(item) || "—"
             }`
           : undefined
       }

@@ -38,3 +38,13 @@ body {
 .animate-slide-up {
   animation: slide-up-fade 0.7s ease-out;
 }
+
+/* Sembunyikan scrollbar tapi tetap bisa di-scroll (untuk baris pil horizontal
+   seperti menu bagian Pengaturan di layar sempit). */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

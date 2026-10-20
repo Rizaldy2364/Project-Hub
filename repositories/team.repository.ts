@@ -29,6 +29,8 @@ function buildWhere(projectId: string, role: MemberRoleFilter, q: string) {
   const query = q.trim();
   return {
     projectId,
+    // Project soft-deleted: anggota di project itu tidak lagi ditampilkan.
+    project: { deletedAt: null },
     ...(role !== "all" ? { role } : {}),
     ...(query
       ? {
@@ -106,6 +108,8 @@ export async function findProjectMembers({
 
   // Baris memakai $queryRaw agar ORDER BY CASE peran + LOWER(nama) dikerjakan
   // di database (pagination tetap benar). Select eksplisit, tanpa password.
+  // CATATAN: raw SQL TIDAK ikut filter soft-delete Prisma, jadi JOIN ke
+  // "Project" + syarat `p."deletedAt" IS NULL` ditulis eksplisit di sini.
   const rows = await prisma.$queryRaw<MemberListRow[]>(
     Prisma.sql`
       SELECT pm."userId" AS "userId",
@@ -117,6 +121,7 @@ export async function findProjectMembers({
              u."avatarUrl" AS "avatarUrl"
       FROM "ProjectMember" pm
       JOIN "User" u ON u."id" = pm."userId"
+      JOIN "Project" p ON p."id" = pm."projectId" AND p."deletedAt" IS NULL
       WHERE pm."projectId" = ${projectId}
       ${role !== "all" ? Prisma.sql`AND pm."role" = ${role}` : Prisma.empty}
       ${query ? Prisma.sql`AND (u."name" ILIKE ${`%${escapeLike(query)}%`} ESCAPE '\\' OR u."email" ILIKE ${`%${escapeLike(query)}%`} ESCAPE '\\')` : Prisma.empty}
@@ -162,7 +167,7 @@ export async function findProjectMembers({
 export async function countProjectMembersByRole(projectId: string) {
   const groups = await prisma.projectMember.groupBy({
     by: ["role"],
-    where: { projectId },
+    where: { projectId, project: { deletedAt: null } },
     _count: { role: true },
   });
   const byRole: Record<ProjectRole, number> = {
@@ -232,7 +237,7 @@ export async function removeProjectMemberWithUnassign({
       where: {
         deletedAt: null,
         assigneeId: targetUserId,
-        list: { projectId },
+        list: { deletedAt: null, projectId },
       },
       data: { assigneeId: null },
     }),

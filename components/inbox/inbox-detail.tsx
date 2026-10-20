@@ -6,7 +6,7 @@ import { FolderKanban, MessageSquare } from "lucide-react";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
 import type { InboxNotification } from "@/types";
-import { TYPE_META, discussionLink, isChatMention } from "@/components/inbox/inbox-meta";
+import { TYPE_META, discussionLink, isChatMention, projectDisplayName } from "@/components/inbox/inbox-meta";
 import { ReplyBox } from "@/components/inbox/inbox-item";
 import { Toast, toToastError, useToast } from "@/components/ui/toast";
 import { formatFullDate, formatInboxTime, taskLink } from "@/lib/inbox-format";
@@ -40,6 +40,8 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
   const { toast, show } = useToast();
   const unread = !item.readAt;
   const chatMention = isChatMention(item);
+  // Project soft-deleted: nama diganti "Project dihapus" & tombol buka mati.
+  const projectDeleted = item.project?.deleted ?? false;
   // Reply hanya untuk notifikasi berbasis komentar/task — mention chat
   // dibalas lewat halaman Diskusi, bukan dari Inbox.
   const showReply =
@@ -98,7 +100,8 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
             {item.actor?.name ?? "Sistem"}
           </p>
           <p className="text-xs text-slate-500 dark:text-[#8B96AD]">
-            {formatInboxTime(item.createdAt)} • di project {item.project?.name ?? "-"}
+            {formatInboxTime(item.createdAt)} • di project{" "}
+            {projectDisplayName(item) || "-"}
           </p>
         </div>
         <span
@@ -118,12 +121,12 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
           {meta.detailLabel}
         </p>
         <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-[#E6EAF2]">
-          {item.task?.title ?? item.project?.name ?? "Notifikasi"}
+          {item.task?.title ?? projectDisplayName(item)}
         </h2>
         {item.project && (
           <span className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#131A2B] dark:text-[#8B96AD]">
             <FolderKanban className="h-3 w-3 shrink-0" aria-hidden="true" />
-            <span className="truncate">{item.project.name}</span>
+            <span className="truncate">{projectDisplayName(item)}</span>
           </span>
         )}
         {item.comment && (
@@ -221,13 +224,21 @@ export function InboxDetail({ item, onRead, onReplied }: DetailProps) {
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-white/[0.08] dark:bg-[#0F1524]">
           <p className="text-[11px] text-slate-400 dark:text-[#8B96AD]">Project</p>
           <p className="mt-0.5 font-medium text-slate-800 dark:text-slate-100">
-            {item.project?.name ?? "-"}
+            {projectDisplayName(item) || "-"}
           </p>
         </div>
       )}
 
       <div className="flex gap-2">
-        {chatMention ? (
+        {projectDeleted ? (
+          /* Project soft-deleted: target dinonaktifkan (tidak ada tautan mati). */
+          <span
+            aria-disabled
+            className="flex h-10 flex-1 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-400 dark:bg-[#131A2B] dark:text-[#8B96AD]"
+          >
+            Project dihapus
+          </span>
+        ) : chatMention ? (
           <Link
             href={discussionLink(item)}
             className="flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"

@@ -344,6 +344,31 @@ export async function regenerateProjectJoinCode(projectId: string) {
   });
 }
 
+// UPDATE — saklar "izinkan bergabung lewat kode" (Pengaturan → Kode gabung).
+export async function setProjectJoinEnabled(projectId: string, enabled: boolean) {
+  return prisma.project.update({
+    where: { id: projectId },
+    data: { joinEnabled: enabled },
+  });
+}
+
+// SOFT DELETE — hanya bila nama yang diketik admin cocok persis dengan nama
+// project di database (konfirmasi zona berbahaya). Check + update dalam satu
+// transaksi; mengembalikan null bila nama tidak cocok / project sudah terhapus.
+export async function softDeleteProjectIfNameMatches(projectId: string, name: string) {
+  return prisma.$transaction(async (tx) => {
+    const project = await tx.project.findUnique({
+      where: { id: projectId, deletedAt: null },
+      select: { name: true },
+    });
+    if (!project || project.name !== name) return null;
+    return tx.project.update({
+      where: { id: projectId },
+      data: { deletedAt: new Date() },
+    });
+  });
+}
+
 // SOFT DELETE
 export async function softDeleteProject(projectId: string) {
   return prisma.project.update({

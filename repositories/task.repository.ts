@@ -177,7 +177,10 @@ export async function findTasksWithFilters(params: TaskFilterParams) {
     where: {
       deletedAt: null,
       list: {
+        deletedAt: null,
         projectId: params.projectId,
+        // Project soft-deleted tidak boleh menampilkan task-nya.
+        project: { deletedAt: null },
       },
       ...(params.search && {
         title: {
@@ -190,7 +193,8 @@ export async function findTasksWithFilters(params: TaskFilterParams) {
       }),
       ...(params.labelId && {
         labels: {
-          some: { id: params.labelId },
+          // Label soft-deleted tidak boleh jadi kriteria filter.
+          some: { id: params.labelId, deletedAt: null },
         },
       }),
       ...(params.status && {
@@ -206,6 +210,8 @@ export async function findTasksWithFilters(params: TaskFilterParams) {
         select: { id: true, name: true, avatarUrl: true },
       },
       labels: {
+        // Label soft-deleted tidak boleh tampil di kartu task / chip filter.
+        where: { deletedAt: null },
         select: { id: true, name: true, color: true },
       },
     },

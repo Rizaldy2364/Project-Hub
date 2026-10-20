@@ -47,6 +47,17 @@ export default auth((req) => {
         : `/projects/${projectId}`;
       return NextResponse.redirect(url);
     }
+
+    // Tab Pengaturan khusus ADMIN. Tandai request-nya lewat header supaya
+    // [projectId]/layout.tsx bisa memanggil forbidden() DI ATAS loading
+    // boundary — cek di page (di bawah loading.tsx) sudah keburu streaming
+    // 200 sehingga status 403 tidak bisa dikirim. Lihat docs Next.js
+    // (loading.md → Status Codes): cek harus jalan sebelum streaming dimulai.
+    if (segments.length === 3 && segments[2] === "pengaturan") {
+      const requestHeaders = new Headers(req.headers);
+      requestHeaders.set("x-requires-admin", "1");
+      return NextResponse.next({ request: { headers: requestHeaders } });
+    }
   }
 });
 
