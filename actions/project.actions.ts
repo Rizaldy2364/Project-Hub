@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import {
   createProjectSchema,
+  deleteProjectConfirmSchema,
   joinProjectSchema,
 } from "@/lib/validations/project.schema";
 import {
@@ -13,7 +14,8 @@ import {
   findProjectByJoinCode,
   findProjectMember,
   regenerateProjectJoinCode,
-  softDeleteProject,
+  setProjectJoinEnabled,
+  softDeleteProjectIfNameMatches,
   updateProject,
   removeProjectMember,
 } from "@/repositories/project.repository";
@@ -26,6 +28,7 @@ import {
 } from "@/lib/permissions";
 import { logActivity } from "@/lib/activity";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
 
 // PESAN SISTEM — dicatat ke Diskusi saat project dibuat / anggota bergabung.
 // Kegagalan TIDAK PERNAH menggagalkan aksi utama (dicek di tempat pemanggil).
@@ -104,6 +107,12 @@ export async function joinProjectAction(formData: FormData) {
     return { error: "Kode tidak valid" };
   }
 
+  // Saklar "Izinkan bergabung lewat kode" (Pengaturan → Kode gabung). Hanya
+  // ADMIN yang bisa mematikannya; pesan tidak membocorkan info lain.
+  if (!project.joinEnabled) {
+    return { error: "Pendaftaran anggota project ini sedang ditutup" };
+  }
+
   const existingMember = await findProjectMember(session.user.id, project.id);
   if (existingMember) {
     return { error: "Kamu sudah tergabung di project ini" };
@@ -148,7 +157,7 @@ export async function joinProjectAction(formData: FormData) {
   return { success: true, projectId: project.id };
 }
 
-// UPDATE PROJECT (Admin only)
+// UPDATE PROJECT (Admin only) — Umum: nama & deskripsi.
 export async function updateProjectAction(
   projectId: string,
   formData: FormData
@@ -158,7 +167,7 @@ export async function updateProjectAction(
 
   const member = await findProjectMember(session.user.id, projectId);
   if (!member || !canEditProjectSettings(member.role)) {
-    return { error: "Hanya admin yang boleh mengubah project" };
+    return { error: "Tidak punya izin" };
   }
 
   const parsed = createProjectSchema.safeParse({
@@ -171,7 +180,12 @@ export async function updateProjectAction(
   }
 
   await updateProject(projectId, parsed.data);
-  revalidatePath(`/projects/${projectId}/settings`);
+
+  // Segarkan header project (nama), semua tab project, daftar Project Saya,
+  // dan dashboard (kartu project menampilkan nama yang sama).
+  revalidatePath("/projects/[projectId]", "layout");
+  revalidatePath("/projects");
+  revalidatePath("/dashboard");
   return { success: true };
 }
 
@@ -182,27 +196,67 @@ export async function regenerateJoinCodeAction(projectId: string) {
 
   const member = await findProjectMember(session.user.id, projectId);
   if (!member || !canEditProjectSettings(member.role)) {
-    return { error: "Hanya admin yang boleh regenerate code" };
+    return { error: "Tidak punya izin" };
   }
 
   const updated = await regenerateProjectJoinCode(projectId);
-  revalidatePath(`/projects/${projectId}/settings`);
+  // Chip kode di header project & kartu Project Saya ikut diperbarui.
+  revalidatePath("/projects/[projectId]", "layout");
+  revalidatePath("/projects");
+  revalidatePath("/dashboard");
   return { success: true, joinCode: updated.joinCode };
 }
 
-// DELETE PROJECT (Admin only, soft delete)
-export async function deleteProjectAction(projectId: string) {
+// SAKLAR JOIN ENABLED (Admin only) — "Izinkan bergabung lewat kode".
+export async function setJoinEnabledAction(projectId: string, enabled: boolean) {
   const session = await auth();
   if (!session) return { error: "Unauthorized" };
 
   const member = await findProjectMember(session.user.id, projectId);
   if (!member || !canEditProjectSettings(member.role)) {
-    return { error: "Hanya admin yang boleh menghapus project" };
+    return { error: "Tidak punya izin" };
   }
 
-  await softDeleteProject(projectId);
-  revalidatePath("/dashboard");
+  if (typeof enabled !== "boolean") {
+    return { error: "Parameter tidak valid" };
+  }
+
+  await setProjectJoinEnabled(projectId, enabled);
   return { success: true };
+}
+
+// DELETE PROJECT (Admin only, soft delete) — nama project harus diketik ulang
+// dan diverifikasi ulang di server (Zod + cek persis di dalam transaksi).
+// Setelah sukses: redirect ke /projects dengan flag toast ?terhapus=1.
+export async function deleteProjectAction(projectId: string, formData: FormData) {
+  const session = await auth();
+  if (!session) return { error: "Unauthorized" };
+
+  const member = await findProjectMember(session.user.id, projectId);
+  if (!member || !canEditProjectSettings(member.role)) {
+    return { error: "Tidak punya izin" };
+  }
+
+  const parsed = deleteProjectConfirmSchema.safeParse({
+    name: formData.get("name"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+
+  const deleted = await softDeleteProjectIfNameMatches(
+    projectId,
+    parsed.data.name.trim()
+  );
+  if (!deleted) {
+    return { error: "Nama project tidak sesuai" };
+  }
+
+  revalidatePath("/projects");
+  revalidatePath("/dashboard");
+  revalidatePath("/tim");
+  // Post-redirect toast: ?terhapus=1 dibaca sekali oleh halaman /projects.
+  redirect("/projects?terhapus=1");
 }
 
 

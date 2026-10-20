@@ -130,7 +130,8 @@ export interface InboxNotification {
   createdAt: string; // ISO string
   actor: InboxActor | null;
   task: InboxTask | null;
-  project: { id: string; name: string } | null;
+  /** `deleted: true` bila project sudah di-soft-delete — tampil sebagai "Project dihapus" dengan target non-klik. */
+  project: { id: string; name: string; deleted: boolean } | null;
   /** Komentar pemicu notifikasi (MENTION/TASK_COMMENT) — terbaru bila di-coalesce. */
   comment: {
     id: string;

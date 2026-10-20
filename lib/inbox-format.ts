@@ -47,7 +47,9 @@ export function dueLabel(dueIso: string | null): string | null {
 }
 
 export function taskLink(item: InboxNotification): string {
-  // Link ke board project; anchor task bila ada.
+  // Link ke board project; anchor task bila ada. Project soft-deleted →
+  // fallback aman (detail panel menonaktifkan tombolnya, lihat inbox-detail).
+  if (item.project?.deleted) return "/inbox";
   const projectId = item.task?.projectId ?? item.project?.id;
   if (!projectId) return "/dashboard";
   return item.task

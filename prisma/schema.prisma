@@ -59,6 +59,7 @@ model Project {
   name        String
   description String?
   joinCode    String    @unique
+  joinEnabled Boolean   @default(true) // saklar "izinkan bergabung lewat kode"
   createdAt   DateTime  @default(now())
   deletedAt   DateTime?
 

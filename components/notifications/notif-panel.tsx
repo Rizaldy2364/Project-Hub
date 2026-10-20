@@ -176,7 +176,14 @@ export function NotifPanel({ open, onClose, triggerRef }: NotifPanelProps) {
       void refresh(); // selaraskan angka (rollback otomatis bila gagal)
 
       onClose();
-      if (item.type === "MENTION" && item.message && item.project) {
+      // Mention chat di project soft-deleted → jangan buka /diskusi?project=id
+      // (project sudah tidak ada); cukup ke Inbox.
+      if (
+        item.type === "MENTION" &&
+        item.message &&
+        item.project &&
+        !item.project.deleted
+      ) {
         router.push(`/diskusi?project=${item.project.id}&message=${item.message.id}`);
       } else {
         router.push("/inbox");

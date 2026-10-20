@@ -32,6 +32,38 @@ export async function findLabelsByProjectId(projectId: string) {
   });
 }
 
+// READ — label project + jumlah task aktif yang memakainya (panel Pengaturan →
+// Label). Satu query dengan filtered _count; task soft-deleted tidak dihitung.
+export interface ProjectLabelWithCounts {
+  id: string;
+  name: string;
+  color: string;
+  taskCount: number;
+}
+
+export async function findProjectLabelsWithCounts(
+  projectId: string
+): Promise<ProjectLabelWithCounts[]> {
+  const labels = await prisma.label.findMany({
+    where: { projectId, deletedAt: null },
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      _count: {
+        select: { tasks: { where: { deletedAt: null, list: { deletedAt: null } } } },
+      },
+    },
+  });
+  return labels.map((label) => ({
+    id: label.id,
+    name: label.name,
+    color: label.color,
+    taskCount: label._count.tasks,
+  }));
+}
+
 // UPDATE
 export async function updateLabel(id: string, data: UpdateLabelInput) {
   return prisma.label.update({

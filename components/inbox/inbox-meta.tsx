@@ -56,7 +56,7 @@ export const TYPE_META: Record<
 export function titleParts(item: InboxNotification): React.ReactNode {
   const actor = item.actor?.name ?? "Seseorang";
   const taskTitle = item.task?.title ?? "";
-  const projectName = item.project?.name ?? "";
+  const projectName = projectDisplayName(item);
   switch (item.type) {
     case "TASK_ASSIGNED":
       return (
@@ -123,7 +123,7 @@ export function titleParts(item: InboxNotification): React.ReactNode {
 }
 
 export function subTitle(item: InboxNotification): string {
-  const project = item.project?.name ?? "";
+  const project = projectDisplayName(item);
   const due = item.task?.dueDate ? dueLabel(item.task.dueDate) : null;
   if (item.type === "MEMBER_JOINED") return project;
   // Baris bawah notifikasi komentar cukup nama project (sesuai spesifikasi).
@@ -134,6 +134,15 @@ export function subTitle(item: InboxNotification): string {
   return project;
 }
 
+/**
+ * Nama project untuk baris Inbox; project soft-deleted tampil sebagai
+ * "Project dihapus" (target navigasi juga dinonaktifkan — lihat detail panel).
+ */
+export function projectDisplayName(item: InboxNotification): string {
+  if (!item.project) return "";
+  return item.project.deleted ? "Project dihapus" : item.project.name;
+}
+
 /** Mention di Diskusi = MENTION dengan messageId dan tanpa taskId. */
 export function isChatMention(item: InboxNotification): boolean {
   return item.type === "MENTION" && item.message !== null && item.task === null;
@@ -141,6 +150,6 @@ export function isChatMention(item: InboxNotification): boolean {
 
 /** Link ke pesan chat yang menyebut user (/diskusi?project=…&message=…). */
 export function discussionLink(item: InboxNotification): string {
-  if (!item.project) return "/diskusi";
+  if (!item.project || item.project.deleted) return "/diskusi";
   return `/diskusi?project=${item.project.id}&message=${item.message?.id ?? ""}`;
 }

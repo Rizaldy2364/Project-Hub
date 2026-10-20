@@ -9,6 +9,7 @@ export interface ProjectMembership {
     description: string | null;
     createdAt: Date;
     joinCode: string;
+    joinEnabled: boolean;
     members: {
       userId: string;
       role: ProjectRole;
@@ -25,7 +26,7 @@ export interface ProjectMembership {
  * dijalankan ulang per tab dalam satu render.
  *
  * Mengembalikan `null` bila project tidak ada, sudah soft-deleted, atau user
- * bukan anggotanya — pemanggil wajib memanggil `notFound()` agar tidak
+ * bukan anggotanya — pemanggil wajib memanggil `notFound()` agar tidak
  * membocorkan keberadaan project.
  */
 export const getProjectMembership = cache(
@@ -38,6 +39,7 @@ export const getProjectMembership = cache(
         description: true,
         createdAt: true,
         joinCode: true,
+        joinEnabled: true,
         members: {
           select: {
             userId: true,
