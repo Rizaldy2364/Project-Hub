@@ -7,57 +7,73 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type SettingsSection = "umum" | "kode" | "label" | "peran" | "bahaya";
+/**
+ * Id bagian Pengaturan = id DOM <section> pada halaman (satu halaman panjang
+ * dengan scroll-anchoring, bukan pemilihan panel lewat ?bagian=).
+ */
+export type SettingsSectionId =
+  | "umum"
+  | "kode-gabung"
+  | "label"
+  | "peran-izin"
+  | "zona-berbahaya";
 
 export interface SectionMeta {
-  key: SettingsSection;
+  key: SettingsSectionId;
   label: string;
   icon: LucideIcon;
-  description: string;
 }
 
 /**
- * Definisi bagian Pengaturan.
+ * Definisi bagian Pengaturan (menu + urutan section di halaman).
  *
  * File ini SENGAJA tanpa "use client" supaya bisa dipakai oleh Server
- * Component (halaman /pengaturan memvalidasi query param ?bagian= di server)
- * sekaligus oleh Client Component (SettingsNav). Modul client tidak boleh
- * dipanggil dari server, jadi definisi murni diletakkan di file terpisah.
+ * Component (halaman /pengaturan me-redirect query param ?bagian= lama ke
+ * hash section) sekaligus oleh Client Component (SettingsNav). Modul client
+ * tidak boleh dipanggil dari server, jadi definisi murni diletakkan di file
+ * terpisah.
  */
 export const SETTINGS_SECTIONS: SectionMeta[] = [
   {
     key: "umum",
     label: "Umum",
     icon: SlidersHorizontal,
-    description: "Nama dan deskripsi project.",
   },
   {
-    key: "kode",
+    key: "kode-gabung",
     label: "Kode gabung",
     icon: KeyRound,
-    description: "Kode undangan dan pendaftaran anggota.",
   },
   {
     key: "label",
     label: "Label",
     icon: Tags,
-    description: "Kategori berwarna untuk task.",
   },
   {
-    key: "peran",
+    key: "peran-izin",
     label: "Peran dan izin",
     icon: ShieldCheck,
-    description: "Ringkasan peran anggota project.",
   },
   {
-    key: "bahaya",
+    key: "zona-berbahaya",
     label: "Zona berbahaya",
     icon: AlertTriangle,
-    description: "Tindakan yang tidak bisa dibatalkan.",
   },
 ];
 
-/** Type guard untuk query param ?bagian= — dipanggil di server & client. */
-export function isSettingsSection(value: string): value is SettingsSection {
+/**
+ * Query param lama ?bagian=umum|kode|label|peran|bahaya → hash section.
+ * Nilai tak dikenal tidak ada di peta ini (halaman redirect ke URL bersih).
+ */
+export const BAGIAN_TO_HASH: Record<string, SettingsSectionId> = {
+  umum: "umum",
+  kode: "kode-gabung",
+  label: "label",
+  peran: "peran-izin",
+  bahaya: "zona-berbahaya",
+};
+
+/** Type guard untuk hash section — dipakai client (efek load dengan hash). */
+export function isSettingsSectionId(value: string): value is SettingsSectionId {
   return SETTINGS_SECTIONS.some((section) => section.key === value);
 }

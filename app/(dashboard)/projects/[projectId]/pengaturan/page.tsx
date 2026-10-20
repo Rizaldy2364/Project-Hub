@@ -5,7 +5,7 @@ import { canEditProjectSettings } from "@/lib/permissions";
 import { findProjectLabelsWithCounts } from "@/repositories/label.repository";
 import { countProjectMembersByRole } from "@/repositories/team.repository";
 import { SettingsNav } from "@/components/settings/settings-nav";
-import { isSettingsSection } from "@/components/settings/settings-sections";
+import { BAGIAN_TO_HASH } from "@/components/settings/settings-sections";
 import { GeneralSection } from "@/components/settings/general-section";
 import { KodeSection } from "@/components/settings/kode-section";
 import { LabelSection } from "@/components/settings/label-section";
@@ -36,11 +36,14 @@ export default async function PengaturanPage({
     forbidden();
   }
 
-  // Bagian aktif disimpan di URL (?bagian=umum|kode|label|peran|bahaya) supaya
-  // bisa di-bookmark dan tombol back/forward browser berfungsi. Nilai tak
-  // dikenal → kembali ke "umum".
+  // URL lama ?bagian=umum|kode|label|peran|bahaya → redirect ke hash section
+  // di halaman yang sama (satu halaman panjang dengan scroll-anchoring, tanpa
+  // panel switching). Nilai tak dikenal → redirect ke URL bersih tanpa hash.
   const { bagian } = await searchParams;
-  const active = bagian && isSettingsSection(bagian) ? bagian : "umum";
+  if (bagian) {
+    const hash = BAGIAN_TO_HASH[bagian];
+    redirect(`/projects/${projectId}/pengaturan${hash ? `#${hash}` : ""}`);
+  }
 
   const [labels, roleSummary] = await Promise.all([
     findProjectLabelsWithCounts(projectId),
@@ -55,50 +58,34 @@ export default async function PengaturanPage({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-slate-900 dark:text-white">
-          Pengaturan project
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-[#8B96AD]">
-          Kelola info project, kode gabung, label, peran anggota, dan hapus
-          project.
-        </p>
-      </div>
+    // Satu halaman panjang: tanpa heading besar (tab bar sudah menamai halaman)
+    // dan tanpa padding horizontal tambahan — tepi konten sejajar dengan kartu
+    // header project di atasnya. Menu sticky di kiri (≥1024px) / baris pil
+    // sticky di bawah navbar; kolom kanan = tumpukan semua section card.
+    // Padding bawah membuat section terakhir (Zona berbahaya) tetap bisa
+    // di-scroll sampai judulnya menyentuh offset sticky.
+    <div className="grid items-start gap-6 lg:grid-cols-[240px_1fr]">
+      <SettingsNav />
 
-      {/* Satu panel isi di kanan sesuai bagian aktif. Menu bagian di kiri
-          (desktop) / baris pill di atas (mobile) — diatur SettingsNav. */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-        <SettingsNav projectId={projectId} active={active} />
+      <div className="min-w-0 space-y-6 pb-[max(0px,calc(100dvh_-_124px_-_200px))] lg:pb-[max(0px,calc(100dvh_-_80px_-_200px))]">
+        <GeneralSection
+          projectId={projectId}
+          initialName={project.name}
+          initialDescription={project.description ?? ""}
+          createdAt={project.createdAt.toISOString()}
+        />
 
-        <div className="min-w-0 flex-1">
-          {active === "umum" && (
-            <GeneralSection
-              projectId={projectId}
-              initialName={project.name}
-              initialDescription={project.description ?? ""}
-              createdAt={project.createdAt.toISOString()}
-            />
-          )}
+        <KodeSection
+          projectId={projectId}
+          joinCode={project.joinCode}
+          joinEnabled={project.joinEnabled}
+        />
 
-          {active === "kode" && (
-            <KodeSection
-              projectId={projectId}
-              joinCode={project.joinCode}
-              joinEnabled={project.joinEnabled}
-            />
-          )}
+        <LabelSection projectId={projectId} labels={labels} />
 
-          {active === "label" && (
-            <LabelSection projectId={projectId} labels={labels} />
-          )}
+        <PeranSection roles={roles} />
 
-          {active === "peran" && <PeranSection roles={roles} />}
-
-          {active === "bahaya" && (
-            <BahayaSection projectId={projectId} projectName={project.name} />
-          )}
-        </div>
+        <BahayaSection projectId={projectId} projectName={project.name} />
       </div>
     </div>
   );

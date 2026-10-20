@@ -72,8 +72,32 @@ export function GeneralSection({
     "rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50";
 
   return (
-    <SettingsPanel title="Umum" description="Informasi dasar project yang terlihat oleh semua anggota.">
-      <form onSubmit={handleSubmit}>
+    <SettingsPanel
+      id="umum"
+      title="Umum"
+      description="Informasi dasar project yang terlihat oleh semua anggota."
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={reset}
+            disabled={!dirty || isPending}
+            className={`${BTN} border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-white/[0.08] dark:text-[#E6EAF2] dark:hover:bg-[#1B2438]`}
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            form="umum-form"
+            disabled={!dirty || isPending}
+            className={`${BTN} bg-blue-600 text-white hover:bg-blue-700`}
+          >
+            {isPending ? "Menyimpan..." : "Simpan perubahan"}
+          </button>
+        </>
+      }
+    >
+      <form id="umum-form" onSubmit={handleSubmit}>
         <SettingRow label="Nama project" help="1–100 karakter." htmlFor="settings-name">
           <div>
             <input
@@ -112,16 +136,8 @@ export function GeneralSection({
           <p className="text-sm text-slate-600 dark:text-[#8B96AD]">{formatFullDate(createdAt)}</p>
         </SettingRow>
         {error && (
-          <p role="alert" className="px-1 py-3 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p role="alert" className="px-7 py-3 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
-        <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-1 py-4 dark:border-white/[0.08]">
-          <button type="button" onClick={reset} disabled={!dirty || isPending} className={`${BTN} border border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-white/[0.08] dark:text-[#E6EAF2] dark:hover:bg-[#1B2438]`}>
-            Batal
-          </button>
-          <button type="submit" disabled={!dirty || isPending} className={`${BTN} bg-blue-600 text-white hover:bg-blue-700`}>
-            {isPending ? "Menyimpan..." : "Simpan perubahan"}
-          </button>
-        </div>
       </form>
       <Toast toast={toast} />
     </SettingsPanel>
