@@ -58,16 +58,10 @@ export default async function ProjectAktivitasPage({
   const initialRows = hasMore ? rows.slice(0, 30) : rows;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Aktivitas
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-[#8B96AD]">
-          Riwayat kejadian di project ini.
-        </p>
-      </div>
-
+    // Tanpa heading besar (tab "Aktivitas" sudah menamai halaman) dan tanpa
+    // max-w/padding tambahan — toolbar & kartu sejajar dengan tepi kartu
+    // header project.
+    <div className="space-y-6">
       <ActivityToolbar
         type={filters.type as ActivityTypeFilterValue}
         project={filters.project}

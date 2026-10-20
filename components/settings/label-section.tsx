@@ -61,40 +61,38 @@ export function LabelSection({ projectId, labels }: LabelSectionProps) {
   };
 
   return (
-    <SettingsPanel title="Label" description="Kategori berwarna untuk task di project ini." headerAction={
+    <SettingsPanel id="label" title="Label" description="Kategori berwarna untuk task di project ini." headerAction={
       <button type="button" onClick={openCreate} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2.5 text-xs font-semibold text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500"><Plus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />Label baru</button>
     }>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {/* Daftar label: satu baris per label (dot warna, nama, chip preview
+          persis seperti di kartu task, jumlah task, aksi edit/hapus). */}
+      <div>
         {labels.map((label) => (
-          <div key={label.id} className="rounded-xl border bg-white p-3 dark:border-white/[0.08] dark:bg-[#0F1524]">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="shrink-0 rounded-full border p-1" style={{ borderColor: label.color }}><span className="block rounded-full" style={{ width: 10, height: 10, backgroundColor: label.color }} aria-hidden="true" /></span>
-              <span className="text-sm font-semibold text-slate-900 dark:text-[#E6EAF2] truncate">{label.name}</span>
-            </div>
-            <div className="flex items-center justify-between text-xs mb-2">
-              <span className="inline-flex items-center gap-1 rounded-md border px-2 py-0.5" style={{ borderColor: label.color, backgroundColor: label.color + "1a", color: label.color }}><span className="block rounded-full" style={{ width: 6, height: 6, backgroundColor: label.color }} aria-hidden="true" />{label.name}</span>
-              <span className="text-slate-500 dark:text-[#8B96AD]">{label.taskCount} task</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button type="button" onClick={() => openEdit(label)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 focus-visible:ring-2 focus-visible:ring-blue-500" title="Edit label" aria-label={`Edit ${label.name}`}><Edit3 className="h-3.5 w-3.5" aria-hidden="true" /></button>
-              <button type="button" onClick={() => openDelete(label)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 focus-visible:ring-2 focus-visible:ring-red-500" title="Hapus label" aria-label={`Hapus ${label.name}`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></button>
+          <div key={label.id} className="flex h-14 items-center gap-3 border-b border-slate-100 px-7 last:border-b-0 hover:bg-slate-50 dark:border-white/[0.06] dark:hover:bg-[#1B2438]/50">
+            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: label.color }} aria-hidden="true" />
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900 dark:text-[#E6EAF2]">{label.name}</span>
+            <span className="hidden shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold sm:inline-block" style={{ backgroundColor: `${label.color}1a`, color: label.color }}>#{label.name}</span>
+            <span className="shrink-0 text-sm text-slate-500 dark:text-[#8B96AD]">{label.taskCount} task</span>
+            <div className="flex shrink-0 items-center gap-1">
+              <button type="button" onClick={() => openEdit(label)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 focus-visible:ring-2 focus-visible:ring-blue-500" title="Edit label" aria-label={`Edit ${label.name}`}><Edit3 className="h-4 w-4" aria-hidden="true" /></button>
+              <button type="button" onClick={() => openDelete(label)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 focus-visible:ring-2 focus-visible:ring-red-500" title="Hapus label" aria-label={`Hapus ${label.name}`}><Trash2 className="h-4 w-4" aria-hidden="true" /></button>
             </div>
           </div>
         ))}
         {labels.length === 0 && (
-          <div className="col-span-full rounded-xl border border-dashed bg-[#0F1524] dark:border-white/[0.08] py-6 text-center text-sm text-slate-500 dark:text-[#8B96AD]">Belum ada label. Klik <span className="font-semibold text-blue-600 dark:text-blue-400">Label baru</span> untuk menambahkan.</div>
+          <div className="px-7 py-8 text-center text-sm text-slate-500 dark:text-[#8B96AD]">Belum ada label. Klik <span className="font-semibold text-blue-600 dark:text-blue-400">Label baru</span> untuk menambahkan.</div>
         )}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent title={editMode ? "Edit label" : "Label baru"}>
           <form action={handleSubmit} className="space-y-4">
-            <SettingRow label="Nama label" help="1–30 karakter, unik dalam project (case-insensitive)." htmlFor="label-name">
+            <SettingRow label="Nama label" help="1–30 karakter, unik dalam project (case-insensitive)." htmlFor="label-name" className="grid-cols-[1fr] gap-2 border-b-0 px-0 py-1 md:grid-cols-[1fr]">
               <input id="label-name" type="text" value={name} maxLength={30} onChange={(e) => setName(e.target.value)} className={settingsInputClass(!!fieldErrors.name)} aria-invalid={!!fieldErrors.name} />
               {fieldErrors.name && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldErrors.name}</p>}
             </SettingRow>
-            <SettingRow label="Warna" help="Pilih preset atau ketik kode hex.">
+            <SettingRow label="Warna" help="Pilih preset atau ketik kode hex." className="grid-cols-[1fr] gap-2 border-b-0 px-0 py-1 md:grid-cols-[1fr]">
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map((c) => (
                   <button key={c} type="button" onClick={() => { setColor(c); setHexInput(c); }} className={`shrink-0 rounded-full border p-1.5 ${cn(color === c ? "ring-2 ring-blue-500" : "")}`} style={{ borderColor: c }} aria-label={c}><span className="block rounded-full" style={{ width: 16, height: 16, backgroundColor: c }} aria-hidden="true" /></button>

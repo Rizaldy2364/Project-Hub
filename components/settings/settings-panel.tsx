@@ -3,10 +3,14 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Kartu panel Pengaturan: header (judul + deskripsi satu baris), lalu isi.
- * Dipakai tepat SATU kali per halaman (bagian aktif).
+ * Kartu section Pengaturan: <section id=… aria-labelledby=…> dengan header
+ * (judul 18px bold + deskripsi satu baris + aksi opsional), baris pengaturan,
+ * dan footer bar opsional. Halaman Pengaturan merender SEMUA section sekaligus
+ * dalam satu halaman panjang; `id` dipakai scroll-anchoring menu (SettingsNav),
+ * dan judulnya bisa difokus (tabindex -1) dari menu.
  */
 export function SettingsPanel({
+  id,
   title,
   description,
   headerAction,
@@ -14,44 +18,55 @@ export function SettingsPanel({
   footer,
   danger = false,
 }: {
+  id: string;
   title: string;
   description: string;
   /** Kontrol di kanan header (mis. tombol "Label baru"). */
   headerAction?: React.ReactNode;
   children: React.ReactNode;
-  /** Footer bar (tombol Batal/Simpan) dirender sticky di bawah kartu. */
+  /** Footer bar (tombol Batal/Simpan) di bawah kartu. */
   footer?: React.ReactNode;
-  /** Panel zona berbahaya: border merah tipis. */
+  /** Section zona berbahaya: border merah tipis + header bertint merah. */
   danger?: boolean;
 }) {
   return (
     <section
+      id={id}
+      aria-labelledby={`${id}-title`}
       className={cn(
-        "flex flex-col rounded-2xl border bg-white shadow-sm dark:bg-[#131A2B]",
+        "flex scroll-mt-[124px] flex-col rounded-2xl border bg-white shadow-sm lg:scroll-mt-20 dark:bg-[#131A2B]",
         danger
-          ? "border-red-300 dark:border-red-500/40"
+          ? "border-red-500/35"
           : "border-slate-200 dark:border-white/[0.08]"
       )}
     >
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-white/[0.08]">
+      <header
+        className={cn(
+          "flex flex-wrap items-start justify-between gap-3 rounded-t-2xl border-b border-slate-200 px-7 py-5 dark:border-white/[0.08]",
+          danger && "bg-red-500/[0.04]"
+        )}
+      >
         <div className="min-w-0">
           <h2
+            id={`${id}-title`}
+            data-section-heading
+            tabIndex={-1}
             className={cn(
-              "text-base font-bold text-slate-900 dark:text-[#E6EAF2]",
+              "text-lg font-bold text-slate-900 outline-none dark:text-[#E6EAF2]",
               danger && "text-red-700 dark:text-red-400"
             )}
           >
             {title}
           </h2>
-          <p className="mt-0.5 text-sm text-slate-500 dark:text-[#8B96AD]">
+          <p className="mt-1 text-sm text-slate-500 dark:text-[#8B96AD]">
             {description}
           </p>
         </div>
         {headerAction}
       </header>
-      <div className="flex-1 px-5 py-2">{children}</div>
+      <div className="flex-1">{children}</div>
       {footer && (
-        <footer className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur dark:border-white/[0.08] dark:bg-[#131A2B]/95">
+        <footer className="flex items-center justify-end gap-3 rounded-b-2xl border-t border-slate-200 px-7 py-4 dark:border-white/[0.08]">
           {footer}
         </footer>
       )}
@@ -60,7 +75,8 @@ export function SettingsPanel({
 }
 
 /**
- * Baris pengaturan pola label-kiri / kontrol-kanan. Di layar sempit menumpuk.
+ * Baris pengaturan pola grid label 240px / kontrol 1fr (gap 24px, padding
+ * 20px 28px, pemisah antar baris). Di layar sempit menumpuk jadi satu kolom.
  */
 export function SettingRow({
   label,
@@ -78,11 +94,11 @@ export function SettingRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 border-b border-slate-100 px-5 py-4 last:border-b-0 sm:flex-row sm:items-start sm:justify-between dark:border-white/[0.06]",
+        "grid grid-cols-1 gap-6 border-b border-slate-100 px-7 py-5 last:border-b-0 md:grid-cols-[240px_1fr] dark:border-white/[0.06]",
         className
       )}
     >
-      <div className="min-w-0 sm:max-w-xs">
+      <div className="min-w-0">
         {htmlFor ? (
           <label
             htmlFor={htmlFor}
@@ -96,12 +112,12 @@ export function SettingRow({
           </p>
         )}
         {help && (
-          <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-[#8B96AD]">
+          <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-[#8B96AD]">
             {help}
           </p>
         )}
       </div>
-      <div className="min-w-0 sm:flex-1 sm:text-right">{children}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

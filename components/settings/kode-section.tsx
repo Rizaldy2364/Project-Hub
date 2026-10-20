@@ -81,6 +81,7 @@ export function KodeSection({
   }
   return (
     <SettingsPanel
+      id="kode-gabung"
       title="Kode gabung"
       description="Bagikan kode ini agar anggota lain bisa bergabung ke project."
     >
