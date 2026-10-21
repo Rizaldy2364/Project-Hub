@@ -150,10 +150,7 @@ export function BahayaSection({
               <DialogContent
                 hideHeader
                 ariaLabelledby="delete-dialog-title"
-                className={cn(
-                  "w-full max-w-[calc(100vw-24px)] sm:max-w-[500px] rounded-[20px] border border-slate-200 dark:border-white/[0.12] shadow-2xl bg-white dark:bg-[#131A2B]",
-                  "bottom-0 left-0 right-0 top-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:bottom-auto sm:left-auto sm:right-auto"
-                )}
+                className="w-full max-w-[500px] rounded-[20px] border border-slate-200 dark:border-white/[0.12] shadow-2xl bg-white dark:bg-[#131A2B]"
               >
                 <div className="px-6 py-[22px]">
                   <div className="flex items-start justify-between gap-4">

@@ -111,7 +111,7 @@ export function MemberProfileModal({
         <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" />
         <DialogPrimitive.Content
           aria-label="Profil anggota"
-          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-48px)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 max-sm:left-1/2 max-sm:top-auto max-sm:bottom-0 max-sm:w-full max-sm:max-w-none max-sm:translate-y-0 max-sm:rounded-b-none dark:border-slate-800 dark:bg-slate-900"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-48px)] w-[calc(100%-2rem)] max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 max-sm:left-1/2 max-sm:top-auto max-sm:bottom-0 max-sm:w-full max-sm:max-w-none max-sm:translate-y-0 max-sm:rounded-b-none dark:border-slate-800 dark:bg-slate-900"
         >
           {member && (
             <>
