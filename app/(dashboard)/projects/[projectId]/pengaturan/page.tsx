@@ -4,6 +4,7 @@ import { getProjectMembership } from "@/lib/project-guard";
 import { canEditProjectSettings } from "@/lib/permissions";
 import { findProjectLabelsWithCounts } from "@/repositories/label.repository";
 import { countProjectMembersByRole } from "@/repositories/team.repository";
+import { countProjectDeletionImpact } from "@/repositories/project.repository";
 import { SettingsNav } from "@/components/settings/settings-nav";
 import { BAGIAN_TO_HASH } from "@/components/settings/settings-sections";
 import { GeneralSection } from "@/components/settings/general-section";
@@ -45,9 +46,10 @@ export default async function PengaturanPage({
     redirect(`/projects/${projectId}/pengaturan${hash ? `#${hash}` : ""}`);
   }
 
-  const [labels, roleSummary] = await Promise.all([
+  const [labels, roleSummary, deletionImpact] = await Promise.all([
     findProjectLabelsWithCounts(projectId),
     countProjectMembersByRole(projectId),
+    countProjectDeletionImpact(projectId),
   ]);
 
   const roles = [
@@ -85,7 +87,13 @@ export default async function PengaturanPage({
 
         <PeranSection roles={roles} />
 
-        <BahayaSection projectId={projectId} projectName={project.name} />
+        <BahayaSection
+          projectId={projectId}
+          projectName={project.name}
+          taskCount={deletionImpact.taskCount}
+          labelCount={deletionImpact.labelCount}
+          memberCount={deletionImpact.memberCount}
+        />
       </div>
     </div>
   );

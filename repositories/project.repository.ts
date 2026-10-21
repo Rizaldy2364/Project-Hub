@@ -352,6 +352,34 @@ export async function setProjectJoinEnabled(projectId: string, enabled: boolean)
   });
 }
 
+// READ — hitungan dampak penghapusan project (zona berbahaya). Satu query count
+// per tabel, semua dengan filter soft-delete eksplisit (deletedAt IS NULL).
+export interface ProjectDeletionImpact {
+  taskCount: number;
+  labelCount: number;
+  memberCount: number;
+}
+
+export async function countProjectDeletionImpact(
+  projectId: string
+): Promise<ProjectDeletionImpact> {
+  const [taskCount, labelCount, memberCount] = await Promise.all([
+    prisma.task.count({
+      where: {
+        deletedAt: null,
+        list: { projectId, deletedAt: null },
+      },
+    }),
+    prisma.label.count({
+      where: { projectId, deletedAt: null },
+    }),
+    prisma.projectMember.count({
+      where: { projectId },
+    }),
+  ]);
+  return { taskCount, labelCount, memberCount };
+}
+
 // SOFT DELETE — hanya bila nama yang diketik admin cocok persis dengan nama
 // project di database (konfirmasi zona berbahaya). Check + update dalam satu
 // transaksi; mengembalikan null bila nama tidak cocok / project sudah terhapus.
