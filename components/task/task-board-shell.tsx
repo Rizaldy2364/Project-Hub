@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, User, Tag } from "lucide-react";
 import { TaskBoard } from "@/components/task/task-board";
+import { TaskPagination } from "@/components/task/task-pagination";
 import { BoardView, FilterSelect } from "@/components/board/board-view";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { CreateTaskModal } from "@/components/task/create-task-modal";
@@ -17,6 +18,7 @@ import {
   updateTaskAction,
 } from "@/actions/task.actions";
 import { cn } from "@/lib/utils";
+import { canChangeTaskStatus } from "@/lib/permissions";
 import type { BoardProject, BoardTask, BoardTaskStatus, ProjectRole } from "@/types";
 
 interface TaskBoardShellProps {
@@ -87,17 +89,6 @@ export function TaskBoardShell({
     setTasks(project.tasks);
   }, [project.tasks]);
 
-  const canMoveTask = useCallback(
-    (task: BoardTask) => {
-      // Matriks 8.2: ADMIN/MANAGER boleh semua; MEMBER hanya milik sendiri;
-      // VIEWER tidak apa-apa.
-      if (myRole === "VIEWER") return false;
-      if (myRole === "ADMIN" || myRole === "MANAGER") return true;
-      return myRole === "MEMBER" && task.assignee?.id === currentUser.id;
-    },
-    [myRole, currentUser.id]
-  );
-
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
       if (search && !t.title.toLowerCase().includes(search.toLowerCase()))
@@ -119,6 +110,117 @@ export function TaskBoardShell({
       return b.id.localeCompare(a.id);
     });
   }, [filteredTasks]);
+
+  // --- STATE PAGINASI ---
+  // Parse URL searchParams for page and pageSize
+  const rawPage = searchParams.get("page");
+  const rawPageSize = searchParams.get("pageSize");
+
+  // Validasi page dari URL
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<10 | 25 | 50>(10);
+
+  useEffect(() => {
+    if (rawPage !== null) {
+      const pageNum = Number.parseInt(rawPage, 10);
+      if (Number.isNaN(pageNum) || pageNum < 1) {
+        setPage(1);
+      } else {
+        setPage(pageNum);
+      }
+    } else {
+      setPage(1);
+    }
+  }, [rawPage]);
+
+  useEffect(() => {
+    if (rawPageSize !== null) {
+      const sizeNum = Number.parseInt(rawPageSize, 10);
+      if (sizeNum === 10 || sizeNum === 25 || sizeNum === 50) {
+        setPageSize(sizeNum as 10 | 25 | 50);
+      } else {
+        setPageSize(10);
+      }
+    } else {
+      setPageSize(10);
+    }
+  }, [rawPageSize]);
+
+  // --- Hitung total halaman dan mulai slicing ---
+  // Total tasks setelah filter (tidak termasuk pagination slicing)
+  const totalTasks = filteredTasks.length;
+
+  // Total halaman ( minimal 1 )
+  const totalPages = Math.max(1, Math.ceil(totalTasks / pageSize));
+
+  // Halaman yang valid (clamp ke range 1..totalPages)
+  const safePage = Math.min(page, totalPages);
+
+  // Slice tasks untuk view Daftar (newest first order)
+  const pageStart = (safePage - 1) * pageSize;
+  const pageEnd = safePage * pageSize;
+  const paginatedListTasks = useMemo(() => {
+    return listTasks.slice(pageStart, pageEnd);
+  }, [listTasks, pageStart, pageEnd]);
+
+  // --- Hitung from/to untuk display ---
+  const from = totalTasks === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const to = Math.min(totalTasks, safePage * pageSize);
+
+  // --- Navigation query helper ---
+  const pushQuery = useCallback(
+    (next: Record<string, string>) => {
+      const sp = new URLSearchParams(searchParams.toString());
+      for (const [k, v] of Object.entries(next)) {
+        if (v) sp.set(k, v);
+        else sp.delete(k);
+      }
+      router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
+    },
+    [searchParams, pathname, router]
+  );
+
+  // --- Compute page numbers for pagination control ---
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const start = Math.max(1, safePage - 2);
+    const end = Math.min(totalPages, safePage + 2);
+    const pages: number[] = [];
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }, [totalPages, safePage]);
+
+  // --- Reset page ke 1 saat filter berubah ---
+  const prevFilterRef = useRef({ search, memberId, labelId });
+  useEffect(() => {
+    if (
+      search !== prevFilterRef.current.search ||
+      memberId !== prevFilterRef.current.memberId ||
+      labelId !== prevFilterRef.current.labelId
+    ) {
+      prevFilterRef.current = { search, memberId, labelId };
+      setPage(1);
+      if (searchParams.get("page") && searchParams.get("page") !== "1") {
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.set("page", "1");
+        router.replace(`${pathname}?${newSearchParams.toString()}`, {
+          scroll: false,
+        });
+      }
+    }
+  }, [search, memberId, labelId, searchParams, pathname, router]);
+
+  // --- canMoveTask ---
+  const canMoveTask = useCallback(
+    (task: BoardTask) => {
+      return canChangeTaskStatus(myRole, task.assignee?.id === currentUser.id);
+    },
+    [myRole, currentUser.id]
+  );
 
   // --- Modals ---
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
@@ -386,13 +488,26 @@ export function TaskBoardShell({
         />
       ) : (
         <BoardView
-          tasks={view === "list" ? listTasks : filteredTasks}
+          tasks={paginatedListTasks}
           onSelectTask={setSelectedTask}
           canCreateTask={canCreateTask}
           onAddTask={() => handleAddTask("TODO")}
         />
       )}
 
+      {/* Pagination footer for Daftar view */}
+      {view === "list" && totalTasks > 0 && (
+        <TaskPagination
+          total={totalTasks}
+          pageSize={pageSize}
+          safePage={safePage}
+          from={from}
+          to={to}
+          totalPages={totalPages}
+          pageNumbers={pageNumbers}
+          pushQuery={pushQuery}
+        />
+      )}
       {selectedTask && (
         <TaskDetailModal
           key={selectedTask.id}
