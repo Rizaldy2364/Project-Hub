@@ -35,12 +35,12 @@ export function ProjectTabs({
 
   const tabs: Tab[] = [
     { key: "ringkasan", href: base, label: "Ringkasan" },
-    { key: "tasks", href: `${base}/tasks`, label: "Task", count: taskCount },
+    { key: "tasks", href: `${base}/tasks`, label: "Task", },
     {
       key: "anggota",
       href: `${base}/anggota`,
       label: "Anggota",
-      count: memberCount,
+      
     },
     {
       key: "diskusi",

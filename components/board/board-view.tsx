@@ -39,7 +39,7 @@ export function BoardView({
     );
   }
 
-  // Baris tambah di daftar paling atas (langsung di atas task pertama), juga
+  // Baris tambah di daftar paling bawah (langsung di atas footer pagination), juga
   // pada keadaan kosong. Satu-satunya tombol tambah di view Daftar; hanya untuk
   // ADMIN/MANAGER, tidak dirender untuk MEMBER/VIEWER.
   const addRow = canCreateTask && onAddTask ? (
@@ -57,7 +57,6 @@ export function BoardView({
     <section aria-label="Task List" className="mt-6">
       <div className="rounded-2xl bg-white dark:bg-[#0f172a] text-slate-900 dark:text-slate-200 overflow-hidden shadow-sm dark:shadow-xl border border-slate-200 dark:border-slate-800">
         <div className="p-2">
-          {addRow}
           {tasks.length ? (
             tasks.map((task) => (
               <TaskRow key={task.id} task={task} onClick={() => onSelectTask(task)} />
@@ -67,6 +66,7 @@ export function BoardView({
               Belum ada task
             </p>
           )}
+          {addRow}
         </div>
       </div>
     </section>
