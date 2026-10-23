@@ -12,7 +12,7 @@ import { MemberCard, MemberCells } from "@/components/team/team-row";
 import { canShowMenu } from "@/components/team/team-menu";
 import { TeamToolbar } from "@/components/team/team-toolbar";
 import { TeamEmpty, TeamError, TeamSkeleton } from "@/components/team/team-states";
-import { TeamPagination } from "@/components/team/team-pagination";
+import { Pagination } from "@/components/team/team-pagination";
 
 export interface TeamTableProps {
   projects: TeamProjectOption[];
@@ -36,7 +36,6 @@ export interface TeamTableProps {
   safePage: number;
   from: number;
   to: number;
-  pageNumbers: number[];
   /** Sembunyikan pemilih project (fixed ke satu project). */
   showProjectDropdown?: boolean;
 }
@@ -127,14 +126,14 @@ export function TeamTableCard(p: TeamTableProps) {
             ))}
           </div>
 
-          <TeamPagination
+          <Pagination
+            label="anggota"
             total={p.total}
             pageSize={p.pageSize}
             safePage={p.safePage}
             from={p.from}
             to={p.to}
             totalPages={totalPages}
-            pageNumbers={p.pageNumbers}
             pushQuery={p.pushQuery}
           />
         </>

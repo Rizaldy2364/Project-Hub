@@ -3,6 +3,7 @@
 import { Plus, Search } from "lucide-react";
 import { TaskRow } from "@/components/board/task-row";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 import type { BoardTask } from "@/types";
 
 interface BoardViewProps {
@@ -15,6 +16,8 @@ interface BoardViewProps {
   canCreateTask?: boolean;
   /** Buka modal buat task (status "Belum"). */
   onAddTask?: () => void;
+  /** Elemen (mis. pagination) yang di-render di dalam card sebagai anak terakhir. */
+  footer?: ReactNode;
 }
 
 /** Daftar task (view "Daftar"): filter sudah diterapkan shell, ini hanya merender. */
@@ -24,6 +27,7 @@ export function BoardView({
   loading = false,
   canCreateTask = false,
   onAddTask,
+  footer,
 }: BoardViewProps) {
   if (loading) {
     return (
@@ -46,7 +50,7 @@ export function BoardView({
     <button
       type="button"
       onClick={onAddTask}
-      className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-500 transition-colors hover:border-blue-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-400 dark:hover:border-blue-500 dark:hover:text-blue-400"
+      className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-500 transition-colors hover:border-blue-500 hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-400 dark:hover:border-blue-500 dark:hover:text-blue-400"
     >
       <Plus className="h-3.5 w-3.5" aria-hidden />
       Tambah task
@@ -66,8 +70,15 @@ export function BoardView({
               Belum ada task
             </p>
           )}
-          {addRow}
         </div>
+        {/* Baris tambah di daftar paling bawah (langsung di atas footer pagination),
+            juga pada keadaan kosong. Hanya untuk ADMIN/MANAGER. */}
+        {addRow && (
+          <div className="px-4 py-3">{addRow}</div>
+        )}
+        {/* Footer pagination (mis. view Daftar) — anak terakhir card; sudut
+            bawah card yang rounded-2xl + overflow-hidden memotongnya. */}
+        {footer}
       </div>
     </section>
   );
