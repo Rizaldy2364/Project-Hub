@@ -84,6 +84,7 @@ export interface MyTaskItem extends BoardTask {
   projectId: string;
   projectName: string;
   projectDescription: string | null;
+  completedAt?: string | null; // ISO string atau null
 }
 
 export interface MyTasksProjectGroup {
