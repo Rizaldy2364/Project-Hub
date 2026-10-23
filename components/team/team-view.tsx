@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type {
   ProjectRole,
@@ -142,14 +142,6 @@ export function TeamView(props: TeamViewProps) {
   const from = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
   const to = Math.min(total, safePage * pageSize);
 
-  const pageNumbers = useMemo(() => {
-    const nums: number[] = [];
-    for (let i = Math.max(1, safePage - 2); i <= Math.min(totalPages, safePage + 2); i++) {
-      nums.push(i);
-    }
-    return nums;
-  }, [safePage, totalPages]);
-
   async function handleRoleChange(nextRole: "MANAGER" | "VIEWER" | "MEMBER"): Promise<boolean> {
     if (!manageMember || !projectId || acting) return false;
     const member = manageMember;
@@ -237,7 +229,6 @@ export function TeamView(props: TeamViewProps) {
         safePage={safePage}
         from={from}
         to={to}
-        pageNumbers={pageNumbers}
         showProjectDropdown={props.showProjectDropdown}
       />
 

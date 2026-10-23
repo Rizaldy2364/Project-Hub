@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Search, User, Tag } from "lucide-react";
 import { TaskBoard } from "@/components/task/task-board";
-import { TaskPagination } from "@/components/task/task-pagination";
+import { Pagination } from "@/components/team/team-pagination";
 import { BoardView, FilterSelect } from "@/components/board/board-view";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { CreateTaskModal } from "@/components/task/create-task-modal";
@@ -179,20 +179,6 @@ export function TaskBoardShell({
     },
     [searchParams, pathname, router]
   );
-
-  // --- Compute page numbers for pagination control ---
-  const pageNumbers = useMemo(() => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-    const start = Math.max(1, safePage - 2);
-    const end = Math.min(totalPages, safePage + 2);
-    const pages: number[] = [];
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    return pages;
-  }, [totalPages, safePage]);
 
   // --- Reset page ke 1 saat filter berubah ---
   const prevFilterRef = useRef({ search, memberId, labelId });
@@ -488,24 +474,24 @@ export function TaskBoardShell({
         />
       ) : (
         <BoardView
-          tasks={paginatedListTasks}
+          tasks={view === "list" ? paginatedListTasks : filteredTasks}
           onSelectTask={setSelectedTask}
           canCreateTask={canCreateTask}
           onAddTask={() => handleAddTask("TODO")}
-        />
-      )}
-
-      {/* Pagination footer for Daftar view */}
-      {view === "list" && totalTasks > 0 && (
-        <TaskPagination
-          total={totalTasks}
-          pageSize={pageSize}
-          safePage={safePage}
-          from={from}
-          to={to}
-          totalPages={totalPages}
-          pageNumbers={pageNumbers}
-          pushQuery={pushQuery}
+          footer={
+            view === "list" ? (
+              <Pagination
+                label="task"
+                total={totalTasks}
+                pageSize={pageSize}
+                safePage={safePage}
+                from={from}
+                to={to}
+                totalPages={totalPages}
+                pushQuery={pushQuery}
+              />
+            ) : null
+          }
         />
       )}
       {selectedTask && (
