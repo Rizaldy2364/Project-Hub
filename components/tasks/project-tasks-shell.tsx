@@ -592,7 +592,6 @@ export function ProjectTasksShell({
           <FilterSelect
             value={projectFilter}
             onChange={setProjectFilter}
-            label="Semua project"
             icon={Search}
             options={projectOptions}
           />
