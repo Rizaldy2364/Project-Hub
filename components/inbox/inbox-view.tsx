@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCheck, Inbox as InboxIcon, Settings } from "lucide-react";
+import { CheckCheck, Inbox as InboxIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
   InboxNotification,
@@ -210,15 +210,7 @@ export function InboxView({
             <CheckCheck className="h-4 w-4" />
             {markingAll ? "Menyimpan..." : "Tandai semua dibaca"}
           </button>
-          <button
-            type="button"
-            disabled
-            title="Pengaturan notifikasi (segera hadir)"
-            aria-label="Pengaturan notifikasi"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-400 dark:border-white/[0.08] dark:text-[#8B96AD]"
-          >
-            <Settings className="h-4 w-4" />
-          </button>
+          
         </div>
       </div>
 

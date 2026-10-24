@@ -54,9 +54,9 @@ export function AgendaPanel({ tasks, onSelectTask }: AgendaPanelProps) {
   }, [tasks]);
 
   return (
-    <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      {/* Header agenda: judul + toggle cakupan + tanggal */}
-      <div className="flex items-center justify-between gap-2">
+    <aside className="flex flex-col max-h-[600px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      {/* Header agenda: judul + toggle cakupan + tanggal (tetap diam, tidak discroll) */}
+      <div className="flex items-center justify-between gap-2 shrink-0">
         <h2 className="text-sm font-bold text-slate-900 dark:text-white">Agenda</h2>
         <div
           role="tablist"
@@ -89,15 +89,15 @@ export function AgendaPanel({ tasks, onSelectTask }: AgendaPanelProps) {
       </div>
       <p
         suppressHydrationWarning
-        className="mt-1 text-[11px] font-medium text-slate-400 dark:text-slate-500"
+        className="mt-1 text-[11px] font-medium text-slate-400 dark:text-slate-500 shrink-0"
       >
         {format(now, "d MMMM yyyy", { locale: idLocale })}
       </p>
 
       {mode === "agenda" ? (
         <>
-          {/* Hari ini */}
-          <div className="mt-4">
+          {/* Hari ini (tetap diam, tidak discroll) */}
+          <div className="mt-4 shrink-0">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Hari ini
             </p>
@@ -118,8 +118,8 @@ export function AgendaPanel({ tasks, onSelectTask }: AgendaPanelProps) {
             </div>
           </div>
 
-          {/* Mendatang */}
-          <div className="mt-5">
+          {/* Mendatang (bagian ini saja yang discroll saat konten terlalu banyak) */}
+          <div className="flex-1 min-h-0 mt-5 overflow-y-auto shrink-0">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
               Mendatang
             </p>
@@ -150,7 +150,7 @@ export function AgendaPanel({ tasks, onSelectTask }: AgendaPanelProps) {
         </>
       ) : (
         /* Minggu ini */
-        <div className="mt-4">
+        <div className="flex-1 min-h-0 mt-4 overflow-y-auto">
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Minggu ini
           </p>

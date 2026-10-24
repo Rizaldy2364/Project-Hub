@@ -29,7 +29,7 @@ export function AgendaCard({ task, showDueDate, onClick }: AgendaCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-stretch gap-3 rounded-xl border border-slate-100 bg-white p-3 text-left transition-colors hover:border-blue-200 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/30 dark:hover:bg-slate-800/60"
+      className="flex w-full items-stretch gap-3 rounded-xl border border-slate-100 bg-white p-3 text-left transition-colors hover:border-blue-200 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/30 dark:hover:bg-slate-800/60 min-h-[48px]"
     >
       {/* Bar warna kiri sesuai status */}
       <span
@@ -40,16 +40,8 @@ export function AgendaCard({ task, showDueDate, onClick }: AgendaCardProps) {
         <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
           {task.title}
         </p>
-        <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 flex items-center gap-x-1.5 text-xs text-slate-500 dark:text-slate-400 min-w-0">
           <span className="truncate">{task.projectName}</span>
-          <span aria-hidden="true">·</span>
-          <span className="inline-flex items-center gap-1">
-            <span
-              aria-hidden="true"
-              className={`h-1.5 w-1.5 rounded-full ${statusDot[task.status]}`}
-            />
-            {statusLabel[task.status]}
-          </span>
           {showDueDate && (
             <>
               <span aria-hidden="true">·</span>
