@@ -128,9 +128,7 @@ export function BoardCard({ task, onSelectTask, canDrag, overlay, onMarkDone }: 
               {task.assignee.name.split(" ")[0]}
             </span>
           </span>
-        ) : (
-          <span className="text-xs text-slate-400">Tanpa penanggung jawab</span>
-        )}
+        ) : null}
         <span className="inline-flex shrink-0 items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           {task.commentCount > 0 && (
             <span className="inline-flex items-center gap-1" aria-label={`${task.commentCount} komentar`}>

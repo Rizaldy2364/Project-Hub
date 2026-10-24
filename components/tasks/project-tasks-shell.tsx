@@ -233,9 +233,6 @@ function ProjectTasksOverviewCards({
               </p>
             </div>
           </div>
-          <p className={cn("mt-3 text-xs font-semibold", card.subtitleClassName)}>
-            {card.subtitle}
-          </p>
         </div>
       ))}
     </section>
