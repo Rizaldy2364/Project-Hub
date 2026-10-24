@@ -8,6 +8,7 @@ import {
   summarizeActivityLast7Days,
 } from "@/repositories/activity.repository";
 import { findProjectsForMemberDropdown } from "@/repositories/team.repository";
+import { findProjectMemberUsers } from "@/repositories/project.repository";
 import { toActivityItem } from "@/lib/activity";
 import { ActivityToolbar } from "@/components/activity/activity-toolbar";
 import { ActivityFeed } from "@/components/activity/activity-feed";
@@ -42,6 +43,12 @@ export default async function AktivitasPage({ searchParams }: AktivitasPageProps
   };
 
   try {
+    // Jika project terpilih, ambil member hanya dari project tsb; jika
+    // "Semua project", ambil semua member yang berbagi project dengan user.
+    const membersPromise = filters.project
+      ? findProjectMemberUsers(filters.project)
+      : findSharedProjectUsers(session.user.id);
+
     // Scope keamanan: repository hanya mengembalikan log project yang diikuti
     // user; ID project/member asing diabaikan (menghasilkan feed kosong).
     const [rows, projects, members, summary, topMembers] = await Promise.all([
@@ -54,7 +61,7 @@ export default async function AktivitasPage({ searchParams }: AktivitasPageProps
         take: 30,
       }),
       findProjectsForMemberDropdown(session.user.id),
-      findSharedProjectUsers(session.user.id),
+      membersPromise,
       summarizeActivityLast7Days(session.user.id),
       findMostActiveMembers(session.user.id, 3),
     ]);
