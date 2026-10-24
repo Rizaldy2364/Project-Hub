@@ -11,7 +11,7 @@ import { cn, formatDayMonthWib } from "@/lib/utils";
 import type { BoardTaskStatus, MyTaskItem, TaskPriorityValue } from "@/types";
 
 const STATUS_OPTIONS: { key: BoardTaskStatus | "ALL"; label: string }[] = [
-  { key: "ALL", label: "Semua" },
+  { key: "ALL", label: "Semua status" },
   { key: "TODO", label: "Belum" },
   { key: "IN_PROGRESS", label: "Dikerjakan" },
   { key: "DONE", label: "Selesai" },
@@ -519,7 +519,7 @@ export function ProjectTasksShell({
 
   // Opsi filter proyek (termasuk "Semua proyek").
   const projectOptions = [
-    { value: "", label: "Semua proyek" },
+    { value: "", label: "Semua project" },
     ...projects.map((p) => ({ value: p.id, label: p.name })),
   ];
 
@@ -575,7 +575,7 @@ export function ProjectTasksShell({
 
       {/* ---- Toolbar: pencarian kiri (memanjang), filter + toggle kanan ---- */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative sm:w-96">
+        <div className="relative flex-1 w-full">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
             aria-hidden
@@ -583,8 +583,8 @@ export function ProjectTasksShell({
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari task atau proyek..."
-            aria-label="Cari task atau proyek"
+            placeholder="Cari project..."
+            aria-label="Cari project"
             className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
           />
         </div>
@@ -592,7 +592,7 @@ export function ProjectTasksShell({
           <FilterSelect
             value={projectFilter}
             onChange={setProjectFilter}
-            label="Semua proyek"
+            label="Semua project"
             icon={Search}
             options={projectOptions}
           />
