@@ -43,7 +43,6 @@ export function TaskViewToggle({ view, onChange }: TaskViewToggleProps) {
             )}
           >
             <Icon className="h-3.5 w-3.5" aria-hidden />
-            {label}
           </button>
         );
       })}

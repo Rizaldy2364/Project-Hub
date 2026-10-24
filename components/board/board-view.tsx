@@ -108,12 +108,10 @@ export function FilterSelect({ value, onChange, icon: Icon, label, options }: Fi
           "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
         )}
       >
-        <option value="" disabled>{label}</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
       </select>
-      <span className="sr-only">{label}</span>
     </label>
   );
 }
