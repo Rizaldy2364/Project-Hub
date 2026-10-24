@@ -4,9 +4,8 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { addDays, addMonths, format, isSameMonth } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, FolderKanban } from "lucide-react";
+import { ChevronLeft, ChevronRight, FolderKanban, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UserAvatar } from "@/components/ui/user-avatar";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { MonthGrid } from "@/components/calendar/month-grid";
 import { WeekView, getWeekBounds } from "@/components/calendar/week-view";
@@ -94,109 +93,75 @@ export function CalendarBoard({ tasks, projects, activeProjectId, currentUser }:
   const title =
     view === "week"
       ? `${format(weekBounds.start, "d MMM", { locale: idLocale })} – ${format(
-          weekBounds.end,
-          "d MMM yyyy",
-          { locale: idLocale }
-        )}`
+        weekBounds.end,
+        "d MMM yyyy",
+        { locale: idLocale }
+      )}`
       : format(anchor, "MMMM yyyy", { locale: idLocale });
 
   return (
     <section className="space-y-4">
       {/* Baris filter member + legenda */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Project
-          </span>
-
-          {/* Dropdown filter project — state di URL ?project= (revalidate server). */}
-          <div className="relative inline-flex items-center">
-            <FolderKanban
-              className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-slate-400"
-              aria-hidden="true"
-            />
-            <select
-              value={activeProjectId}
-              onChange={(event) => {
-                const value = event.target.value;
-                router.replace(value ? `/calendar?project=${value}` : "/calendar");
-              }}
-              aria-label="Filter project"
-              className="h-8 max-w-[220px] appearance-none rounded-full border border-slate-200 bg-white py-1 pl-8 pr-7 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40"
-            >
-              <option value="">Semua project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute right-2 text-slate-400"
-            >
-              ▾
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-            Member
-          </span>
-
-          {/* Pill "Semua (N)" — avatar member menumpuk */}
-          <button
-            type="button"
-            onClick={() => setMemberFilter("ALL")}
-            aria-pressed={memberFilter === "ALL"}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-2 py-1.5 text-xs font-semibold transition-colors",
-              memberFilter === "ALL"
-                ? "border-blue-600 bg-blue-600 text-white"
-                : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40"
-            )}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Dropdown filter project — state di URL ?project= (revalidate server). */}
+        <div className="relative inline-flex items-center">
+          <FolderKanban
+            className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-slate-400"
+            aria-hidden="true"
+          />
+          <select
+            value={activeProjectId}
+            onChange={(event) => {
+              const value = event.target.value;
+              router.replace(value ? `/calendar?project=${value}` : "/calendar");
+            }}
+            aria-label="Filter project"
+            className="h-8 max-w-[220px] appearance-none rounded-full border border-slate-200 bg-white py-1 pl-8 pr-7 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40"
           >
-            <span className="flex -space-x-1.5">
-              {members.slice(0, 3).map((member) => (
-                <UserAvatar
-                  key={member.id}
-                  name={member.name}
-                  image={member.avatarUrl}
-                  size="sm"
-                  className="h-5 w-5 text-[9px] ring-2 ring-white dark:ring-slate-900"
-                />
-              ))}
-            </span>
-            Semua ({members.length})
-          </button>
-
-          {/* Pill per member — hanya avatar bulat (nama di tooltip) */}
-          {members.map((member) => (
-            <button
-              key={member.id}
-              type="button"
-              onClick={() => setMemberFilter(member.id)}
-              title={member.name}
-              aria-label={`Filter member ${member.name}`}
-              aria-pressed={memberFilter === member.id}
-              className={cn(
-                "rounded-full transition-shadow",
-                memberFilter === member.id &&
-                  "ring-2 ring-blue-600 ring-offset-2 ring-offset-white dark:ring-offset-slate-950"
-              )}
-            >
-              <UserAvatar
-                name={member.name}
-                image={member.avatarUrl}
-                size="sm"
-                className="h-7 w-7 text-[10px]"
-              />
-            </button>
-          ))}
+            <option value="">Semua project</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-2 text-slate-400"
+          >
+            ▾
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
+        {/* Dropdown filter member — state lokal memberFilter ("ALL" = semua). Posisi tepat di kanan filter project. Gaya sama dengan dropdown project. */}
+        <div className="relative inline-flex items-center">
+          <Users
+            className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-slate-400"
+            aria-hidden="true"
+          />
+          <select
+            value={memberFilter}
+            onChange={(event) => setMemberFilter(event.target.value)}
+            aria-label="Filter member"
+            className="h-8 max-w-[220px] appearance-none rounded-full border border-slate-200 bg-white py-1 pl-8 pr-7 text-xs font-semibold text-slate-700 transition-colors hover:border-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-500/40"
+          >
+            <option value="ALL">Semua member</option>
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </select>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute right-2 text-slate-400"
+          >
+            ▾
+          </span>
+        </div>
+
+        {/* Legenda status — menempel di pojok kanan, di samping filter member. */}
+        <div className="ml-auto flex flex-wrap items-center gap-4">
           {legend.map(({ label, className }) => (
             <span
               key={label}
@@ -215,12 +180,12 @@ export function CalendarBoard({ tasks, projects, activeProjectId, currentUser }:
       {/* Dua kartu: kalender (kiri) + agenda (kanan) */}
       <div
         className={cn(
-          "grid items-start gap-4",
+          "grid gap-4",
           view !== "agenda" && "lg:grid-cols-[minmax(0,1fr)_320px]"
         )}
       >
         {/* Kartu kalender — header berisi navigasi, judul bulan, "Hari ini", dan tab */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 min-h-[600px]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <button
@@ -292,7 +257,7 @@ export function CalendarBoard({ tasks, projects, activeProjectId, currentUser }:
           )}
         </div>
 
-        {/* Kartu agenda (kanan) — tampil pada tab Bulan/Minggu */}
+        {/* Kartu agenda (kanan) — tampil pada tab Bulan/Minggu. Scroll internal hanya pada bagian "Mendatang" di dalam AgendaPanel. */}
         {view !== "agenda" && (
           <AgendaPanel tasks={visibleTasks} onSelectTask={setSelectedTask} />
         )}
