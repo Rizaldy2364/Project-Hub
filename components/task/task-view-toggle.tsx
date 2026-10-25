@@ -9,8 +9,8 @@ export type TaskViewValue = "board" | "list";
 export const TASK_VIEW_STORAGE_KEY = "projecthub:task-view";
 
 const VIEW_OPTIONS: { value: TaskViewValue; label: string; Icon: typeof LayoutGrid }[] = [
-  { value: "board", label: "Board", Icon: LayoutGrid },
-  { value: "list", label: "Daftar", Icon: List },
+  { value: "board", label: "Tampilan board", Icon: LayoutGrid },
+  { value: "list", label: "Tampilan list", Icon: List },
 ];
 
 interface TaskViewToggleProps {
@@ -18,13 +18,13 @@ interface TaskViewToggleProps {
   onChange: (view: TaskViewValue) => void;
 }
 
-/** Segmented control "Board | Daftar" — URL (?view=) adalah sumber kebenaran. */
+/** Segmented control "Board | Daftar" — mengikuti style toggle view di dashboard. */
 export function TaskViewToggle({ view, onChange }: TaskViewToggleProps) {
   return (
     <div
-      role="tablist"
+      role="group"
       aria-label="Tampilan task"
-      className="inline-flex h-10 shrink-0 items-center gap-0.5 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800/60"
+      className="flex shrink-0 rounded-xl border border-slate-200 bg-white p-0.5 dark:border-slate-800 dark:bg-slate-900"
     >
       {VIEW_OPTIONS.map(({ value, label, Icon }) => {
         const active = view === value;
@@ -32,17 +32,18 @@ export function TaskViewToggle({ view, onChange }: TaskViewToggleProps) {
           <button
             key={value}
             type="button"
-            role="tab"
-            aria-selected={active}
+            title={label}
+            aria-label={label}
+            aria-pressed={active}
             onClick={() => onChange(value)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+              "flex h-8 w-8 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
               active
-                ? "bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white"
-                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             )}
           >
-            <Icon className="h-3.5 w-3.5" aria-hidden />
+            <Icon className="w-4 h-4" />
           </button>
         );
       })}

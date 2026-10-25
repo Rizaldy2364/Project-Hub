@@ -20,9 +20,9 @@ const TYPE_TABS: { key: ActivityTypeFilterValue; label: string }[] = [
 ];
 
 const RANGE_OPTIONS: { value: ActivityRangeValue; label: string }[] = [
-  { value: 7, label: "7 hari" },
-  { value: 30, label: "30 hari" },
-  { value: 90, label: "90 hari" },
+  { value: 7, label: "7 hari terakhir" },
+  { value: 30, label: "30 hari terakhir" },
+  { value: 90, label: "90 hari terakhir" },
 ];
 
 interface ActivityToolbarProps {
