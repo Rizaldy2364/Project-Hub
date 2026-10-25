@@ -47,16 +47,19 @@ export function DiscussionsView({
   );
 
   // ===== Polling ringkasan 15 detik — hanya saat tab terlihat =====
-  const refreshSummary = useCallback(async () => {
+  const refreshSummary = useCallback(async (signal?: AbortSignal) => {
     try {
       const res = await fetch("/api/discussions/summary", {
         cache: "no-store",
+        signal,
       });
       if (!res.ok) throw new Error("gagal");
       const data: { items: DiscussionSummaryItem[] } = await res.json();
       setItems(data.items);
       setError(null);
     } catch (err) {
+      // AbortError terjadi saat komponen unmount — bukan error sebenarnya.
+      if (err instanceof DOMException && err.name === "AbortError") return;
       console.error("[diskusi] gagal memuat ringkasan:", err);
       // Jangan tampilkan error keras saat polling — hanya saat load awal/retry.
       setError((prev) => prev ?? "Gagal memuat daftar percakapan. Coba lagi.");
@@ -66,13 +69,14 @@ export function DiscussionsView({
   }, []);
 
   useEffect(() => {
+    const controller = new AbortController();
     let timer: number | null = null;
     let cancelled = false;
 
     const tick = async () => {
       if (cancelled) return;
       if (document.visibilityState === "visible") {
-        await refreshSummary();
+        await refreshSummary(controller.signal);
       }
       if (!cancelled) timer = window.setTimeout(tick, 15_000);
     };
@@ -80,12 +84,13 @@ export function DiscussionsView({
 
     const onVisibility = () => {
       if (document.visibilityState === "visible" && !cancelled) {
-        void refreshSummary();
+        void refreshSummary(controller.signal);
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
+      controller.abort();
       if (timer !== null) window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
     };

@@ -244,13 +244,14 @@ export function ChatPanel({
   }, [loading, markRead]);
 
   // ===== Polling 5 detik — hanya saat tab terlihat; berhenti saat unmount =====
-  const pollMessages = useCallback(async () => {
+  // `signal` diteruskan dari polling effect agar fetch dibatalkan saat unmount.
+  const pollMessages = useCallback(async (signal?: AbortSignal) => {
     const afterId = lastIdRef.current;
     if (!afterId) return; // chat kosong — tidak ada yang bisa di-poll
     try {
       const res = await fetch(
         `/api/projects/${projectId}/messages?after=${afterId}`,
-        { cache: "no-store" }
+        { cache: "no-store", signal }
       );
       if (!res.ok) return;
       const data: {
@@ -278,18 +279,21 @@ export function ChatPanel({
         markRead();
       }
     } catch (err) {
+      // AbortError terjadi saat komponen unmount — bukan error sebenarnya.
+      if (err instanceof DOMException && err.name === "AbortError") return;
       console.error("[chat] polling gagal:", err);
     }
   }, [projectId, scrollToBottom, myId, markRead]);
 
   useEffect(() => {
+    const controller = new AbortController();
     let timer: number | null = null;
     let cancelled = false;
 
     const tick = async () => {
       if (cancelled) return;
       if (document.visibilityState === "visible") {
-        await pollMessages();
+        await pollMessages(controller.signal);
       }
       if (!cancelled) timer = window.setTimeout(tick, 5000);
     };
@@ -298,12 +302,13 @@ export function ChatPanel({
     // Tab terlihat lagi: langsung fetch sekali (tanpa menunggu interval).
     const onVisibility = () => {
       if (document.visibilityState === "visible" && !cancelled) {
-        void pollMessages();
+        void pollMessages(controller.signal);
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
+      controller.abort();
       if (timer !== null) window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
