@@ -77,6 +77,7 @@ function ViewOnlyTaskRow({ task }: { task: MyTaskItem }) {
         {task.assignee ? (
           <>
             {task.assignee.avatarUrl?.trim() ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 className="h-6 w-6 rounded-full object-cover"
                 src={task.assignee.avatarUrl}

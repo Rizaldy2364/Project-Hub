@@ -33,23 +33,23 @@ export function ProjectStats({
       icon: FolderKanban,
       value: total,
       label: "Total Project",
-      description: "Yang kamu ikuti",
+      description: "Semua project yang kamu ikuti",
       iconClassName:
         "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300",
     },
     {
       icon: ShieldCheck,
       value: adminCount,
-      label: "Sebagai Admin",
-      description: "Project yang kamu kelola",
+      label: "Project yang Dibuat",
+      description: "Project yang dibuat oleh kamu",
       iconClassName:
         "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300",
     },
     {
       icon: UsersRound,
       value: memberCount,
-      label: "Sebagai Member",
-      description: "Diundang oleh admin lain",
+      label: "Project yang Diikuti",
+      description: "Project yang kamu ikuti",
       iconClassName:
         "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-300",
     },
@@ -57,7 +57,7 @@ export function ProjectStats({
       icon: CircleCheck,
       value: completedCount,
       label: "Project Selesai",
-      description: "Semua task rampung",
+      description: "Semua task yang selesai",
       iconClassName:
         "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300",
     },

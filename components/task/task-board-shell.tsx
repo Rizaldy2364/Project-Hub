@@ -61,12 +61,12 @@ export function TaskBoardShell({
 
   // --- Optimistic task list (single source of truth for both views) ---
   const [tasks, setTasks] = useState<BoardTask[]>(project.tasks);
+  const [prevProjectTasks, setPrevProjectTasks] = useState(project.tasks);
 
-  // --- Resync client tasks dari prop project saat prop berubah (mis. setelah
-  // router.refresh() dari aksi create/edit/delete di luar shell). ---
-  useEffect(() => {
+  if (project.tasks !== prevProjectTasks) {
+    setPrevProjectTasks(project.tasks);
     setTasks(project.tasks);
-  }, [project.tasks]);
+  }
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
@@ -90,39 +90,20 @@ export function TaskBoardShell({
     });
   }, [filteredTasks]);
 
-  // --- STATE PAGINASI ---
-  // Parse URL searchParams for page and pageSize
+  // --- STATE PAGINASI (diturunkan dari URL searchParams) ---
   const rawPage = searchParams.get("page");
   const rawPageSize = searchParams.get("pageSize");
 
-  // Validasi page dari URL
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<10 | 25 | 50>(10);
-
-  useEffect(() => {
-    if (rawPage !== null) {
-      const pageNum = Number.parseInt(rawPage, 10);
-      if (Number.isNaN(pageNum) || pageNum < 1) {
-        setPage(1);
-      } else {
-        setPage(pageNum);
-      }
-    } else {
-      setPage(1);
-    }
+  const page = useMemo(() => {
+    if (!rawPage) return 1;
+    const pageNum = Number.parseInt(rawPage, 10);
+    return Number.isNaN(pageNum) || pageNum < 1 ? 1 : pageNum;
   }, [rawPage]);
 
-  useEffect(() => {
-    if (rawPageSize !== null) {
-      const sizeNum = Number.parseInt(rawPageSize, 10);
-      if (sizeNum === 10 || sizeNum === 25 || sizeNum === 50) {
-        setPageSize(sizeNum as 10 | 25 | 50);
-      } else {
-        setPageSize(10);
-      }
-    } else {
-      setPageSize(10);
-    }
+  const pageSize: 10 | 25 | 50 = useMemo(() => {
+    if (!rawPageSize) return 10;
+    const sizeNum = Number.parseInt(rawPageSize, 10);
+    return sizeNum === 10 || sizeNum === 25 || sizeNum === 50 ? sizeNum : 10;
   }, [rawPageSize]);
 
   // --- Hitung total halaman dan mulai slicing ---
@@ -168,7 +149,6 @@ export function TaskBoardShell({
       labelId !== prevFilterRef.current.labelId
     ) {
       prevFilterRef.current = { search, memberId, labelId };
-      setPage(1);
       if (searchParams.get("page") && searchParams.get("page") !== "1") {
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.set("page", "1");

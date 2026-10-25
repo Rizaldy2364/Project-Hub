@@ -103,26 +103,29 @@ export function InboxView({
     await loadTab(nextTab);
   }
 
-  async function handleSelect(item: InboxNotification) {
-    setSelectedId(item.id);
-    setDetailOpen(true);
-    if (item.readAt) return;
-    // Optimistic update + rollback jika gagal.
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === item.id ? { ...i, readAt: new Date().toISOString() } : i
-      )
-    );
-    setCounts((prev) => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
-    const res = await markNotificationReadAction(item.id);
-    if ("error" in res) {
+  const handleSelect = useCallback(
+    async (item: InboxNotification) => {
+      setSelectedId(item.id);
+      setDetailOpen(true);
+      if (item.readAt) return;
+      // Optimistic update + rollback jika gagal.
       setItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, readAt: null } : i))
+        prev.map((i) =>
+          i.id === item.id ? { ...i, readAt: new Date().toISOString() } : i
+        )
       );
-      setCounts((prev) => ({ ...prev, unread: prev.unread + 1 }));
-    }
-    void refreshUnread(); // selaraskan badge lonceng/sidebar
-  }
+      setCounts((prev) => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
+      const res = await markNotificationReadAction(item.id);
+      if ("error" in res) {
+        setItems((prev) =>
+          prev.map((i) => (i.id === item.id ? { ...i, readAt: null } : i))
+        );
+        setCounts((prev) => ({ ...prev, unread: prev.unread + 1 }));
+      }
+      void refreshUnread(); // selaraskan badge lonceng/sidebar
+    },
+    [refreshUnread]
+  );
 
   async function handleLoadMore() {
     if (!nextCursor || loadingMore) return;
@@ -183,7 +186,7 @@ export function InboxView({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [items, selectedId, selected]);
+  }, [items, selectedId, selected, handleSelect]);
 
   function countFor(key: NotificationTabValue): number {
     return counts[key];

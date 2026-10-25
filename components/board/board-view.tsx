@@ -103,6 +103,7 @@ export function FilterSelect({ value, onChange, icon: Icon, label, options }: Fi
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        aria-label={label}
         className={cn(
           "h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-8 pr-3 text-xs font-semibold text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30",
           "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"

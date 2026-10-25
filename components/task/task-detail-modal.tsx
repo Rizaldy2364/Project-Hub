@@ -31,7 +31,6 @@ export function TaskDetailModal({
   task,
   canEdit,
   canDelete,
-  canComment,
   onOpenChange,
   currentUser,
   onTaskUpdated,
@@ -237,7 +236,7 @@ export function TaskDetailModal({
             )}
 
             {/* Actions */}
-            {canEdit && (
+            {(canEdit || canDelete) && (
               <div className="flex items-center justify-end gap-3 pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
                 {isEditing ? (
                   <>
@@ -260,20 +259,24 @@ export function TaskDetailModal({
                   </>
                 ) : (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => setIsDeleting(true)}
-                      className="px-5 py-2.5 rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                    >
-                      Hapus
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(true)}
-                      className="px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors"
-                    >
-                      Edit
-                    </button>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        onClick={() => setIsDeleting(true)}
+                        className="px-5 py-2.5 rounded-xl border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        Hapus
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors"
+                      >
+                        Edit
+                      </button>
+                    )}
                   </>
                 )}
               </div>

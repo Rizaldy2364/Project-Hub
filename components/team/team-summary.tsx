@@ -9,12 +9,6 @@ interface SummaryProps {
 
 const cards = [
   {
-    key: "total",
-    label: "Total Anggota",
-    icon: Users,
-    box: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/10 dark:text-[#8FAAFF]",
-  },
-  {
     key: "admin",
     label: "Admin",
     icon: Crown,
@@ -40,26 +34,32 @@ const cards = [
   },
 ] as const;
 
-/** Kartu ringkasan anggota: Total, Admin, Manager, Member, Viewer.
- * 2 kolom di layar kecil, 3+2 mulai lg (1024px), 5 kolom penuh mulai xl (1280px). */
+/** Kartu ringkasan anggota: Admin, Manager, Member, Viewer.
+ * 2 kolom di layar kecil, 2+2 mulai lg (1024px), 4 kolom penuh mulai xl (1280px). */
 export function TeamSummaryCards({ summary }: SummaryProps) {
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4">
       {cards.map(({ key, label, icon: Icon, box }) => (
         <div
           key={key}
-          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/[.08] dark:bg-[#131A2B]"
         >
-          <span
-            aria-hidden
-            className={`flex h-9 w-9 items-center justify-center rounded-lg ${box}`}
-          >
-            <Icon className="h-4 w-4" />
-          </span>
-          <p className="mt-3 text-xs text-slate-500 dark:text-[#8B96AD]">{label}</p>
-          <p className="mt-0.5 text-2xl font-bold text-slate-900 dark:text-[#E6EAF2]">
-            {summary[key]}
-          </p>
+          <div className="flex items-start gap-3">
+            <span
+              aria-hidden
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${box}`}
+            >
+              <Icon className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-lg font-bold text-slate-900 dark:text-white">
+                {summary[key]}
+              </p>
+              <p className="mt-1 text-xs font-medium text-slate-500 dark:text-[#8B96AD]">
+                {label}
+              </p>
+            </div>
+          </div>
         </div>
       ))}
     </div>

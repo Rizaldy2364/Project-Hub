@@ -3,8 +3,8 @@
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { InboxNotification } from "@/types";
-import { formatInboxTime, dueLabel } from "@/lib/inbox-format";
-import { isChatMention, projectDisplayName, TYPE_META, titleParts, subTitle } from "@/components/inbox/inbox-meta";
+import { formatInboxTime } from "@/lib/inbox-format";
+import { projectDisplayName, TYPE_META, titleParts, subTitle } from "@/components/inbox/inbox-meta";
 
 /**
  * Baris notifikasi yang dipakai di Inbox panel (halaman + bell dropdown).

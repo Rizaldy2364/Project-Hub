@@ -19,14 +19,12 @@ interface Tab {
  */
 export function ProjectTabs({
   projectId,
-  taskCount,
-  memberCount,
   unreadDiskusi,
   isAdmin,
 }: {
   projectId: string;
-  taskCount: number;
-  memberCount: number;
+  taskCount?: number;
+  memberCount?: number;
   unreadDiskusi: number;
   isAdmin?: boolean;
 }) {

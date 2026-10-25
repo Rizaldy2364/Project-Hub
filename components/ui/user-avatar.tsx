@@ -29,8 +29,8 @@ interface UserAvatarProps {
 
 export function UserAvatar({ name, image, size = "md", className }: UserAvatarProps) {
   if (image) {
-    // eslint-disable-next-line @next/next/no-img-element
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={image}
         alt={name ?? "Avatar"}

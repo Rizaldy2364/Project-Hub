@@ -27,10 +27,11 @@ export function MobileNav({ name, email, image }: MobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Otomatis tutup panel drawer saat navigasi/halaman berpindah
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setOpen(false);
-  }, [pathname]);
+  }
 
   // Kunci scroll body saat drawer terbuka di hp agar tidak terjadi scroll chaining ke halaman belakang
   useEffect(() => {
