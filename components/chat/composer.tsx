@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Send, Smile, X } from "lucide-react";
+import { Loader2, Paperclip, Send, Smile, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { EmojiPicker } from "@/components/chat/emoji-picker";
-import type { ChatMember, ChatMessage } from "@/types";
+import { useUploadThing } from "@/lib/uploadthing";
+import type { ChatAttachmentUpload, ChatMember, ChatMessage } from "@/types";
 
 interface ComposerProps {
   members: ChatMember[];
+  projectId: string;
   /** VIEWER: ganti pil dengan baris redup "hanya bisa melihat". */
   readOnly?: boolean;
   /** Sedang mengirim — spinner di dalam tombol kirim. */
@@ -17,8 +19,8 @@ interface ComposerProps {
   error: string | null;
   replyTo: ChatMessage | null;
   onCancelReply: () => void;
-  /** Terima konten yang token mention-nya sudah dikonversi `@[userId]`. */
-  onSend: (content: string) => void;
+  /** Terima konten + lampiran yang sudah diunggah. */
+  onSend: (content: string, attachments: ChatAttachmentUpload[]) => void;
 }
 
 interface PickedMention {
@@ -34,6 +36,7 @@ interface PickedMention {
  */
 export function Composer({
   members,
+  projectId,
   readOnly = false,
   disabled = false,
   error,
@@ -46,11 +49,33 @@ export function Composer({
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionIndex, setMentionIndex] = useState(0);
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachmentUpload[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   /** Wadah pil — radius diatur langsung (penuh saat 1 baris, ~22px multi). */
   const pillRef = useRef<HTMLDivElement>(null);
+
+  const { startUpload, isUploading } = useUploadThing("chatAttachment", {
+    onClientUploadComplete: (res) => {
+      const uploaded: ChatAttachmentUpload[] = (res ?? []).map((r) => ({
+        id: r.serverData!.attachmentId,
+        name: r.name,
+        url: r.url,
+        size: r.size,
+        mimeType: r.type,
+        isImage: /^image\/(png|jpeg|jpg|webp|gif)$/i.test(r.type),
+      }));
+      setPendingAttachments((prev) => [...prev, ...uploaded]);
+      setUploadError(null);
+    },
+    onUploadError: (err) => {
+      setUploadError(err?.message ?? "Gagal mengunggah file");
+    },
+  });
 
   const candidates =
     mentionQuery !== null
@@ -141,8 +166,8 @@ export function Composer({
   }
 
   function submit() {
-    const trimmed = text.trim();
-    if (!trimmed || disabled) return;
+    if (disabled || isUploading) return;
+    if (!text.trim() && pendingAttachments.length === 0) return;
     // Konversi "@Nama" yang pernah dipilih menjadi token `@[userId]`.
     // Nama terpanjang dulu agar "@Budi Santoso" tidak dipotong "@Budi".
     let content = text;
@@ -150,11 +175,12 @@ export function Composer({
       content = content.split(`@${m.name}`).join(`@[${m.id}]`);
     }
     content = content.trim();
-    if (!content) return;
-    onSend(content);
+    onSend(content, pendingAttachments);
     setText("");
     setPicked([]);
+    setPendingAttachments([]);
     setMentionQuery(null);
+    setUploadError(null);
     // Fokus kembali ke textarea komposer (mis. setelah kirim lewat klik tombol).
     requestAnimationFrame(() => textareaRef.current?.focus());
   }
@@ -188,7 +214,7 @@ export function Composer({
     }
   }
 
-  const canSend = text.trim().length > 0 && !disabled;
+  const canSend = (text.trim().length > 0 || pendingAttachments.length > 0) && !disabled && !isUploading;
 
   return (
     <div className="relative border-t border-slate-200 bg-white px-5 py-3.5 dark:border-white/[0.08] dark:bg-[#131A2B]">
@@ -250,6 +276,35 @@ export function Composer({
         </div>
       )}
 
+      {pendingAttachments.length > 0 && !readOnly && (
+        <div className="mb-2 flex flex-wrap gap-2">
+          {pendingAttachments.map((a) => (
+            <div
+              key={a.id}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-xs dark:border-white/[0.08] dark:bg-[#0F1524]"
+            >
+              <span className="max-w-[160px] truncate">{a.name}</span>
+              <button
+                type="button"
+                aria-label={`Hapus ${a.name}`}
+                onClick={() =>
+                  setPendingAttachments((prev) => prev.filter((x) => x.id !== a.id))
+                }
+                className="text-slate-400 hover:text-red-500"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {uploadError && (
+        <p role="alert" className="mb-2 text-xs text-red-600 dark:text-red-400">
+          {uploadError}
+        </p>
+      )}
+
       {readOnly ? (
         /* VIEWER: tanpa kolom input — chat tetap bisa dibaca. */
         <p className="py-2 text-center text-sm text-slate-500 dark:text-[#8B96AD]">
@@ -263,6 +318,34 @@ export function Composer({
             ref={pillRef}
             className="flex items-center min-w-0 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 transition-shadow focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-white/[0.08] dark:bg-[#0F1524]"
           >
+            {/* Tombol lampiran */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,text/plain,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/zip"
+              className="sr-only"
+              onChange={async (e) => {
+                const files = Array.from(e.target.files ?? []);
+                if (files.length === 0) return;
+                setUploadError(null);
+                await startUpload(files, { projectId });
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || disabled}
+              aria-label="Lampirkan file"
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-white/[0.5] hover:text-blue-600 dark:text-slate-400 dark:hover:bg-white/[0.08] dark:hover:text-[#8FAAFF] transition-colors disabled:opacity-50"
+            >
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Paperclip className="h-4 w-4" aria-hidden />
+              )}
+            </button>
             {/* Tombol emoji di pojok kiri pil input */}
             <span className="relative inline-block">
               <button

@@ -1,9 +1,11 @@
 import type { Prisma } from "@/app/generated/prisma/client";
 import type { ChatMessage, ProjectRole } from "@/types";
+import { toAttachmentDTO } from "./attachment.select";
 
 /**
  * Select eksplisit untuk Diskusi: pesan + penulis (dengan role-nya DI project
- * ini) + pratinjau balasan (replyTo). Field sensitif tidak ikut ter-expose.
+ * ini) + pratinjau balasan (replyTo) + lampiran. Field sensitif tidak ikut
+ * ter-expose.
  *
  * Karena role menempel di ProjectMember (bukan User), select ini dibuat per
  * project lewat `chatMessageSelectFor` agar role yang dikirim ke client adalah
@@ -37,6 +39,18 @@ export function chatMessageSelectFor(projectId: string) {
         deletedAt: true,
         createdAt: true,
         user: { select: { id: true, name: true, avatarUrl: true } },
+      },
+    },
+    attachments: {
+      where: { deletedAt: null },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        url: true,
+        size: true,
+        mimeType: true,
+        createdAt: true,
       },
     },
   } satisfies Prisma.ProjectMessageSelect;
@@ -81,5 +95,6 @@ export function toChatMessageDTO(row: ChatMessageRow): ChatMessage {
           createdAt: row.replyTo.createdAt.toISOString(),
         }
       : null,
+    attachments: (row.attachments ?? []).map(toAttachmentDTO),
   };
 }

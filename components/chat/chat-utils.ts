@@ -120,10 +120,33 @@ export function projectInitial(name: string): string {
 
 /** Teks pratinjau baris daftar: "Nama: pesan" (satu baris, ditangani CSS). */
 export function conversationPreview(
-  last: { authorName: string; text: string; kind: string; deleted: boolean } | null
+  last: {
+    authorName: string;
+    text: string;
+    kind: string;
+    deleted: boolean;
+    attachments?: { name: string; mimeType: string }[];
+  } | null
 ): string {
   if (!last) return "Belum ada pesan";
   if (last.kind === "SYSTEM" || last.deleted) return last.text;
+  // Pratinjau file-only (tanpa teks) — sesuai spec.
+  const attachments = last.attachments ?? [];
+  const hasText = last.text.trim().length > 0;
+  if (!hasText && attachments.length > 0) {
+    const imageCount = attachments.filter((a) =>
+      /^image\//i.test(a.mimeType)
+    ).length;
+    const fileCount = attachments.length - imageCount;
+    if (imageCount > 0 && fileCount === 0) {
+      return imageCount === 1 ? "Foto" : `${imageCount} foto`;
+    }
+    if (fileCount === 1 && imageCount === 0) {
+      return `Lampiran: ${attachments[0].name}`;
+    }
+    return `${attachments.length} lampiran`;
+  }
+  if (hasText) return `${last.authorName}: ${last.text}`;
   return `${last.authorName}: ${last.text}`;
 }
 

@@ -135,8 +135,14 @@ function ActivitySentence({ item }: { item: ActivityItem }) {
           {actor} berkomentar di task <Bold>{title ?? "task"}</Bold>
         </>
       );
-    case "FILE_UPLOADED":
-      return <>{actor} mengunggah file</>;
+    case "FILE_UPLOADED": {
+      const count = typeof item.meta?.count === "number" ? item.meta.count : null;
+      return (
+        <>
+          {actor} mengunggah {count !== null ? `${count} ` : ""}file di diskusi
+        </>
+      );
+    }
     case "MEMBER_JOINED":
       return (
         <>

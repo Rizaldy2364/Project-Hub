@@ -21,7 +21,7 @@ import {
   unpinMessageAction,
 } from "@/actions/message.actions";
 import { canDeleteChatMessage, canPinChatMessage } from "@/lib/permissions";
-import type { ChatMember, ChatMessage, ProjectRole } from "@/types";
+import type { ChatAttachmentUpload, ChatMember, ChatMessage, ProjectRole } from "@/types";
 
 interface InitialPayload {
   messages: ChatMessage[];
@@ -316,7 +316,11 @@ export function ChatPanel({
 
   // ===== Kirim pesan (optimistic + retry saat gagal) =====
   const sendChatMessage = useCallback(
-    async (content: string, retryReplyTo?: ChatMessage["replyTo"]) => {
+    async (
+      content: string,
+      attachments: ChatAttachmentUpload[] = [],
+      retryReplyTo?: ChatMessage["replyTo"]
+    ) => {
       if (sending) return;
       setSending(true);
       setSendError(null);
@@ -347,6 +351,14 @@ export function ChatPanel({
           role: myRole ?? "MEMBER",
         },
         replyTo: replySource,
+        attachments: attachments.map((a) => ({
+          id: a.id,
+          name: a.name,
+          url: a.url,
+          size: a.size,
+          mimeType: a.mimeType,
+          isImage: a.isImage,
+        })),
         pending: true,
       };
       setMessages((prev) => [...prev, optimistic]);
@@ -357,6 +369,9 @@ export function ChatPanel({
         projectId,
         content,
         ...(replySource ? { replyToId: replySource.id } : {}),
+        ...(attachments.length > 0
+          ? { attachmentIds: attachments.map((a) => a.id) }
+          : {}),
       });
       setSending(false);
 
@@ -387,7 +402,11 @@ export function ChatPanel({
     // Gagal → keluarkan bubble gagal, kirim ulang konten SAMA (composer tidak
     // disentuh, teks tidak hilang).
     setMessages((prev) => prev.filter((m) => m.id !== message.id));
-    await sendChatMessage(message.content, message.replyTo ?? undefined);
+    await sendChatMessage(
+      message.content,
+      message.attachments as ChatAttachmentUpload[],
+      message.replyTo ?? undefined
+    );
   }
 
   /** Buang bubble gagal dari daftar (tanpa dialog pemblokir). */
@@ -672,6 +691,10 @@ export function ChatPanel({
           <span className="min-w-0 flex-1 truncate text-xs text-slate-600 dark:text-slate-300">
             {pinned.deleted
               ? "Pesan ini dihapus"
+              : pinned.attachments && pinned.attachments.length > 0 && !pinned.content.trim()
+              ? pinned.attachments.length === 1 && pinned.attachments[0].isImage
+                ? "Foto"
+                : `${pinned.attachments.length} lampiran`
               : `${pinned.author.name}: ${pinned.content}`}
           </span>
         </button>
@@ -808,12 +831,27 @@ export function ChatPanel({
 
       <Composer
         members={members.filter((m) => m.id !== myId)}
+        projectId={projectId}
         readOnly={readOnly || myRole === "VIEWER"}
         disabled={sending}
         error={sendError}
         replyTo={replyTo}
         onCancelReply={() => setReplyTo(null)}
-        onSend={(content) => void sendChatMessage(content)}
+        onSend={(content, attachments) =>
+          void sendChatMessage(
+            content,
+            attachments,
+            replyTo
+              ? {
+                  id: replyTo.id,
+                  content: replyTo.content,
+                  deleted: replyTo.deleted,
+                  authorName: replyTo.author.name,
+                  createdAt: replyTo.createdAt,
+                }
+              : undefined
+          )
+        }
       />
     </div>
   );

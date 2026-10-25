@@ -1,18 +1,36 @@
 import { z } from "zod";
 
-/** Isi pesan Diskusi: trim, 1–2000 karakter, tolak hanya-whitespace. */
-const messageContentSchema = z
-  .string()
-  .trim()
-  .min(1, "Pesan tidak boleh kosong")
-  .max(2000, "Maksimal 2000 karakter")
-  .refine((value) => value.trim().length > 0, "Pesan tidak boleh kosong");
-
 export const sendMessageSchema = z.object({
   projectId: z.string().cuid(),
-  content: messageContentSchema,
+  content: z.string().optional(),
   replyToId: z.string().cuid().optional(),
-});
+  attachmentIds: z.array(z.string().cuid()).max(5, "Maksimal 5 lampiran").optional(),
+})
+  .refine(
+    (data) => {
+      // Jika tidak ada lampiran, konten wajib diisi dan tidak boleh hanya spasi.
+      if (!data.attachmentIds || data.attachmentIds.length === 0) {
+        return typeof data.content === "string" && data.content.trim().length > 0;
+      }
+      // Jika ada lampiran, konten boleh kosong (hanya lampiran).
+      return true;
+    },
+    {
+      message: "Konten atau minimal satu lampiran wajib diisi",
+      path: ["content"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Konten maksimal 2000 karakter bila diisi.
+      if (data.content && data.content.length > 2000) return false;
+      return true;
+    },
+    {
+      message: "Maksimal 2000 karakter",
+      path: ["content"],
+    }
+  );
 
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;
 
