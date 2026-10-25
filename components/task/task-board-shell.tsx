@@ -8,7 +8,7 @@ import { Pagination } from "@/components/team/team-pagination";
 import { BoardView, FilterSelect } from "@/components/board/board-view";
 import { TaskDetailModal } from "@/components/task/task-detail-modal";
 import { CreateTaskModal } from "@/components/task/create-task-modal";
-import { TaskViewToggle, TASK_VIEW_STORAGE_KEY, type TaskViewValue } from "@/components/task/task-view-toggle";
+import { TaskViewToggle, type TaskViewValue } from "@/components/task/task-view-toggle";
 import { planTaskDrop } from "@/components/task/board-dnd";
 import { Toast, useToast } from "@/components/ui/toast";
 import {
@@ -51,29 +51,8 @@ export function TaskBoardShell({
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // --- View persistence: URL -> localStorage -> "board" (after mount) ---
+  // --- View state (Board | Daftar) — sistem state murni seperti di dashboard ---
   const [view, setView] = useState<TaskViewValue>("board");
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    const urlView = searchParams.get("view");
-    const valid: TaskViewValue | null =
-      urlView === "board" || urlView === "list" ? urlView : null;
-    const saved =
-      valid ??
-      ((localStorage.getItem(TASK_VIEW_STORAGE_KEY) as TaskViewValue | null) ??
-        "board");
-    setView(saved);
-    localStorage.setItem(TASK_VIEW_STORAGE_KEY, saved);
-  }, [searchParams]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    if (searchParams.get("view") !== view) {
-      router.replace(pathname + "?view=" + view, { scroll: false });
-    }
-  }, [view, router, searchParams, pathname]);
 
   // --- Filters (shared by both views) ---
   const [search, setSearch] = useState("");

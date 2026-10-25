@@ -6,7 +6,7 @@ import { CalendarDays, Check, Clock, FileCheck, HelpCircle, Search } from "lucid
 import { TaskBoard } from "@/components/task/task-board";
 import { FilterSelect } from "@/components/board/board-view";
 import { PriorityBadge } from "@/components/tasks/priority-badge";
-import { TaskViewToggle, TASK_VIEW_STORAGE_KEY, type TaskViewValue } from "@/components/task/task-view-toggle";
+import { TaskViewToggle, type TaskViewValue } from "@/components/task/task-view-toggle";
 import { cn, formatDayMonthWib } from "@/lib/utils";
 import type { BoardTaskStatus, MyTaskItem, TaskPriorityValue } from "@/types";
 
@@ -407,27 +407,8 @@ export function ProjectTasksShell({
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // --- View persistence: URL (?view=board|list) -> localStorage -> "board" ---
+  // --- View state (Board | List) — sistem state murni seperti di dashboard ---
   const [view, setView] = useState<TaskViewValue>("board");
-
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    const urlView = searchParams.get("view");
-    const valid: TaskViewValue | null =
-      urlView === "board" || urlView === "list" ? urlView : null;
-    const saved =
-      valid ??
-      ((localStorage.getItem(TASK_VIEW_STORAGE_KEY) as TaskViewValue | null) ?? "board");
-    setView(saved);
-    localStorage.setItem(TASK_VIEW_STORAGE_KEY, saved);
-  }, [searchParams]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  useEffect(() => {
-    if (searchParams.get("view") !== view) {
-      router.replace(pathname + "?view=" + view, { scroll: false });
-    }
-  }, [view, router, searchParams, pathname]);
 
   // --- Filter (klien-side) ---
   const [search, setSearch] = useState("");
