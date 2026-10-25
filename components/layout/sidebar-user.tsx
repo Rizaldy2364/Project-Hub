@@ -18,8 +18,8 @@ export function SidebarUser({ name, email, image }: SidebarUserProps) {
   const profileActive = pathname.startsWith("/profile");
 
   return (
-    <div className="border-t border-slate-200 dark:border-slate-800">
-      <div className="flex items-center gap-3 px-4 py-4">
+    <div className="shrink-0 border-t border-slate-200 dark:border-slate-800">
+      <div className="flex items-center gap-3 px-4 py-3 sm:py-4">
         <UserAvatar name={name} image={image} className="rounded-xl" />
         <div className="min-w-0">
           <p className="truncate text-xs font-bold uppercase tracking-wide text-slate-900 dark:text-white">
@@ -31,7 +31,7 @@ export function SidebarUser({ name, email, image }: SidebarUserProps) {
         </div>
       </div>
 
-      <div className="px-4 pb-4 space-y-1">
+      <div className="px-4 pb-3 sm:pb-4 space-y-1">
         <Link
           href="/profile"
           className={cn(
