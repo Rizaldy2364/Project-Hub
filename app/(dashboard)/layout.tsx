@@ -4,11 +4,11 @@ import { FolderKanban } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { NotifBellDropdown } from "@/components/notifications/notif-bell";
 import { UnreadCountProvider } from "@/components/notifications/unread-provider";
-import { LogoutButton } from "@/components/layout/logout-button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { SidebarUser } from "@/components/layout/sidebar-user";
 import { TopBarSearch } from "@/components/search/topbar-search";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import { findProfileUserById } from "@/repositories/user.repository";
 
 export default async function DashboardLayout({
@@ -26,9 +26,14 @@ export default async function DashboardLayout({
       {/* Satu sumber kebenaran angka belum dibaca: lonceng top bar + badge Inbox. */}
       <UnreadCountProvider>
       {/* Top Navbar */}
-            <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 lg:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur">
+      <header className="sticky top-0 z-30 h-16 flex items-center justify-between px-4 lg:px-6 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur">
         <div className="flex items-center">
-          <Link href="/dashboard" className="flex items-center gap-2.5 w-[200px] shrink-0">
+          <MobileNav
+            name={user.name}
+            email={user.email}
+            image={"avatarUrl" in user ? user.avatarUrl : user.image}
+          />
+          <Link href="/dashboard" className="hidden lg:flex items-center gap-2.5 w-[200px] shrink-0">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
               <FolderKanban className="w-4 h-4 text-white" />
             </div>
@@ -46,8 +51,8 @@ export default async function DashboardLayout({
         <div className="flex items-center gap-4">
           <NotifBellDropdown />
 
-          {/* Fallback logout untuk layar kecil (sidebar disembunyikan di bawah lg) */}
-          <LogoutButton variant="icon" withLabel={false} className="lg:hidden" />
+
+
 
           <ThemeToggle />
         </div>
