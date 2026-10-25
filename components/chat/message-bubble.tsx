@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, File, Image as ImageIcon, Pin, PinOff, Reply, Trash2, X } from "lucide-react";
+import { Clock, File, Pin, PinOff, Reply, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { splitMentions } from "@/lib/mentions";
 import { formatChatTime, senderColorClass } from "@/components/chat/chat-utils";
@@ -238,6 +238,7 @@ export function MessageBubble({
                       onClick={() => setLightboxUrl(a.url)}
                       className="overflow-hidden rounded-lg"
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={a.url}
                         alt={a.name}
@@ -363,6 +364,7 @@ export function MessageBubble({
             >
               <X className="h-6 w-6" />
             </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={lightboxUrl}
               alt="Lampiran"

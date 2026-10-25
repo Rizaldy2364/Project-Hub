@@ -86,30 +86,28 @@ export function ReportKpiCards({ kpi }: ReportKpiCardsProps) {
       {cards.map((card) => (
         <div
           key={card.key}
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-white/[.08] dark:bg-[#131A2B]"
+          className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
         >
-          <div className="flex items-start gap-3">
-            <span
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-                card.iconClassName
-              )}
-              aria-hidden="true"
-            >
-              <card.icon className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-xl font-bold text-slate-950 dark:text-white">
-                {card.value}
-              </p>
-              <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
-                {card.label}
-              </p>
-            </div>
+          <span
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+              card.iconClassName
+            )}
+            aria-hidden="true"
+          >
+            <card.icon className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-2xl font-bold leading-none text-slate-950 dark:text-white">
+              {card.value}
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+              {card.label}
+            </p>
+            <p className={cn("mt-0.5 text-xs", card.subtitleClassName)}>
+              {card.subtitle}
+            </p>
           </div>
-          <p className={cn("mt-3 text-xs font-semibold", card.subtitleClassName)}>
-            {card.subtitle}
-          </p>
         </div>
       ))}
     </section>

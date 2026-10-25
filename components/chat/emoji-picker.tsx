@@ -138,7 +138,18 @@ export function EmojiPicker({
 }: EmojiPickerProps) {
   const [animateIn, setAnimateIn] = useState(false);
   const [activeCategory, setActiveCategory] = useState<EmojiTab>("terbaru");
-  const [recentEmojis, setRecentEmojis] = useState<string[]>(DEFAULT_RECENTS);
+  const [recentEmojis, setRecentEmojis] = useState<string[]>(() => {
+    return loadRecentEmojis();
+  });
+
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setRecentEmojis(loadRecentEmojis());
+      setAnimateIn(false);
+    }
+  }
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -156,14 +167,6 @@ export function EmojiPicker({
   const [isDraggingTabs, setIsDraggingTabs] = useState(false);
   const dragStartX = useRef(0);
   const dragScrollLeft = useRef(0);
-
-  // Muat riwayat emoji dari localStorage saat komponen dibuka.
-  // Fungsi loadRecentEmojis() otomatis mengecek apakah sudah lewat 7 hari
-  // dan mereset ke DEFAULT_RECENTS jika perlu.
-  useEffect(() => {
-    if (!open) return;
-    setRecentEmojis(loadRecentEmojis());
-  }, [open]);
 
   // Cek apakah tab bar bisa di-scroll ke kiri atau kanan
   const updateTabScrollButtons = useCallback(() => {
@@ -221,7 +224,11 @@ export function EmojiPicker({
 
   // Animasi saat card pertama kali dibuka
   useEffect(() => {
-    setAnimateIn(open);
+    if (!open) return;
+    const frame = requestAnimationFrame(() => {
+      setAnimateIn(true);
+    });
+    return () => cancelAnimationFrame(frame);
   }, [open]);
 
   // Bersihkan timeout saat unmount

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, FolderKanban, Users } from "lucide-react";
 import { cn } from "@/lib/utils";

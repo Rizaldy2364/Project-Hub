@@ -51,7 +51,6 @@ export function Composer({
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<ChatAttachmentUpload[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
