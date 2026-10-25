@@ -100,7 +100,7 @@ export function ProjectsExplorer({
   }[] = [
     { key: "ALL", label: "Semua Peran" },
     { key: "ADMIN", label: "Sebagai Admin" },
-    { key: "DEPUTY_ADMIN", label: "Sebagai Wakil Admin" },
+    { key: "DEPUTY_ADMIN", label: "Sebagai Manager" },
     { key: "MEMBER", label: "Sebagai Member" },
     { key: "VIEWER", label: "Sebagai Viewer" },
   ];
