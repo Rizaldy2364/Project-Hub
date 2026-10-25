@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Send, X } from "lucide-react";
+import { Loader2, Send, Smile, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { EmojiPicker } from "@/components/chat/emoji-picker";
 import type { ChatMember, ChatMessage } from "@/types";
 
 interface ComposerProps {
@@ -44,6 +45,8 @@ export function Composer({
   const [picked, setPicked] = useState<PickedMention[]>([]);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionIndex, setMentionIndex] = useState(0);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   /** Wadah pil — radius diatur langsung (penuh saat 1 baris, ~22px multi). */
@@ -117,6 +120,21 @@ export function Composer({
     // Kembalikan fokus + posisi kursor setelah nama.
     requestAnimationFrame(() => {
       const nextCaret = at + namePart.length;
+      el?.focus();
+      el?.setSelectionRange(nextCaret, nextCaret);
+    });
+  }
+
+  function insertEmoji(char: string) {
+    const el = textareaRef.current;
+    const caret = el?.selectionStart ?? text.length;
+    const upto = text.slice(0, caret);
+    const after = text.slice(caret);
+    setText(`${upto}${char}${after}`);
+    setIsEmojiPickerOpen(false);
+    // Kembalikan fokus dan posisi kursor setelah emoji.
+    requestAnimationFrame(() => {
+      const nextCaret = caret + char.length;
       el?.focus();
       el?.setSelectionRange(nextCaret, nextCaret);
     });
@@ -243,8 +261,35 @@ export function Composer({
               (radius ~22px). Tanpa scrollbar sampai batas maks. */}
           <div
             ref={pillRef}
-            className="min-w-0 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 transition-shadow focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-white/[0.08] dark:bg-[#0F1524]"
+            className="flex items-center min-w-0 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 transition-shadow focus-within:border-blue-500/50 focus-within:ring-2 focus-within:ring-blue-500/30 dark:border-white/[0.08] dark:bg-[#0F1524]"
           >
+            {/* Tombol emoji di pojok kiri pil input */}
+            <span className="relative inline-block">
+              <button
+                ref={emojiButtonRef}
+                type="button"
+                onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
+                aria-label="Emoji"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-600 hover:bg-white/[0.5] hover:text-blue-600 dark:text-slate-400 dark:hover:bg-white/[0.08] dark:hover:text-[#8FAAFF] transition-colors"
+              >
+                <Smile className="h-4 w-4" />
+              </button>
+              {/* Card emoji — diposisikan absolut di atas ikon emoji seperti di WhatsApp */}
+              {isEmojiPickerOpen && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="absolute bottom-full left-0 mb-3 w-[320px] max-w-[calc(100vw-2.5rem)] sm:w-[352px] z-50 pointer-events-auto"
+                >
+                  <EmojiPicker
+                    open={isEmojiPickerOpen}
+                    onClose={() => setIsEmojiPickerOpen(false)}
+                    onEmojiSelect={insertEmoji}
+                    triggerRef={emojiButtonRef}
+                  />
+                </div>
+              )}
+            </span>
             <textarea
               ref={textareaRef}
               value={text}
@@ -254,7 +299,7 @@ export function Composer({
               maxLength={2000}
               placeholder="Tulis pesan... ketik @ untuk menyebut anggota project"
               aria-label="Tulis pesan"
-              className="block w-full resize-none overflow-y-hidden bg-transparent text-sm leading-5 text-slate-900 outline-none placeholder:text-slate-400 focus-visible:outline-none dark:text-[#E6EAF2] dark:placeholder:text-[#8B96AD]"
+              className="flex-1 min-w-0 resize-none overflow-y-hidden bg-transparent text-sm leading-5 text-slate-900 outline-none placeholder:text-slate-400 focus-visible:outline-none dark:text-[#E6EAF2] dark:placeholder:text-[#8B96AD]"
             />
           </div>
           {/* Tombol kirim bulat terpisah (42px) — spinner saat mengirim,
