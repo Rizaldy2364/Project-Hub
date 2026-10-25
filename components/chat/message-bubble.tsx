@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, Pin, PinOff, Reply, Trash2 } from "lucide-react";
+import { Clock, File, Image as ImageIcon, Pin, PinOff, Reply, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { splitMentions } from "@/lib/mentions";
 import { formatChatTime, senderColorClass } from "@/components/chat/chat-utils";
@@ -56,6 +56,12 @@ function MessageContent({
   );
 }
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function MessageBubble({
   message,
   own,
@@ -72,6 +78,7 @@ export function MessageBubble({
   onDiscard,
 }: MessageBubbleProps) {
   const [hovered, setHovered] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Pesan terhapus: jejak "Pesan ini dihapus" tanpa isi, aksi disembunyikan.
   if (message.deleted) {
@@ -210,6 +217,73 @@ export function MessageBubble({
         )}
 
         <MessageContent content={message.content} members={members} />
+
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="mt-2 space-y-2">
+            {/* Gambar: grid 2 kolom */}
+            {message.attachments.some((a) => a.isImage) && (
+              <div className="grid grid-cols-2 gap-1.5">
+                {message.attachments
+                  .filter((a) => a.isImage)
+                  .map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => setLightboxUrl(a.url)}
+                      className="overflow-hidden rounded-lg"
+                    >
+                      <img
+                        src={a.url}
+                        alt={a.name}
+                        className="h-32 w-full object-cover"
+                        loading="lazy"
+                      />
+                    </button>
+                  ))}
+              </div>
+            )}
+            {/* File non-gambar */}
+            {message.attachments
+              .filter((a) => !a.isImage)
+              .map((a) => (
+                <a
+                  key={a.id}
+                  href={a.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+                >
+                  <File className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="min-w-0 flex-1 truncate">{a.name}</span>
+                  <span className="shrink-0 text-[10px] opacity-70">
+                    {formatFileSize(a.size)}
+                  </span>
+                </a>
+              ))}
+          </div>
+        )}
+
+        {lightboxUrl && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <button
+              type="button"
+              aria-label="Tutup"
+              className="absolute right-4 top-4 text-white"
+              onClick={() => setLightboxUrl(null)}
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <img
+              src={lightboxUrl}
+              alt="Lampiran"
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
 
         <span
           className={cn(

@@ -45,6 +45,7 @@ model User {
   notifications          Notification[] @relation("NotificationRecipient")
   triggeredNotifications Notification[] @relation("NotificationActor")
   activityLogs           ActivityLog[]
+  attachments            Attachment[]
 }
 
 enum Gender {
@@ -70,6 +71,7 @@ model Project {
   messages       ProjectMessage[]
   notifications  Notification[]
   activityLogs   ActivityLog[]
+  attachments    Attachment[]
 }
 
 model ProjectMember {
@@ -131,6 +133,7 @@ model Task {
 
   notifications Notification[]
   activityLogs  ActivityLog[]
+  attachments   Attachment[]
 
   @@index([completedAt])
   @@index([dueDate])
@@ -202,6 +205,7 @@ model ProjectMessage {
   replies   ProjectMessage[] @relation("MessageReply")
 
   notifications Notification[]
+  attachments Attachment[]
 
   @@index([projectId, createdAt])
 }
@@ -269,4 +273,30 @@ model ActivityLog {
 
   @@index([projectId, createdAt])
   @@index([userId, createdAt])
+}
+
+// ===================== Lampiran (chat dan task) =====================
+
+model Attachment {
+  id        String    @id @default(cuid())
+  name      String
+  url       String
+  key       String    // file key UploadThing (untuk penghapusan file)
+  size      Int       // byte
+  mimeType  String
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  projectId    String
+  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId       String?
+  task         Task?           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  messageId    String?
+  message      ProjectMessage? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploadedById String
+  uploadedBy   User            @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([taskId])
+  @@index([messageId])
 }

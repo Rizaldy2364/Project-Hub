@@ -273,6 +273,25 @@ export interface ChatReplyPreview {
   createdAt: string; // ISO string
 }
 
+/** Lampiran file yang aman dikirim ke client (tanpa key / uploadedById). */
+export interface AttachmentDTO {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  mimeType: string;
+  isImage: boolean;
+}
+
+export interface ChatAttachmentUpload {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  mimeType: string;
+  isImage: boolean;
+}
+
 export interface ChatMessage {
   id: string;
   kind: ChatMessageKindValue;
@@ -282,6 +301,8 @@ export interface ChatMessage {
   deleted: boolean;
   author: ChatAuthor;
   replyTo: ChatReplyPreview | null;
+  /** Lampiran file pada pesan (tidak termasuk yang sudah di-soft-delete). */
+  attachments: AttachmentDTO[];
   /** Optimistic: sedang dikirim (client-only). */
   pending?: boolean;
   /** Optimistic: gagal dikirim, bisa dicoba lagi (client-only). */
@@ -296,12 +317,15 @@ export interface ChatMember {
 }
 
 export interface DiscussionLastMessage {
+  id: string;
   authorName: string;
   /** Teks pratinjau (token mention sudah menjadi @Nama). */
   text: string;
   kind: ChatMessageKindValue;
   deleted: boolean;
   createdAt: string; // ISO string
+  /** Lampiran pesan terakhir (untuk pratinjau file-only). */
+  attachments: { name: string; mimeType: string }[];
 }
 
 export interface DiscussionSummaryItem {

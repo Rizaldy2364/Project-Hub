@@ -191,6 +191,7 @@ export async function findOthersMinLastReadAt(
 
 export interface DiscussionLastMessage {
   projectId: string;
+  id: string;
   content: string;
   kind: string; // "USER" | "SYSTEM"
   createdAt: Date;
@@ -229,10 +230,21 @@ export async function countUnreadChatByProject(
  */
 export async function findLastMessagePerProject(
   userId: string
-): Promise<DiscussionLastMessage[]> {
+): Promise<
+  {
+    projectId: string;
+    id: string;
+    content: string;
+    kind: string;
+    createdAt: Date;
+    deletedAt: Date | null;
+    authorName: string;
+  }[]
+> {
   return prisma.$queryRaw<
     {
       projectId: string;
+      id: string;
       content: string;
       kind: string;
       createdAt: Date;
@@ -242,6 +254,7 @@ export async function findLastMessagePerProject(
   >`
     SELECT DISTINCT ON (m."projectId")
       m."projectId" AS "projectId",
+      m."id" AS "id",
       m."content" AS "content",
       m."kind" AS "kind",
       m."createdAt" AS "createdAt",

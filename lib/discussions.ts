@@ -41,6 +41,22 @@ export async function getDiscussionSummaries(
 
   const lastByProject = new Map(lastMessages.map((m) => [m.projectId, m]));
 
+  // Lampiran pesan terakhir (untuk pratinjau file-only di daftar percakapan).
+  const lastMessageIds = lastMessages.map((m) => m.id);
+  const attachmentsByMessage = new Map<string, { name: string; mimeType: string }[]>();
+  if (lastMessageIds.length > 0) {
+    const rows = await prisma.attachment.findMany({
+      where: { messageId: { in: lastMessageIds }, deletedAt: null },
+      select: { messageId: true, name: true, mimeType: true },
+    });
+    for (const row of rows) {
+      if (!row.messageId) continue;
+      const arr = attachmentsByMessage.get(row.messageId) ?? [];
+      arr.push({ name: row.name, mimeType: row.mimeType });
+      attachmentsByMessage.set(row.messageId, arr);
+    }
+  }
+
   const items = projects.map<DiscussionSummaryItem>((project) => {
     const last = lastByProject.get(project.id);
     return {
@@ -48,6 +64,7 @@ export async function getDiscussionSummaries(
       name: project.name,
       lastMessage: last
         ? {
+            id: last.id,
             authorName: last.authorName,
             text:
               last.deletedAt !== null
@@ -56,6 +73,7 @@ export async function getDiscussionSummaries(
             kind: last.kind === "SYSTEM" ? "SYSTEM" : "USER",
             deleted: last.deletedAt !== null,
             createdAt: last.createdAt.toISOString(),
+            attachments: attachmentsByMessage.get(last.id) ?? [],
           }
         : null,
       unreadCount: unreadMap.get(project.id) ?? 0,
