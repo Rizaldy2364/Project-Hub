@@ -216,13 +216,19 @@ export function MessageBubble({
           </div>
         )}
 
-        <MessageContent content={message.content} members={members} />
-
+        {/* Lampiran (foto / file) ditampilkan di atas teks */}
         {message.attachments && message.attachments.length > 0 && (
-          <div className="mt-2 space-y-2">
-            {/* Gambar: grid 2 kolom */}
+          <div className="space-y-2">
+            {/* Gambar: 1 kolom bila hanya 1 gambar, atau 2 kolom bila lebih */}
             {message.attachments.some((a) => a.isImage) && (
-              <div className="grid grid-cols-2 gap-1.5">
+              <div
+                className={cn(
+                  "gap-1.5",
+                  message.attachments.filter((a) => a.isImage).length === 1
+                    ? "grid grid-cols-1"
+                    : "grid grid-cols-2"
+                )}
+              >
                 {message.attachments
                   .filter((a) => a.isImage)
                   .map((a) => (
@@ -235,7 +241,12 @@ export function MessageBubble({
                       <img
                         src={a.url}
                         alt={a.name}
-                        className="h-32 w-full object-cover"
+                        className={cn(
+                          "w-full object-cover",
+                          message.attachments.filter((a) => a.isImage).length === 1
+                            ? "max-h-60"
+                            : "h-32"
+                        )}
                         loading="lazy"
                       />
                     </button>
@@ -251,7 +262,12 @@ export function MessageBubble({
                   href={a.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-2.5 py-1.5 text-xs hover:bg-white/20"
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs transition-colors",
+                    own
+                      ? "border-white/20 bg-white/10 hover:bg-white/20 text-white"
+                      : "border-slate-200 bg-white/60 hover:bg-white text-slate-800 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-100"
+                  )}
                 >
                   <File className="h-4 w-4 shrink-0" aria-hidden />
                   <span className="min-w-0 flex-1 truncate">{a.name}</span>
@@ -260,6 +276,77 @@ export function MessageBubble({
                   </span>
                 </a>
               ))}
+          </div>
+        )}
+
+        {/* Teks pesan berada di bawah lampiran */}
+        {message.content && (
+          <div
+            className={cn(
+              message.attachments && message.attachments.length > 0 && "mt-1.5"
+            )}
+          >
+            <MessageContent content={message.content} members={members} />
+            <span
+              className={cn(
+                "ml-2 inline-flex translate-y-[2px] items-center gap-1 text-xs leading-none",
+                own ? "text-white/80" : "text-slate-400 dark:text-[#8B96AD]"
+              )}
+            >
+              {formatChatTime(message.createdAt)}
+              {own && message.kind === "USER" && message.pending && (
+                <span
+                  role="img"
+                  aria-label="Mengirim"
+                  className="inline-flex items-center gap-0.5"
+                >
+                  <Clock className="h-3.5 w-3.5" aria-hidden />
+                </span>
+              )}
+              {own && message.kind === "USER" && !message.pending && !message.failed && (
+                <span role="img" aria-label={readByOthers ? "Dibaca" : "Terkirim"}>
+                  {readByOthers ? "✓✓" : "✓"}
+                </span>
+              )}
+              {own && message.kind === "USER" && message.failed && (
+                <span role="img" aria-label="Gagal terkirim">
+                  !
+                </span>
+              )}
+            </span>
+          </div>
+        )}
+
+        {/* Timestamp jika pesan hanya berupa lampiran tanpa teks */}
+        {!message.content && (
+          <div className="mt-1 flex justify-end">
+            <span
+              className={cn(
+                "inline-flex items-center gap-1 text-xs leading-none",
+                own ? "text-white/80" : "text-slate-400 dark:text-[#8B96AD]"
+              )}
+            >
+              {formatChatTime(message.createdAt)}
+              {own && message.kind === "USER" && message.pending && (
+                <span
+                  role="img"
+                  aria-label="Mengirim"
+                  className="inline-flex items-center gap-0.5"
+                >
+                  <Clock className="h-3.5 w-3.5" aria-hidden />
+                </span>
+              )}
+              {own && message.kind === "USER" && !message.pending && !message.failed && (
+                <span role="img" aria-label={readByOthers ? "Dibaca" : "Terkirim"}>
+                  {readByOthers ? "✓✓" : "✓"}
+                </span>
+              )}
+              {own && message.kind === "USER" && message.failed && (
+                <span role="img" aria-label="Gagal terkirim">
+                  !
+                </span>
+              )}
+            </span>
           </div>
         )}
 
@@ -284,34 +371,6 @@ export function MessageBubble({
             />
           </div>
         )}
-
-        <span
-          className={cn(
-            "ml-2 inline-flex translate-y-[2px] items-center gap-1 text-xs leading-none",
-            own ? "text-white/80" : "text-slate-400 dark:text-[#8B96AD]"
-          )}
-        >
-          {formatChatTime(message.createdAt)}
-          {own && message.kind === "USER" && message.pending && (
-            <span
-              role="img"
-              aria-label="Mengirim"
-              className="inline-flex items-center gap-0.5"
-            >
-              <Clock className="h-3.5 w-3.5" aria-hidden />
-            </span>
-          )}
-          {own && message.kind === "USER" && !message.pending && !message.failed && (
-            <span role="img" aria-label={readByOthers ? "Dibaca" : "Terkirim"}>
-              {readByOthers ? "✓✓" : "✓"}
-            </span>
-          )}
-          {own && message.kind === "USER" && message.failed && (
-            <span role="img" aria-label="Gagal terkirim">
-              !
-            </span>
-          )}
-        </span>
         {message.failed && (
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs leading-none">
             <span role="alert" className="font-semibold text-red-600 dark:text-red-400">
