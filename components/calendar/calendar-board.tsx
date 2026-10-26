@@ -22,13 +22,6 @@ const viewTabs: { key: CalendarView; label: string }[] = [
   { key: "agenda", label: "Agenda" },
 ];
 
-/** Legenda warna status — mengikuti warna chip di kalender. */
-const legend: { label: string; className: string }[] = [
-  { label: "Belum", className: "bg-slate-400 dark:bg-slate-500" },
-  { label: "Dikerjakan", className: "bg-blue-500" },
-  { label: "Selesai", className: "bg-emerald-500" },
-];
-
 interface CalendarBoardProps {
   tasks: CalendarTask[];
   /** Opsi filter project (project yang diikuti user). */
@@ -158,22 +151,6 @@ export function CalendarBoard({ tasks, projects, activeProjectId, currentUser }:
           >
             ▾
           </span>
-        </div>
-
-        {/* Legenda status — menempel di pojok kanan, di samping filter member. */}
-        <div className="ml-auto flex flex-wrap items-center gap-4">
-          {legend.map(({ label, className }) => (
-            <span
-              key={label}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400"
-            >
-              <span
-                aria-hidden="true"
-                className={cn("h-2.5 w-2.5 rounded-sm", className)}
-              />
-              {label}
-            </span>
-          ))}
         </div>
       </div>
 

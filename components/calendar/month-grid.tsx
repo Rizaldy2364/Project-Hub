@@ -162,6 +162,50 @@ export function MonthGrid({ month, tasks, onSelectTask }: MonthGridProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Legenda warna status — hanya tampil di desktop, di bagian bawah kartu kalender. */}
+      <div className="hidden lg:flex flex-col items-center gap-3 pt-3 pb-4 border-t border-slate-100 dark:border-slate-800/60">
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {[
+            { label: "Belum", className: "bg-slate-400 dark:bg-slate-500" },
+            { label: "Dikerjakan", className: "bg-blue-500" },
+            { label: "Selesai", className: "bg-emerald-500" },
+          ].map(({ label, className }) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
+              <span
+                aria-hidden="true"
+                className={cn("h-2.5 w-2.5 rounded-sm", className)}
+              />
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Legenda warna status — hanya tampil di mobile, pojok kiri dalam kartu kalender. */}
+      <div className="flex lg:hidden flex-col items-start gap-2 pt-3 pb-4 border-t border-slate-100 dark:border-slate-800/60 px-3">
+        <div className="flex flex-wrap items-start gap-4">
+          {[
+            { label: "Belum", className: "bg-slate-400 dark:bg-slate-500" },
+            { label: "Dikerjakan", className: "bg-blue-500" },
+            { label: "Selesai", className: "bg-emerald-500" },
+          ].map(({ label, className }) => (
+            <span
+              key={label}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400"
+            >
+              <span
+                aria-hidden="true"
+                className={cn("h-2.5 w-2.5 rounded-sm", className)}
+              />
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
     </>
   );
 }

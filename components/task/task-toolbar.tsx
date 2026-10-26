@@ -37,7 +37,71 @@ export function TaskToolbar({
 }: TaskToolbarProps) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+      {/* Mobile: baris 1 toggle+search, baris 2 filter */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+          <div
+            role="group"
+            aria-label="Tampilan task"
+            className="inline-flex shrink-0 items-center self-start rounded-xl bg-slate-100 p-1 dark:bg-slate-800"
+          >
+            <ViewButton
+              active={view === "board"}
+              onClick={() => onViewChange("board")}
+              icon={<LayoutGrid className="h-3.5 w-3.5" aria-hidden />}
+              label="Board"
+              ariaLabel="Tampilan board"
+            />
+            <ViewButton
+              active={view === "list"}
+              onClick={() => onViewChange("list")}
+              icon={<List className="h-3.5 w-3.5" aria-hidden />}
+              label="Daftar"
+              ariaLabel="Tampilan daftar"
+            />
+          </div>
+          <label className="relative flex-1 min-w-0">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Cari task..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+            />
+            <span className="sr-only">Cari task</span>
+          </label>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <div className="min-w-0">
+            <FilterSelect
+              value={assignee}
+              onChange={onAssigneeChange}
+              icon={Users}
+              label="Assignee"
+              options={[
+                { value: "all", label: "Semua anggota" },
+                ...members.map((member) => ({ value: member.id, label: member.name })),
+              ]}
+            />
+          </div>
+          <div className="min-w-0">
+            <FilterSelect
+              value={label}
+              onChange={onLabelChange}
+              icon={Tag}
+              label="Label"
+              options={[
+                { value: "all", label: "Semua label" },
+                ...labels.map((item) => ({ value: item.id, label: `#${item.name}` })),
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop: satu baris (toggle, search, filter) */}
+      <div className="hidden sm:flex items-center gap-3">
         <div
           role="group"
           aria-label="Tampilan task"
@@ -58,7 +122,7 @@ export function TaskToolbar({
             ariaLabel="Tampilan daftar"
           />
         </div>
-        <label className="relative min-w-0 flex-1">
+        <label className="relative w-full min-w-[200px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={search}

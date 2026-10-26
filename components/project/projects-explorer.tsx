@@ -107,66 +107,22 @@ export function ProjectsExplorer({
 
   return (
     <section className="space-y-5">
-      {/* Toolbar: Pencarian di kiri (melebar penuh), filter peran/urut/tampilan di kanan */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        {/* Kiri: Search input melebar hingga bertemu filter role */}
-        <div className="relative flex-1 w-full">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-          />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari nama project..."
-            aria-label="Cari nama project"
-            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-          />
-        </div>
-
-        {/* Kanan: Filter Peran, Urutkan, & Switch View */}
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          {/* Filter Role (disamping kiri filter urutan project) */}
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-            <label htmlFor="project-role-filter" className="sr-only">
-              Filter peran
-            </label>
-            <div className="relative">
-              <select
-                id="project-role-filter"
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
-                className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-              >
-                {roleOptions.map((opt) => (
-                  <option key={opt.key} value={opt.key}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            </div>
+      {/* Toolbar: Mobile — baris 1 search+toggle, baris 2 filter */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        {/* Baris 1: Search (kiri) + Toggle (kanan) */}
+        <div className="flex items-center justify-between gap-3 w-full">
+          <div className="relative w-full min-w-[200px]">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+            />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari nama project..."
+              aria-label="Cari nama project"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+            />
           </div>
-
-          {/* Urutkan */}
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-            <label htmlFor="project-sort" className="sr-only">
-              Urutkan berdasarkan
-            </label>
-            <div className="relative">
-              <select
-                id="project-sort"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
-                className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
-              >
-                <option value="recent">Terbaru dibuat</option>
-                <option value="name">Nama A–Z</option>
-                <option value="progress">Progress tertinggi</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            </div>
-          </div>
-
           <div className="flex rounded-xl border border-slate-200 bg-white p-0.5 dark:border-slate-800 dark:bg-slate-900">
             {(
               [
@@ -192,6 +148,135 @@ export function ProjectsExplorer({
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Baris 2: Filter Role + Urutkan (bersebelahan, masing-masing penuh lebar) */}
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <div className="min-w-0">
+            {/* Filter Role */}
+            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <label htmlFor="project-role-filter" className="sr-only">
+                Filter peran
+              </label>
+              <div className="relative">
+                <select
+                  id="project-role-filter"
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
+                  className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {roleOptions.map((opt) => (
+                    <option key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            {/* Urutkan */}
+            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <label htmlFor="project-sort" className="sr-only">
+                Urutkan berdasarkan
+              </label>
+              <div className="relative">
+                <select
+                  id="project-sort"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortKey)}
+                  className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  <option value="recent">Terbaru dibuat</option>
+                  <option value="name">Nama A–Z</option>
+                  <option value="progress">Progress tertinggi</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Toolbar: Desktop — satu baris (search, filter, toggle) */}
+      <div className="hidden sm:flex items-center gap-3">
+        <div className="relative w-full min-w-[200px]">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+          />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Cari nama project..."
+            aria-label="Cari nama project"
+            className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+          />
+        </div>
+
+        {/* Filter Role */}
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <label htmlFor="project-role-filter-desktop" className="sr-only">
+            Filter peran
+          </label>
+          <div className="relative">
+            <select
+              id="project-role-filter-desktop"
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
+              className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            >
+              {roleOptions.map((opt) => (
+                <option key={opt.key} value={opt.key}>{opt.label}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          </div>
+        </div>
+
+        {/* Urutkan */}
+        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <label htmlFor="project-sort-desktop" className="sr-only">
+            Urutkan berdasarkan
+          </label>
+          <div className="relative">
+            <select
+              id="project-sort-desktop"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <option value="recent">Terbaru dibuat</option>
+              <option value="name">Nama A–Z</option>
+              <option value="progress">Progress tertinggi</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          </div>
+        </div>
+
+        <div className="flex rounded-xl border border-slate-200 bg-white p-0.5 dark:border-slate-800 dark:bg-slate-900">
+          {([
+            { key: "grid", icon: LayoutGrid, label: "Tampilan grid" },
+            { key: "list", icon: List, label: "Tampilan list" },
+          ] as const).map(({ key, icon: Icon, label }) => (
+            <button
+              key={key}
+              type="button"
+              title={label}
+              aria-label={label}
+              aria-pressed={view === key}
+              onClick={() => setView(key)}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                view === key
+                  ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+                  : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              )}
+            >
+              <Icon className="w-4 h-4" />
+            </button>
+          ))}
         </div>
       </div>
 

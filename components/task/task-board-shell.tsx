@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, User, Tag } from "lucide-react";
+import { Search, User, Tag, Menu } from "lucide-react";
 import { TaskBoard } from "@/components/task/task-board";
 import { Pagination } from "@/components/team/team-pagination";
 import { BoardView, FilterSelect } from "@/components/board/board-view";
@@ -353,10 +353,73 @@ export function TaskBoardShell({
 
   return (
     <div className="space-y-5">
-      {/* Toolbar satu baris: cari (flex-1) | anggota | label | toggle Board|Daftar.
-          Di bawah md: baris 1 cari full width, baris 2 filter + toggle. */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <label className="relative min-w-[200px] flex-1">
+      {/* Toolbar: Mobile — baris 1 search+toggle, baris 2 filter */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        {/* Baris 1: Search (kiri) + Toggle Board|Daftar (kanan) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+          <label className="relative flex-1 min-w-0">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              aria-hidden
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari task…"
+              aria-label="Cari task"
+              className={cn(
+                "h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-xs font-semibold text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30",
+                "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+              )}
+            />
+          </label>
+          <div className="flex-shrink-0 flex items-center gap-2">
+            <TaskViewToggle view={view} onChange={setView} />
+            <button
+              aria-label="Tampilan menu"
+              className="rounded-md p-2 text-slate-400 hover:text-white hover:bg-slate-700 dark:hover:bg-slate-800 transition-colors"
+            >
+              <Menu className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        </div>
+
+        {/* Baris 2: Filter Anggota + Label (bersebelahan, masing-masing penuh lebar) */}
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <div className="min-w-0">
+            <FilterSelect
+              value={memberId}
+              onChange={setMemberId}
+              icon={User}
+              label="Semua anggota"
+              options={[
+                { value: "", label: "Semua anggota" },
+                ...project.members.map((m) => ({
+                  value: m.id,
+                  label: m.name,
+                })),
+              ]}
+            />
+          </div>
+          <div className="min-w-0">
+            <FilterSelect
+              value={labelId}
+              onChange={setLabelId}
+              icon={Tag}
+              label="Semua label"
+              options={[
+                { value: "", label: "Semua label" },
+                ...project.labels.map((l) => ({ value: l.id, label: l.name })),
+              ]}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Toolbar: Desktop — satu baris (search, filter, toggle) */}
+      <div className="hidden sm:flex items-center gap-3">
+        <label className="relative w-full min-w-[200px]">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
             aria-hidden
@@ -373,32 +436,32 @@ export function TaskBoardShell({
             )}
           />
         </label>
-        <div className="flex flex-wrap items-center gap-2 md:ml-auto">
-          <FilterSelect
-            value={memberId}
-            onChange={setMemberId}
-            icon={User}
-            label="Semua anggota"
-            options={[
-              { value: "", label: "Semua anggota" },
-              ...project.members.map((m) => ({
-                value: m.id,
-                label: m.name,
-              })),
-            ]}
-          />
-          <FilterSelect
-            value={labelId}
-            onChange={setLabelId}
-            icon={Tag}
-            label="Semua label"
-            options={[
-              { value: "", label: "Semua label" },
-              ...project.labels.map((l) => ({ value: l.id, label: l.name })),
-            ]}
-          />
-          <TaskViewToggle view={view} onChange={setView} />
-        </div>
+
+        <FilterSelect
+          value={memberId}
+          onChange={setMemberId}
+          icon={User}
+          label="Semua anggota"
+          options={[
+            { value: "", label: "Semua anggota" },
+            ...project.members.map((m) => ({
+              value: m.id,
+              label: m.name,
+            })),
+          ]}
+        />
+        <FilterSelect
+          value={labelId}
+          onChange={setLabelId}
+          icon={Tag}
+          label="Semua label"
+          options={[
+            { value: "", label: "Semua label" },
+            ...project.labels.map((l) => ({ value: l.id, label: l.name })),
+          ]}
+        />
+
+        <TaskViewToggle view={view} onChange={setView} />
       </div>
 
       {/* Modal buat task (controlled) — dipicu kolom board / baris "Tambah
