@@ -1,7 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCheck, Inbox as InboxIcon } from "lucide-react";
+import {
+  CheckCheck,
+  ChevronDown,
+  ChevronUp,
+  Filter as FilterIcon,
+  Inbox as InboxIcon,
+  List,
+  Circle,
+  AtSign,
+  Check,
+  UserPlus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
   InboxNotification,
@@ -25,6 +36,14 @@ const TABS: { key: NotificationTabValue; label: string }[] = [
   { key: "task", label: "Tugas" },
   { key: "invite", label: "Undangan" },
 ];
+
+const TAB_ICONS: Record<NotificationTabValue, typeof List> = {
+  all: List,
+  unread: Circle,
+  mention: AtSign,
+  task: Check,
+  invite: UserPlus,
+};
 
 const EMPTY_MESSAGES: Record<NotificationTabValue, string> = {
   all: "Tidak ada notifikasi",
@@ -59,6 +78,7 @@ export function InboxView({
   const [error, setError] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   // Badge lonceng & sidebar memakai provider yang sama — segarkan setelah
   // notifikasi ditandai dibaca agar angka turun bersama.
@@ -222,7 +242,12 @@ export function InboxView({
           aria-label="Daftar notifikasi"
           className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900"
         >
-          <div role="tablist" aria-label="Filter notifikasi" className="flex flex-wrap gap-2">
+          {/* Desktop: horizontal tab pills */}
+          <div
+            className="hidden sm:flex flex-wrap gap-2"
+            role="tablist"
+            aria-label="Filter notifikasi"
+          >
             {TABS.map(({ key, label }) => (
               <button
                 key={key}
@@ -240,6 +265,64 @@ export function InboxView({
                 {label} <span className="opacity-80">{countFor(key)}</span>
               </button>
             ))}
+          </div>
+
+          {/* Mobile: filter dropdown button */}
+          <div className="sm:hidden">
+            <button
+              type="button"
+              onClick={() => setFilterOpen((prev) => !prev)}
+              aria-expanded={filterOpen}
+              aria-label="Filter notifikasi"
+              className="w-full flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800/50"
+            >
+              <div className="flex items-center gap-2">
+                <FilterIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span>Filter {TABS.find((t) => t.key === tab)?.label}</span>
+                <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-600 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                  {countFor(tab)}
+                </span>
+              </div>
+              {filterOpen ? (
+                <ChevronUp className="h-4 w-4 text-slate-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-slate-400" />
+              )}
+            </button>
+
+            {/* Mobile: filter options column */}
+            {filterOpen && (
+              <div className="mt-2 space-y-1 rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                {TABS.map(({ key, label }) => {
+                  const Icon = TAB_ICONS[key];
+                  const isSelected = tab === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      role="tab"
+                      aria-selected={isSelected}
+                      onClick={() => {
+                        void handleTab(key);
+                        setFilterOpen(false);
+                      }}
+                      className={cn(
+                        "w-full flex items-center justify-between gap-3 px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                        isSelected
+                          ? "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400"
+                          : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/50"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span>{label}</span>
+                      </div>
+                      <span className="text-xs opacity-70">{countFor(key)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {error && (
