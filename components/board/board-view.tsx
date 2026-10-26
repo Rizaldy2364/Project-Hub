@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Search } from "lucide-react";
+import { ChevronDown, Plus, Search } from "lucide-react";
 import { TaskRow } from "@/components/board/task-row";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -96,23 +96,23 @@ export interface FilterSelectProps {
 export function FilterSelect({ value, onChange, icon: Icon, label, options }: FilterSelectProps) {
   return (
     <label className="relative shrink-0">
-      <Icon
-        className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
-        aria-hidden
-      />
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
         aria-label={label}
         className={cn(
-          "h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-8 pr-3 text-xs font-semibold text-slate-600 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30",
-          "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+          "appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30",
+          "dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
         )}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
       </select>
+      <ChevronDown
+        className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+        aria-hidden
+      />
     </label>
   );
 }

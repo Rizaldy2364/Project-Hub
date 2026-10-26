@@ -555,9 +555,57 @@ export function ProjectTasksShell({
         overdueTasks={overdueTasks}
       />
 
-      {/* ---- Toolbar: pencarian kiri (memanjang), filter + toggle kanan ---- */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative flex-1 w-full">
+      {/* ---- Toolbar: Mobile — baris 1 search+toggle, baris 2 filter ---- */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        {/* Baris 1: Search (kiri) + Toggle Board|Daftar (kanan) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 w-full">
+          <div className="relative flex-1 min-w-0">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              aria-hidden
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari project..."
+              aria-label="Cari project"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+            />
+          </div>
+          <div className="flex-shrink-0">
+            <TaskViewToggle view={view} onChange={setView} />
+          </div>
+        </div>
+
+        {/* Baris 2: Filter Project + Status (bersebelahan, masing-masing penuh lebar) */}
+        <div className="grid grid-cols-2 gap-3 w-full">
+          <div className="min-w-0">
+            <FilterSelect
+              value={projectFilter}
+              onChange={setProjectFilter}
+              icon={Search}
+              label="Semua project"
+              options={projectOptions}
+            />
+          </div>
+          <div className="min-w-0">
+            <FilterSelect
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value as BoardTaskStatus | "ALL")}
+              label="Semua status"
+              icon={Search}
+              options={STATUS_OPTIONS.map((o) => ({
+                value: o.key,
+                label: o.label,
+              }))}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* ---- Toolbar: Desktop — satu baris (search, filter, toggle) ---- */}
+      <div className="hidden sm:flex items-center gap-3">
+        <div className="relative w-full min-w-[200px]">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
             aria-hidden
@@ -570,26 +618,24 @@ export function ProjectTasksShell({
             className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterSelect
-            value={projectFilter}
-            onChange={setProjectFilter}
-            icon={Search}
-            label="Semua project"
-            options={projectOptions}
-          />
-          <FilterSelect
-            value={statusFilter}
-            onChange={(value) => setStatusFilter(value as BoardTaskStatus | "ALL")}
-            label="Semua status"
-            icon={Search}
-            options={STATUS_OPTIONS.map((o) => ({
-              value: o.key,
-              label: o.label,
-            }))}
-          />
-          <TaskViewToggle view={view} onChange={setView} />
-        </div>
+        <FilterSelect
+          value={projectFilter}
+          onChange={setProjectFilter}
+          icon={Search}
+          label="Semua project"
+          options={projectOptions}
+        />
+        <FilterSelect
+          value={statusFilter}
+          onChange={(value) => setStatusFilter(value as BoardTaskStatus | "ALL")}
+          label="Semua status"
+          icon={Search}
+          options={STATUS_OPTIONS.map((o) => ({
+            value: o.key,
+            label: o.label,
+          }))}
+        />
+        <TaskViewToggle view={view} onChange={setView} />
       </div>
 
       {view === "board" ? (
