@@ -106,21 +106,36 @@ export function MemberCard({
         <MemberIdentity member={member} isSelf={isSelf} onViewProfile={onViewProfile} />
         <span className="ml-auto shrink-0">{menu}</span>
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-        <span
-          className={cn(
-            "inline-flex rounded-md px-2.5 py-1 font-bold",
-            ROLE_META[member.role].badge
-          )}
-        >
-          {ROLE_META[member.role].label}
-        </span>
-        <span className="text-slate-500 dark:text-[#8B96AD]">
-          {member.activeTaskCount} task aktif
-        </span>
-        <span className="text-slate-400 dark:text-[#8B96AD]">
-          • {formatJoinedAt(member.joinedAt)}
-        </span>
+      <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+        <div>
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#8B96AD]">
+            Peran
+          </span>
+          <span
+            className={cn(
+              "mt-1 inline-flex rounded-md px-2.5 py-1 font-bold",
+              ROLE_META[member.role].badge
+            )}
+          >
+            {ROLE_META[member.role].label}
+          </span>
+        </div>
+        <div>
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#8B96AD]">
+            Task Aktif
+          </span>
+          <span className="mt-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            {member.activeTaskCount}
+          </span>
+        </div>
+        <div>
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#8B96AD]">
+            Bergabung
+          </span>
+          <span className="mt-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            {formatJoinedAt(member.joinedAt)}
+          </span>
+        </div>
       </div>
     </div>
   );

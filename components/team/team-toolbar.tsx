@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Search } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Search } from "lucide-react";
 import type {
   TeamProjectOption,
   TeamRoleFilter,
@@ -39,9 +39,12 @@ export interface TeamToolbarProps {
 
 export function TeamToolbar(p: TeamToolbarProps) {
   const showProjectDropdown = p.showProjectDropdown !== false;
+  const currentSortLabel =
+    SORT_OPTIONS.find((o) => o.value === p.sort)?.label ?? "Peran";
+
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-      {/* Kiri: Pencarian nama atau email */}
+      {/* Baris 1: Pencarian */}
       <div className="relative flex-1">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
@@ -53,10 +56,10 @@ export function TeamToolbar(p: TeamToolbarProps) {
         />
       </div>
 
-      {/* Kanan: Filter Project, Filter Peran, dan Urutkan */}
-      <div className="flex flex-wrap items-center gap-3 shrink-0">
+      {/* Baris 2: Project + Peran (+ Sort hanya desktop) */}
+      <div className="grid grid-cols-2 gap-3 lg:flex lg:flex-wrap lg:items-center lg:shrink-0">
         {showProjectDropdown ? (
-          <div className="relative">
+          <div className="relative min-w-0">
             <label htmlFor="team-project-select" className="sr-only">
               Pilih project
             </label>
@@ -65,7 +68,7 @@ export function TeamToolbar(p: TeamToolbarProps) {
               value={p.projectId}
               onChange={(e) => p.pushQuery({ project: e.target.value, page: "1" })}
               aria-label="Pilih project"
-              className="h-10 appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-9 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+              className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-9 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
             >
               {p.projects.map((proj) => (
                 <option key={proj.id} value={proj.id}>
@@ -78,7 +81,7 @@ export function TeamToolbar(p: TeamToolbarProps) {
         ) : null}
 
         {/* Filter Peran */}
-        <div className="relative">
+        <div className="relative min-w-0">
           <label htmlFor="team-role-filter" className="sr-only">
             Filter peran
           </label>
@@ -92,7 +95,7 @@ export function TeamToolbar(p: TeamToolbarProps) {
               })
             }
             aria-label="Filter peran"
-            className="h-10 appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-9 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-3 pr-9 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
           >
             {ROLE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -103,8 +106,8 @@ export function TeamToolbar(p: TeamToolbarProps) {
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         </div>
 
-        {/* Urutkan */}
-        <div className="relative">
+        {/* Urutkan — desktop: dropdown inline */}
+        <div className="relative hidden lg:block">
           <label htmlFor="team-sort-select" className="sr-only">
             Urutkan anggota
           </label>
@@ -123,6 +126,28 @@ export function TeamToolbar(p: TeamToolbarProps) {
           </select>
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         </div>
+      </div>
+
+      {/* Baris 3 (mobile only): Urutkan — select dengan ikon ArrowUpDown */}
+      <div className="relative lg:hidden">
+        <label htmlFor="team-sort-select-mobile" className="sr-only">
+          Urutkan anggota
+        </label>
+        <ArrowUpDown className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-400" />
+        <select
+          id="team-sort-select-mobile"
+          value={p.sort}
+          onChange={(e) => p.pushQuery({ sort: e.target.value, page: "1" })}
+          aria-label="Urutkan anggota"
+          className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+        >
+          {SORT_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
       </div>
     </div>
   );
