@@ -60,7 +60,8 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
             {project.description || "Belum ada deskripsi"}
           </p>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          {/* Role, Status, & Kode gabung (kode di samping kanan status) */}
+          <div className="mt-2.5 flex items-center gap-2">
             <span
               className={cn(
                 "px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide",
@@ -80,9 +81,7 @@ export function ProjectCard({ project, view }: ProjectCardProps) {
               {status.label}
             </span>
             {project.joinCode && (
-              <div className="ml-1">
-                <CopyCodeButton code={project.joinCode} />
-              </div>
+              <CopyCodeButton code={project.joinCode} />
             )}
           </div>
         </div>
