@@ -78,7 +78,7 @@ export default async function LaporanPage({ searchParams }: LaporanPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6">
+    <div className="mx-auto max-w-[1400px] space-y-4 sm:space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Laporan</h1>
@@ -86,13 +86,15 @@ export default async function LaporanPage({ searchParams }: LaporanPageProps) {
             Ringkasan progres, beban kerja, dan produktivitas tim.
           </p>
         </div>
-        <ReportToolbar
-          project={filters.project}
-          member={filters.member}
-          range={filters.range}
-          projects={projects}
-          members={members}
-        />
+        <div className="hidden sm:block">
+          <ReportToolbar
+            project={filters.project}
+            member={filters.member}
+            range={filters.range}
+            projects={projects}
+            members={members}
+          />
+        </div>
       </div>
 
       {error || !data ? (
@@ -110,6 +112,16 @@ export default async function LaporanPage({ searchParams }: LaporanPageProps) {
       ) : (
         <>
           <ReportKpiCards kpi={data.kpi} />
+
+          <div className="sm:hidden">
+            <ReportToolbar
+              project={filters.project}
+              member={filters.member}
+              range={filters.range}
+              projects={projects}
+              members={members}
+            />
+          </div>
 
           {/* Baris 2 — grafik mingguan (2fr) + distribusi status (1fr) */}
           <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
