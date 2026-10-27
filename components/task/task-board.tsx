@@ -118,7 +118,7 @@ export function TaskBoard({
       <div
         id="dnd-board-container"
         aria-label="Papan task"
-        className="grid gap-4 md:grid-cols-3 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:overflow-x-auto max-md:pb-2"
+        className="grid gap-4 md:grid-cols-3 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:touch-pan-x max-md:overflow-x-auto max-md:overscroll-x-contain max-md:pb-2"
       >
         {COLUMNS.map(({ status, title }) => (
           <BoardColumn

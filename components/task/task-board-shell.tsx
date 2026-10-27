@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Search, User, Tag, Menu } from "lucide-react";
+import { Search, User, Tag } from "lucide-react";
 import { TaskBoard } from "@/components/task/task-board";
 import { Pagination } from "@/components/team/team-pagination";
 import { BoardView, FilterSelect } from "@/components/board/board-view";
@@ -374,20 +374,14 @@ export function TaskBoardShell({
               )}
             />
           </label>
-          <div className="flex-shrink-0 flex items-center gap-2">
+          <div className="flex-shrink-0">
             <TaskViewToggle view={view} onChange={setView} />
-            <button
-              aria-label="Tampilan menu"
-              className="rounded-md p-2 text-slate-400 hover:text-white hover:bg-slate-700 dark:hover:bg-slate-800 transition-colors"
-            >
-              <Menu className="h-4 w-4" aria-hidden />
-            </button>
           </div>
         </div>
 
         {/* Baris 2: Filter Anggota + Label (bersebelahan, masing-masing penuh lebar) */}
         <div className="grid grid-cols-2 gap-3 w-full">
-          <div className="min-w-0">
+          <div className="min-w-0 [&_label]:w-full [&_select]:w-full">
             <FilterSelect
               value={memberId}
               onChange={setMemberId}
@@ -402,7 +396,7 @@ export function TaskBoardShell({
               ]}
             />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 [&_label]:w-full [&_select]:w-full">
             <FilterSelect
               value={labelId}
               onChange={setLabelId}

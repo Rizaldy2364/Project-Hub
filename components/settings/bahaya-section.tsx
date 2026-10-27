@@ -93,7 +93,7 @@ export function BahayaSection({
           "overflow-hidden rounded-[16px] border border-red-500/[0.35] bg-white shadow-sm dark:bg-[#131A2B]"
         )}
       >
-        <header className="px-7 py-[22px] bg-red-500/[0.05] border-b border-red-500/[0.25]">
+        <header className="border-b border-red-500/[0.25] bg-red-500/[0.05] px-4 py-[22px] sm:px-7">
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 rounded-[12px] bg-red-500/[0.14] flex items-center justify-center shrink-0">
               <AlertTriangle className="h-5 w-5 text-red-400" aria-hidden="true" />
@@ -109,7 +109,7 @@ export function BahayaSection({
           </div>
         </header>
 
-        <div className="px-7 py-[26px]">
+        <div className="px-4 py-[26px] sm:px-7">
           <div
             className={cn(
               "flex items-center justify-between gap-10",

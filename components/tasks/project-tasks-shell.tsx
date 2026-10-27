@@ -100,7 +100,8 @@ function ViewOnlyTaskRow({ task }: { task: MyTaskItem }) {
         )}
       </div>
 
-      <div className="col-start-2 md:col-start-auto">
+      <div className="col-start-2 flex flex-wrap items-center gap-2 md:contents">
+        <div className="md:col-start-auto">
         <PriorityBadge value={task.priority as TaskPriorityValue} />
       </div>
 
@@ -124,6 +125,7 @@ function ViewOnlyTaskRow({ task }: { task: MyTaskItem }) {
         >
           {status.label}
         </span>
+      </div>
       </div>
     </div>
   );
@@ -317,16 +319,16 @@ function ListViewPanel({
       {/* Footer pagination — anak terakhir card. */}
       <div
         className={cn(
-          "border-t border-slate-100 bg-transparent px-6 py-4 flex items-center justify-between gap-4",
+          "flex items-center justify-between gap-4 border-t border-slate-100 bg-transparent px-3 py-3 sm:px-6 sm:py-4",
           "dark:border-[rgba(255,255,255,.08)]"
         )}
       >
-        <p className="text-[13px] text-slate-500 dark:text-slate-400">
+        <p className="hidden text-[13px] text-slate-500 sm:block dark:text-slate-400">
           {totalTasks === 0
             ? "Tidak ada task"
             : `Menampilkan ${from}–${to} dari ${totalTasks} task`}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-1.5 sm:w-auto sm:gap-2">
           <label className="relative inline-flex items-center">
             <select
               value={String(pageSize)}
@@ -336,7 +338,7 @@ function ListViewPanel({
               }}
               aria-label="Jumlah per halaman"
               className={cn(
-                "h-10 rounded-xl appearance-none pl-3 pr-8 text-[13px] font-medium outline-none",
+                "h-9 w-[142px] appearance-none rounded-xl pl-3 pr-8 text-xs font-medium outline-none sm:h-10 sm:w-auto sm:text-[13px]",
                 "border border-slate-200 bg-white text-slate-700",
                 "dark:border-[rgba(255,255,255,.12)] dark:bg-slate-900 dark:text-slate-200",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#3B66EE]"
@@ -355,7 +357,7 @@ function ListViewPanel({
             onClick={() => pushQuery({ page: String(safePage - 1) })}
             aria-label="Halaman sebelumnya"
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl",
+              "ml-auto flex h-9 w-9 items-center justify-center rounded-xl sm:ml-0 sm:h-10 sm:w-10",
               "border border-slate-200 bg-transparent text-slate-600",
               "dark:border-[rgba(255,255,255,.12)] dark:text-slate-400",
               "transition-colors",
@@ -370,7 +372,7 @@ function ListViewPanel({
           </button>
           <div
             aria-label={`Halaman ${safePage} dari ${totalPages}`}
-            className="h-10 w-10 rounded-xl bg-[#3B66EE] flex items-center justify-center text-sm font-semibold text-white"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#3B66EE] text-xs font-semibold text-white sm:h-10 sm:w-10 sm:text-sm"
           >
             {safePage}
           </div>
@@ -380,7 +382,7 @@ function ListViewPanel({
             onClick={() => pushQuery({ page: String(safePage + 1) })}
             aria-label="Halaman berikutnya"
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl",
+              "flex h-9 w-9 items-center justify-center rounded-xl sm:h-10 sm:w-10",
               "border border-slate-200 bg-transparent text-slate-600",
               "dark:border-[rgba(255,255,255,.12)] dark:text-slate-400",
               "transition-colors",
@@ -577,9 +579,9 @@ export function ProjectTasksShell({
           </div>
         </div>
 
-        {/* Baris 2: Filter Project + Status (bersebelahan, masing-masing penuh lebar) */}
-        <div className="grid grid-cols-2 gap-3 w-full">
-          <div className="min-w-0">
+        {/* Baris 2: Filter Project + Status, masing-masing mengisi setengah baris. */}
+        <div className="grid w-full grid-cols-2 gap-3">
+          <div className="min-w-0 [&_label]:w-full [&_select]:w-full">
             <FilterSelect
               value={projectFilter}
               onChange={setProjectFilter}
@@ -588,7 +590,7 @@ export function ProjectTasksShell({
               options={projectOptions}
             />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 [&_label]:w-full [&_select]:w-full">
             <FilterSelect
               value={statusFilter}
               onChange={(value) => setStatusFilter(value as BoardTaskStatus | "ALL")}

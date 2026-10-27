@@ -95,7 +95,7 @@ export interface FilterSelectProps {
 
 export function FilterSelect({ value, onChange, icon: Icon, label, options }: FilterSelectProps) {
   return (
-    <label className="relative shrink-0">
+    <label className="relative block shrink-0">
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}

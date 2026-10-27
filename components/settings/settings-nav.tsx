@@ -121,11 +121,11 @@ export function SettingsNav() {
   return (
     <nav
       aria-label="Bagian pengaturan"
-      className="sticky top-16 z-20 -mx-4 bg-slate-50/95 px-4 py-2 backdrop-blur dark:bg-slate-950/95 lg:top-20 lg:z-auto lg:mx-0 lg:self-start lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none"
+      className="sticky top-16 z-20 -mx-4 w-[calc(100%+2rem)] min-w-0 bg-slate-50/95 px-4 py-2 backdrop-blur dark:bg-slate-950/95 lg:top-20 lg:z-auto lg:mx-0 lg:w-auto lg:self-start lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none"
     >
       <div
         ref={pillsRef}
-        className="scrollbar-hide flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-1 lg:overflow-visible lg:rounded-2xl lg:border lg:border-slate-200 lg:bg-white lg:p-2 lg:pb-2 lg:shadow-sm dark:lg:border-white/[0.08] dark:lg:bg-[#131A2B]"
+        className="scrollbar-hide flex w-full min-w-0 touch-pan-x gap-2 overflow-x-scroll overscroll-x-contain pb-1 lg:block lg:space-y-1 lg:overflow-visible lg:rounded-2xl lg:border lg:border-slate-200 lg:bg-white lg:p-2 lg:pb-2 lg:shadow-sm dark:lg:border-white/[0.08] dark:lg:bg-[#131A2B]"
       >
         {SETTINGS_SECTIONS.map((section) => {
           const Icon = section.icon;

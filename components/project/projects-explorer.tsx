@@ -154,16 +154,16 @@ export function ProjectsExplorer({
         <div className="grid grid-cols-2 gap-3 w-full">
           <div className="min-w-0">
             {/* Filter Role */}
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <div className="flex w-full items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <label htmlFor="project-role-filter" className="sr-only">
                 Filter peran
               </label>
-              <div className="relative">
+              <div className="relative w-full">
                 <select
                   id="project-role-filter"
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
-                  className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                  className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
                 >
                   {roleOptions.map((opt) => (
                     <option key={opt.key} value={opt.key}>
@@ -178,16 +178,16 @@ export function ProjectsExplorer({
 
           <div className="min-w-0">
             {/* Urutkan */}
-            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <div className="flex w-full items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <label htmlFor="project-sort" className="sr-only">
                 Urutkan berdasarkan
               </label>
-              <div className="relative">
+              <div className="relative w-full">
                 <select
                   id="project-sort"
                   value={sort}
                   onChange={(e) => setSort(e.target.value as SortKey)}
-                  className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                  className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
                 >
                   <option value="recent">Terbaru dibuat</option>
                   <option value="name">Nama A–Z</option>

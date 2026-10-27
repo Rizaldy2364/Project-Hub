@@ -66,7 +66,7 @@ export default async function PengaturanPage({
     // sticky di bawah navbar; kolom kanan = tumpukan semua section card.
     // Padding bawah membuat section terakhir (Zona berbahaya) tetap bisa
     // di-scroll sampai judulnya menyentuh offset sticky.
-    <div className="grid items-start gap-6 lg:grid-cols-[240px_1fr]">
+    <div className="grid min-w-0 max-w-full grid-cols-[minmax(0,1fr)] items-start gap-6 overflow-x-clip lg:grid-cols-[240px_minmax(0,1fr)]">
       <SettingsNav />
 
       <div className="min-w-0 space-y-6 pb-[max(0px,calc(100dvh_-_124px_-_200px))] lg:pb-[max(0px,calc(100dvh_-_80px_-_200px))]">
