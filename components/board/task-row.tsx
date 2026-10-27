@@ -87,7 +87,7 @@ export function TaskRow({ task, onClick }: TaskRowProps) {
           type="button"
           onClick={(event) => { event.stopPropagation(); onClick(); }}
           aria-label={`Lihat detail task ${task.title}`}
-          className="hidden rounded-lg bg-slate-100 px-3.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200 hover:text-slate-900 md:inline-flex dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
+          className="order-5 ml-auto inline-flex rounded-lg bg-slate-100 px-3.5 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200 hover:text-slate-900 md:order-none md:ml-0 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
         >
           Detail
         </button>

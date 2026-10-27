@@ -106,6 +106,30 @@ export function TeamToolbar(p: TeamToolbarProps) {
           <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         </div>
 
+        {/* Di tab anggota project, Peran dan Urutkan berbagi satu baris mobile. */}
+        {!showProjectDropdown ? (
+          <div className="relative min-w-0 lg:hidden">
+            <label htmlFor="team-sort-select-mobile-inline" className="sr-only">
+              Urutkan anggota
+            </label>
+            <ArrowUpDown className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <select
+              id="team-sort-select-mobile-inline"
+              value={p.sort}
+              onChange={(e) => p.pushQuery({ sort: e.target.value, page: "1" })}
+              aria-label="Urutkan anggota"
+              className="h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+            >
+              {SORT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          </div>
+        ) : null}
+
         {/* Urutkan — desktop: dropdown inline */}
         <div className="relative hidden lg:block">
           <label htmlFor="team-sort-select" className="sr-only">
@@ -129,6 +153,7 @@ export function TeamToolbar(p: TeamToolbarProps) {
       </div>
 
       {/* Baris 3 (mobile only): Urutkan — select dengan ikon ArrowUpDown */}
+      {showProjectDropdown ? (
       <div className="relative lg:hidden">
         <label htmlFor="team-sort-select-mobile" className="sr-only">
           Urutkan anggota
@@ -149,6 +174,7 @@ export function TeamToolbar(p: TeamToolbarProps) {
         </select>
         <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
       </div>
+      ) : null}
     </div>
   );
 }
