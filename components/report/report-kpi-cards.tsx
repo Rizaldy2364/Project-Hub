@@ -81,30 +81,30 @@ export function ReportKpiCards({ kpi }: ReportKpiCardsProps) {
   return (
     <section
       aria-label="Ringkasan laporan"
-      className="grid grid-cols-2 gap-4 xl:grid-cols-4"
+      className="grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4"
     >
       {cards.map((card) => (
         <div
           key={card.key}
-          className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-colors hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
+          className="grid grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-x-2 gap-y-1 rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm transition-colors hover:border-blue-300 sm:flex sm:items-start sm:gap-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
         >
           <span
             className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 sm:rounded-xl",
               card.iconClassName
             )}
             aria-hidden="true"
           >
-            <card.icon className="h-5 w-5" />
+            <card.icon className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
           </span>
-          <div className="min-w-0">
-            <p className="text-2xl font-bold leading-none text-slate-950 dark:text-white">
+          <div className="contents sm:block sm:min-w-0">
+            <p className="text-xl font-bold leading-none text-slate-950 dark:text-white sm:text-2xl">
               {card.value}
             </p>
-            <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+            <p className="col-span-2 mt-0 text-[10px] font-semibold leading-tight text-slate-800 sm:mt-2 sm:text-sm dark:text-slate-100">
               {card.label}
             </p>
-            <p className={cn("mt-0.5 text-xs", card.subtitleClassName)}>
+            <p className={cn("col-span-2 mt-0 text-[9px] leading-tight sm:mt-0.5 sm:text-xs", card.subtitleClassName)}>
               {card.subtitle}
             </p>
           </div>
