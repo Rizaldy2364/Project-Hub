@@ -94,7 +94,10 @@ export function TaskDetailModal({
 
   return (
     <Dialog open onOpenChange={(val: boolean) => { if (!val) onOpenChange(false); }}>
-      <DialogContent title={isEditing ? "Edit Task" : "Detail task"}>
+      <DialogContent
+        title={isEditing ? "Edit Task" : "Detail task"}
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto p-4 sm:p-6"
+      >
         {isDeleting ? (
           <div className="py-6 text-center space-y-4">
             <div className="w-16 h-16 bg-red-100 dark:bg-red-500/10 text-red-600 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -125,7 +128,7 @@ export function TaskDetailModal({
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {isEditing ? (
               <div className="space-y-4">
                 <div>
@@ -167,13 +170,13 @@ export function TaskDetailModal({
                   ))}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{task.title}</h3>
+                  <h3 className="break-words text-xl font-bold text-slate-900 dark:text-slate-100">{task.title}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
                     {task.description || "Belum ada deskripsi."}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-y-5 gap-x-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <div className="grid grid-cols-1 gap-x-4 gap-y-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-2 sm:gap-y-5 sm:p-5 dark:border-slate-800 dark:bg-slate-800/40">
                   <div>
                     <span className="block mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</span>
                     <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-200/50 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -192,7 +195,7 @@ export function TaskDetailModal({
                       {task.priority === "HIGH" ? "Tinggi" : task.priority === "LOW" ? "Rendah" : "Sedang"}
                     </span>
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <span className="block mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assignee</span>
                     <div className="flex items-center gap-3">
                       {task.assignee ? (
@@ -237,7 +240,7 @@ export function TaskDetailModal({
 
             {/* Actions */}
             {(canEdit || canDelete) && (
-              <div className="flex items-center justify-end gap-3 pt-4 mt-6 border-t border-slate-100 dark:border-slate-800">
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
                 {isEditing ? (
                   <>
                     <button

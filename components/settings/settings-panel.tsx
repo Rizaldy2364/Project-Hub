@@ -34,7 +34,7 @@ export function SettingsPanel({
       id={id}
       aria-labelledby={`${id}-title`}
       className={cn(
-        "flex scroll-mt-[124px] flex-col rounded-2xl border bg-white shadow-sm lg:scroll-mt-20 dark:bg-[#131A2B]",
+        "flex w-full min-w-0 max-w-full scroll-mt-[124px] flex-col overflow-hidden rounded-2xl border bg-white shadow-sm lg:scroll-mt-20 dark:bg-[#131A2B]",
         danger
           ? "border-red-500/35"
           : "border-slate-200 dark:border-white/[0.08]"
@@ -42,7 +42,7 @@ export function SettingsPanel({
     >
       <header
         className={cn(
-          "flex flex-wrap items-start justify-between gap-3 rounded-t-2xl border-b border-slate-200 px-7 py-5 dark:border-white/[0.08]",
+          "flex flex-wrap items-start justify-between gap-3 rounded-t-2xl border-b border-slate-200 px-4 py-5 sm:px-7 dark:border-white/[0.08]",
           danger && "bg-red-500/[0.04]"
         )}
       >
@@ -58,7 +58,7 @@ export function SettingsPanel({
           >
             {title}
           </h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-[#8B96AD]">
+          <p className="mt-1 break-words text-sm text-slate-500 dark:text-[#8B96AD]">
             {description}
           </p>
         </div>
@@ -66,7 +66,7 @@ export function SettingsPanel({
       </header>
       <div className="flex-1">{children}</div>
       {footer && (
-        <footer className="flex items-center justify-end gap-3 rounded-b-2xl border-t border-slate-200 px-7 py-4 dark:border-white/[0.08]">
+        <footer className="flex flex-wrap items-center justify-end gap-3 rounded-b-2xl border-t border-slate-200 px-4 py-4 sm:px-7 dark:border-white/[0.08]">
           {footer}
         </footer>
       )}
@@ -94,7 +94,7 @@ export function SettingRow({
   return (
     <div
       className={cn(
-        "grid grid-cols-1 gap-6 border-b border-slate-100 px-7 py-5 last:border-b-0 md:grid-cols-[240px_1fr] dark:border-white/[0.06]",
+        "grid min-w-0 grid-cols-1 gap-4 border-b border-slate-100 px-4 py-5 last:border-b-0 sm:px-7 md:grid-cols-[240px_1fr] md:gap-6 dark:border-white/[0.06]",
         className
       )}
     >

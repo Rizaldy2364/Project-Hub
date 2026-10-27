@@ -69,7 +69,7 @@ export function LabelSection({ projectId, labels }: LabelSectionProps) {
           persis seperti di kartu task, jumlah task, aksi edit/hapus). */}
       <div>
         {labels.map((label) => (
-          <div key={label.id} className="flex h-14 items-center gap-3 border-b border-slate-100 px-7 last:border-b-0 hover:bg-slate-50 dark:border-white/[0.06] dark:hover:bg-[#1B2438]/50">
+          <div key={label.id} className="flex h-14 min-w-0 items-center gap-3 border-b border-slate-100 px-4 last:border-b-0 hover:bg-slate-50 sm:px-7 dark:border-white/[0.06] dark:hover:bg-[#1B2438]/50">
             <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: label.color }} aria-hidden="true" />
             <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900 dark:text-[#E6EAF2]">{label.name}</span>
             <span className="hidden shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold sm:inline-block" style={{ backgroundColor: `${label.color}1a`, color: label.color }}>#{label.name}</span>
@@ -81,7 +81,7 @@ export function LabelSection({ projectId, labels }: LabelSectionProps) {
           </div>
         ))}
         {labels.length === 0 && (
-          <div className="px-7 py-8 text-center text-sm text-slate-500 dark:text-[#8B96AD]">Belum ada label. Klik <span className="font-semibold text-blue-600 dark:text-blue-400">Label baru</span> untuk menambahkan.</div>
+          <div className="px-4 py-8 text-center text-sm text-slate-500 sm:px-7 dark:text-[#8B96AD]">Belum ada label. Klik <span className="font-semibold text-blue-600 dark:text-blue-400">Label baru</span> untuk menambahkan.</div>
         )}
       </div>
 

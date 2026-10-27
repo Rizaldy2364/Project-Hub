@@ -58,7 +58,7 @@ const ROLE_ORDER: ProjectRole[] = ["ADMIN", "MANAGER", "MEMBER", "VIEWER"];
 export function PeranSection({ roles }: PeranSectionProps) {
   return (
     <SettingsPanel id="peran-izin" title="Peran dan izin" description="Ringkasan jumlah anggota per peran di project ini. Ubah peran anggota melalui tab Anggota.">
-      <div className="grid grid-cols-1 gap-3 px-7 py-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 px-4 py-5 sm:grid-cols-2 sm:px-7 lg:grid-cols-4">
         {ROLE_ORDER.map((key) => {
           const info = ROLE_INFO[key];
           const count = roles.find((r) => r.role === key)?.count ?? 0;
