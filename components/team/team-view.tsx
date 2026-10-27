@@ -205,7 +205,7 @@ export function TeamView(props: TeamViewProps) {
     <div className="space-y-5">
       <TeamHeader compact={props.showProjectDropdown === false} />
 
-      <TeamSummaryCards summary={summary} />
+      {props.showProjectDropdown !== false && <TeamSummaryCards summary={summary} />}
 
       <TeamTableCard
         projects={props.projects}
