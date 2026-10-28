@@ -56,15 +56,16 @@ export async function loginAction(formData: FormData) {
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/dashboard",
+      redirect: false,
     });
   } catch (error) {
     if (error instanceof AuthError) {
       return { error: "Email atau password salah" };
     }
-    // NEXT_REDIRECT — biarkan menyebar (berarti login sukses, redirect ke /dashboard)
     throw error;
   }
+
+  return { success: true };
 }
 
 // UPDATE PROFILE

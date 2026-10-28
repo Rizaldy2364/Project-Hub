@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { loginAction } from "@/actions/user.actions";
+import { LoginToast } from "@/components/auth/login-toast";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,15 +22,19 @@ export default function LoginPage() {
     const result = await loginAction(formData);
     setIsSubmitting(false);
 
-    // Jika result ada (berarti ada error), tampilkan.
-    // Jika result undefined (sukses), loginAction sudah melempar NEXT_REDIRECT.
     if (result?.error) {
       setError(result.error);
+      return;
     }
+
+    router.push("/dashboard?toast=Selamat%20datang!%20Akun%20kamu%20sudah%20berhasil%20terdaftar.");
   }
 
   return (
     <div className="flex flex-col justify-center">
+      <Suspense fallback={null}>
+        <LoginToast />
+      </Suspense>
       <h1 className="text-4xl font-semibold text-slate-900 dark:text-white mb-2">
         Selamat Datang Kembali
       </h1>
