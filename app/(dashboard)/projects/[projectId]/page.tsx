@@ -59,8 +59,7 @@ export default async function ProjectRingkasanPage({
   ]);
 
   const upcoming = calendarRows
-    .filter((task) => task.status !== "DONE" && task.dueDate)
-    .slice(0, 3);
+    .filter((task) => task.status !== "DONE" && task.dueDate);
 
   const recentActivities = activityRows.slice(0, 5).map(toActivityItem);
 
@@ -93,7 +92,7 @@ export default async function ProjectRingkasanPage({
                 Tidak ada tenggat dekat
               </p>
             ) : (
-              <ul className="mt-4 space-y-3">
+              <div className="mt-4 max-h-[320px] space-y-3 overflow-y-auto">
                 {upcoming.map((task) => {
                   const diff = wibDayDiff(new Date(), new Date(task.dueDate!));
                   const overdue = diff < 0;
@@ -103,43 +102,44 @@ export default async function ProjectRingkasanPage({
                       ? "Jatuh tempo hari ini"
                       : `${diff} hari lagi`;
                   return (
-                    <li key={task.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                          {task.title}
-                        </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <div
+                      key={task.id}
+                      className="rounded-xl border border-slate-200 bg-slate-50 p-3 transition-colors hover:border-blue-200 hover:bg-slate-100 dark:border-slate-700 dark:bg-[#131A2B] dark:hover:border-blue-500/30 dark:hover:bg-[#1B2438]"
+                    >
+                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                        {task.title}
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${STATUS_DOT[task.status]}`}
+                        >
+                          {STATUS_LABEL[task.status]}
+                        </span>
+                        {task.labels.slice(0, 2).map((label) => (
                           <span
-                            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${STATUS_DOT[task.status]}`}
+                            key={label.id}
+                            className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold"
+                            style={{ backgroundColor: `${label.color}1a`, color: label.color }}
                           >
-                            {STATUS_LABEL[task.status]}
+                            #{label.name}
                           </span>
-                          {task.labels.slice(0, 2).map((label) => (
-                            <span
-                              key={label.id}
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold"
-                              style={{ backgroundColor: `${label.color}1a`, color: label.color }}
-                            >
-                              #{label.name}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="mt-2 flex items-center gap-2 text-xs">
-                          {task.assignee ? (
-                            <UserAvatar name={task.assignee.name} image={task.assignee.avatarUrl} size="sm" />
-                          ) : null}
-                          <span className={`text-sm font-medium ${overdue ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400"}`}>
-                            {dueLabel}
-                          </span>
-                          <span className="text-slate-500 dark:text-slate-400">
-                            {formatDayMonthWib(new Date(task.dueDate!))}
-                          </span>
-                        </div>
+                        ))}
                       </div>
-                    </li>
+                      <div className="mt-2 flex items-center gap-2 text-xs">
+                        {task.assignee ? (
+                          <UserAvatar name={task.assignee.name} image={task.assignee.avatarUrl} size="sm" />
+                        ) : null}
+                        <span className={`text-sm font-medium ${overdue ? "text-red-600 dark:text-red-400" : "text-amber-600 dark:text-amber-400"}`}>
+                          {dueLabel}
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400">
+                          {formatDayMonthWib(new Date(task.dueDate!))}
+                        </span>
+                      </div>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             )}
           </section>
 
