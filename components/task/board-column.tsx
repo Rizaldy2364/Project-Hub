@@ -48,7 +48,7 @@ export function BoardColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex min-h-24 flex-col gap-2 overflow-y-auto rounded-xl p-1 md:max-h-[calc(100vh-22rem)]",
+          "flex min-h-24 flex-col gap-2 overflow-y-auto rounded-xl p-1 md:max-h-[calc(100vh-22rem)] max-md:max-h-[460px]",
           isOver && "bg-blue-500/10 outline-2 outline-dashed outline-blue-500/50"
         )}
       >

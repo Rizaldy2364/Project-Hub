@@ -61,8 +61,13 @@ export function MobileNav({ name, email, image }: MobileNavProps) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
             <FolderKanban className="h-4 w-4 text-white" />
           </div>
-          <span className="font-semibold text-slate-900 dark:text-white">
-            ProjectHub
+          <span className="flex flex-col">
+            <span className="font-semibold text-slate-900 dark:text-white">
+              ProjectHub
+            </span>
+            <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500">
+              Klik logo
+            </span>
           </span>
         </button>
       </DialogPrimitive.Trigger>

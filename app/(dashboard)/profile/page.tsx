@@ -1,6 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { getProfileProjectMetrics } from "@/repositories/project.repository";
 import { findProfileUserById } from "@/repositories/user.repository";
@@ -19,13 +17,6 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-5">
-      <Link
-        href="/dashboard"
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Dashboard
-      </Link>
       <ProfileHeaderCard
         name={user.name}
         email={user.email}
