@@ -32,18 +32,17 @@ export function Pagination(p: PaginationProps) {
           "dark:border-[rgba(255,255,255,.08)]"
         )}
       >
-        {/* Desktop: teks ringkasan */}
-        <p
-          aria-live="polite"
-          className="hidden text-[13px] text-slate-500 lg:block dark:text-slate-400 mb-3"
-        >
-          {kosong
-            ? `Tidak ada ${p.label}`
-            : `Menampilkan ${p.from}–${p.to} dari ${p.total} ${p.label}`}
-        </p>
-
-        {/* Kontrol pagination: page-size kiri, navigasi kanan */}
-        <div className="flex items-center justify-between gap-3">
+        {/* Kontrol pagination: ringkasan kiri, kontrol kanan (desktop) */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <p
+            aria-live="polite"
+            className="text-[13px] text-slate-500 dark:text-slate-400 lg:block hidden"
+          >
+            {kosong
+              ? `Tidak ada ${p.label}`
+              : `Menampilkan ${p.from}–${p.to} dari ${p.total} ${p.label}`}
+          </p>
+          <div className="flex items-center justify-between gap-3 lg:justify-end lg:gap-2">
           <label className="relative inline-flex items-center">
             <select
               value={String(p.pageSize)}
@@ -112,6 +111,7 @@ export function Pagination(p: PaginationProps) {
           </div>
         </div>
       </div>
+    </div>
     </nav>
   );
 }
