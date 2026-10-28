@@ -35,7 +35,7 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/login");
+    router.push("/login?toast=Yeay%2C%20akun%20kamu%20siap!%20Yuk%20login%20sekarang.");
   }
 
   return (

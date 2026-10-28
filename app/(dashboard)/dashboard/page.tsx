@@ -10,11 +10,19 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { ActivityChart } from "@/components/dashboard/activity-chart";
 import { ProjectsExplorer } from "@/components/project/projects-explorer";
+import { DashboardToast } from "@/components/dashboard/dashboard-toast";
 
-export default async function DashboardPage() {
+type Search = { toast?: string };
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Search>;
+}) {
   const session = await auth();
   if (!session) redirect("/login");
   const userId = session.user.id;
+  const params = await searchParams;
 
   const [projects, assigned, teammates, activity] = await Promise.all([
     findDashboardProjectsByUserId(userId),
@@ -25,6 +33,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <DashboardToast toastMessage={params.toast} />
       <DashboardHeader name={session.user.name ?? "Teman"} />
 
       <div className="space-y-6">
